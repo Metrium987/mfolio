@@ -5,29 +5,31 @@ import { action, query } from "./_generated/server";
 /**
  * Default owner credentials so the project works out of the box when it is
  * self-hosted / integrated into the owner's own GitHub repository. Idempotent:
- * it only creates the account the first time.
+ * it only creates the account the first time — and never again once the owner
+ * changes the credentials from the dashboard settings.
  *
- * SECURITY: these are public, well-known credentials — change the password
- * after the first login (the Password provider supports the "reset" flow).
+ * SECURITY: these are public, well-known credentials — change them from
+ * Paramètres → Sécurité du compte after the first login.
  */
 export const DEFAULT_ADMIN_EMAIL = "admin@admin.com";
 export const DEFAULT_ADMIN_PASSWORD = "admin123";
 
-export const hasAdminUser = query({
+/** True once ANY password account exists (i.e. the owner provisioned or changed theirs). */
+export const hasPasswordAccount = query({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("email", (q) => q.eq("email", DEFAULT_ADMIN_EMAIL))
-      .unique();
-    return existing !== null;
+    const account = await ctx.db
+      .query("authAccounts")
+      .withIndex("providerAndAccountId", (q) => q.eq("provider", "password"))
+      .first();
+    return account !== null;
   },
 });
 
 export const ensureAdmin = action({
   args: {},
   handler: async (ctx) => {
-    const exists = await ctx.runQuery(api.ensureAdmin.hasAdminUser);
+    const exists = await ctx.runQuery(api.ensureAdmin.hasPasswordAccount);
     if (exists) {
       return { created: false };
     }

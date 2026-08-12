@@ -439,6 +439,123 @@ function IntegrationsCard({
 }
 
 // ---------------------------------------------------------------------------
+// Account security — change the owner login email / password
+// ---------------------------------------------------------------------------
+
+function SecurityCard() {
+  const account = useQuery(api.credentials.getPasswordAccount);
+  const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
+  const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (account) setEmail(account.email);
+  }, [account?.email]);
+
+  const saveEmail = async () => {
+    const value = email.trim();
+    if (!value) return;
+    setSavingEmail(true);
+    try {
+      await updateAdminEmail({ newEmail: value });
+      toast.success("Email de connexion mis à jour");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+      );
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const savePassword = async () => {
+    if (password.length < 8) return;
+    setSavingPassword(true);
+    try {
+      await updateAdminPassword({ newPassword: password });
+      setPassword("");
+      toast.success("Mot de passe mis à jour");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+      );
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="kicker">Sécurité du compte</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Identifiants de connexion du propriétaire (email + mot de passe).
+        </p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium">Email de connexion</label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="admin@admin.com"
+            className="bg-background"
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            L'email utilisé pour se connecter avec le mot de passe.
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium">
+            Nouveau mot de passe
+          </label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            className="bg-background"
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            8 caractères minimum. Laissez vide pour ne rien changer.
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => void saveEmail()}
+          disabled={savingEmail || !email.trim() || email.trim() === account?.email}
+          className="rounded-full"
+        >
+          {savingEmail ? <Loader2 className="size-4 animate-spin" /> : null}
+          Mettre à jour l'email
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => void savePassword()}
+          disabled={savingPassword || password.length < 8}
+          className="rounded-full"
+        >
+          {savingPassword ? <Loader2 className="size-4 animate-spin" /> : null}
+          Changer le mot de passe
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Site — identity + dashboard appearance (Ezfolio "Settings")
 // ---------------------------------------------------------------------------
 
@@ -500,6 +617,10 @@ export function SiteEditor({
 
       <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
         <IntegrationsCard settings={settings} />
+      </div>
+
+      <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
+        <SecurityCard />
       </div>
     </SectionEditor>
   );

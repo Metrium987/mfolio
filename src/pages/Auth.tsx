@@ -1,4 +1,4 @@
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,7 @@ let adminEnsured = false;
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const ensureAdmin = useAction(api.ensureAdmin.ensureAdmin);
+  const passwordAccount = useQuery(api.credentials.getPasswordAccount);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
@@ -240,9 +241,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                         Se connecter
                       </Button>
                     </div>
-                    <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-                      Compte par défaut : admin@admin.com / admin123
-                    </p>
+                    {passwordAccount && (
+                      <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+                        {passwordAccount.isDefault
+                          ? "Compte par défaut : admin@admin.com / admin123"
+                          : `Compte : ${passwordAccount.email}`}
+                      </p>
+                    )}
                   </CardContent>
                 </form>
               ) : (
