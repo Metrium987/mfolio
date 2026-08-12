@@ -16,9 +16,9 @@ import {
 
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/site";
-import { ArrowRight, Loader2, Mail, UserX } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Mail, UserX } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -108,6 +108,19 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* Always-visible way back to the public site, whatever the step */}
+      <div className="flex w-full items-center justify-between px-5 py-5 sm:px-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" />
+          Retour au site
+        </Link>
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          {APP_NAME}
+        </span>
+      </div>
       {/* Auth Content */}
       <div className="flex flex-1 items-center justify-center px-5">
         <Card className="min-w-[360px] max-w-[420px] border-border pb-0 shadow-[0_1px_0_rgba(0,0,0,0.02),0_24px_48px_-32px_rgba(28,25,21,0.25)]">

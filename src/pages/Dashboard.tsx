@@ -20,7 +20,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import { AboutEditor, ConfigEditor, SiteEditor } from "@/components/admin/editors-basic";
 import {
@@ -225,7 +225,6 @@ function Overview() {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   const data = useQuery(api.site.getSiteData);
   const messages = useQuery(api.site.getMessages);
   const visitors = useQuery(api.site.getVisitors);
@@ -291,12 +290,12 @@ export default function Dashboard() {
   }, [data?.site?.faviconUrl]);
 
   const handleSignOut = async () => {
-    // Leave the protected route first: once the session clears, RequireAuth
-    // redirects to /auth — which would race the navigation home and leave the
-    // user stuck on the auth page. Navigating to the public landing first
-    // makes the redirect deterministic.
-    navigate("/", { replace: true });
+    // Sign out first, then leave with a real page load: any SPA navigation
+    // can lose the race against RequireAuth's /auth redirect when the session
+    // clears, leaving the user stuck on the login page. A full load of "/"
+    // is deterministic — the public site renders with no auth checks.
     await signOut();
+    window.location.assign("/");
   };
 
   if (!data) {
