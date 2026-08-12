@@ -263,14 +263,14 @@ export function SocialLinksEditor({
       {value.map((social, index) => (
         <div key={index} className="flex flex-wrap items-center gap-2">
           <Input
-            value={social.name}
-            onChange={(event) => update(index, { name: event.target.value })}
+            value={social.title}
+            onChange={(event) => update(index, { title: event.target.value })}
             placeholder="Nom (ex : GitHub)"
             className="w-40 bg-background"
           />
           <Input
-            value={social.url}
-            onChange={(event) => update(index, { url: event.target.value })}
+            value={social.link}
+            onChange={(event) => update(index, { link: event.target.value })}
             placeholder="https://…"
             className="min-w-44 flex-1 bg-background"
           />
@@ -289,7 +289,7 @@ export function SocialLinksEditor({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onChange([...value, { name: "", url: "" }])}
+        onClick={() => onChange([...value, { title: "", link: "" }])}
       >
         <Plus className="size-4" />
         Ajouter un réseau

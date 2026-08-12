@@ -3,73 +3,85 @@ import type { Infer } from "convex/values";
 import {
   aboutValidator,
   blogValidator,
-  contactValidator,
-  heroValidator,
   portfolioValidator,
   resumeValidator,
   servicesValidator,
   settingsValidator,
+  siteValidator,
   skillsValidator,
 } from "./schema";
 
-/**
- * Sample content seeded the first time the app runs (Ezfolio ships with
- * demo content — the owner replaces it from the admin dashboard).
- */
-
-const sampleSettings: Infer<typeof settingsValidator> = {
+const sampleSite: Infer<typeof siteValidator> = {
   siteName: "Camille Roussel",
   tagline: "Designer produit & développeuse",
   footerText:
     "Conçu et développé avec soin. Les textes et images sont modifiables depuis le tableau de bord.",
-  themeColor: "#A85B32",
+  logoUrl: "",
+  faviconUrl: "",
 };
 
-const sampleHero: Infer<typeof heroValidator> = {
-  name: "Camille Roussel",
-  title: "Designer produit & développeuse front-end",
-  subtitle: "Des interfaces claires, utiles et élégantes.",
-  intro:
-    "Basée à Lyon, j'accompagne studios et startups de l'idée au produit : recherche, design system et code de production avec React. Je crois aux outils simples, aux détails soignés et aux interfaces qui tiennent leurs promesses.",
-  avatarUrl:
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80",
-  socials: [
-    { name: "GitHub", url: "https://github.com/" },
-    { name: "LinkedIn", url: "https://linkedin.com/" },
-    { name: "Dribbble", url: "https://dribbble.com/" },
-    { name: "X", url: "https://x.com/" },
-  ],
-  buttons: [
-    { label: "Me contacter", url: "#contact", style: "primary" },
-    { label: "Télécharger le CV", url: "#about", style: "outline" },
-  ],
-  visibility: true,
+const sampleSettings: Infer<typeof settingsValidator> = {
+  themeColor: "#A85B32",
+  googleAnalyticsId: "",
+  maintenanceMode: false,
+  metaTitle: "Camille Roussel — Designer produit & développeuse",
+  metaDescription:
+    "Portfolio de Camille Roussel : design d'interface, développement web et identité visuelle. Contact pour tout projet.",
+  metaAuthor: "Camille Roussel",
+  metaImage: "",
+  scriptHeader: "",
+  scriptFooter: "",
+  visibilityAbout: true,
+  visibilitySkill: true,
+  visibilityEducation: true,
+  visibilityExperience: true,
+  visibilityProject: true,
+  visibilityService: true,
+  visibilityContact: true,
+  visibilityFooter: true,
+  visibilityCv: true,
+  visibilitySkillProficiency: true,
+  visibilityBlog: true,
 };
 
 const sampleAbout: Infer<typeof aboutValidator> = {
-  title: "À propos",
+  name: "Camille Roussel",
+  email: "bonjour@camilleroussel.fr",
+  phone: "+33 6 12 34 56 78",
+  address: "Lyon, France",
+  avatar:
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80",
+  cover:
+    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80",
   description:
     "Depuis huit ans, je conçois et je construis des produits numériques pour des équipes de toutes tailles — jeunes pousses, studios et grands comptes.\n\nMon approche est simple : comprendre le problème avant de dessiner la solution, prototyper vite, et livrer un code propre, accessible et durable.\n\nQuand je ne suis pas derrière un écran, je donne des ateliers de design, j'écris sur mon journal et je photographie les façades de Lyon.",
-  imageUrl:
-    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80",
-  resumeUrl: "",
-  visibility: true,
+  taglines: [
+    "Designer produit & développeuse front-end",
+    "Créatrice de design systems",
+    "Photographe des façades lyonnaises",
+  ],
+  socials: [
+    { title: "GitHub", link: "https://github.com/" },
+    { title: "LinkedIn", link: "https://linkedin.com/" },
+    { title: "Dribbble", link: "https://dribbble.com/" },
+    { title: "X", link: "https://x.com/" },
+  ],
+  cvUrl: "",
 };
 
 const sampleSkills: Infer<typeof skillsValidator> = {
   title: "Compétences",
   description: "Les outils et savoir-faire que j'utilise au quotidien.",
   items: [
-    { name: "React", level: 95 },
-    { name: "TypeScript", level: 90 },
-    { name: "Node.js", level: 80 },
-    { name: "Figma", level: 92 },
-    { name: "Tailwind CSS", level: 88 },
-    { name: "Design systems", level: 85 },
-    { name: "Recherche utilisateur", level: 75 },
-    { name: "Motion & interaction", level: 70 },
+    { name: "React", proficiency: 95 },
+    { name: "TypeScript", proficiency: 90 },
+    { name: "Node.js", proficiency: 80 },
+    { name: "Figma", proficiency: 92 },
+    { name: "Tailwind CSS", proficiency: 88 },
+    { name: "Design systems", proficiency: 85 },
+    { name: "Recherche utilisateur", proficiency: 75 },
+    { name: "Motion & interaction", proficiency: 70 },
   ],
-  visibility: true,
 };
 
 const sampleServices: Infer<typeof servicesValidator> = {
@@ -78,31 +90,30 @@ const sampleServices: Infer<typeof servicesValidator> = {
     "Ce que je peux faire pour vous — du premier croquis au déploiement.",
   items: [
     {
-      name: "Design d'interface",
-      description:
+      title: "Design d'interface",
+      details:
         "Maquettes, prototypes interactifs et design systems cohérents, pensés pour vos utilisateurs.",
       icon: "PenTool",
     },
     {
-      name: "Développement web",
-      description:
+      title: "Développement web",
+      details:
         "Applications React rapides, accessibles et faciles à maintenir, de la maquette à la mise en production.",
       icon: "Code",
     },
     {
-      name: "Identité visuelle",
-      description:
+      title: "Identité visuelle",
+      details:
         "Direction artistique, logotypes et chartes graphiques qui racontent votre histoire.",
       icon: "Palette",
     },
     {
-      name: "Conseil & audit",
-      description:
+      title: "Conseil & audit",
+      details:
         "Revue UX/UI de produits existants, avec un plan d'action priorisé et chiffré.",
       icon: "Compass",
     },
   ],
-  visibility: true,
 };
 
 const sampleResume: Infer<typeof resumeValidator> = {
@@ -110,44 +121,45 @@ const sampleResume: Infer<typeof resumeValidator> = {
   description: "Mon expérience et ma formation.",
   experiences: [
     {
-      title: "Designer produit senior",
+      position: "Designer produit senior",
       company: "Atelier Nord",
-      date: "2022 — Aujourd'hui",
-      description:
+      period: "2022 — Aujourd'hui",
+      details:
         "Refonte complète du produit phare (SaaS analytics). Mise en place du design system, pilotage des tests utilisateurs et accompagnement de deux designers juniors.",
     },
     {
-      title: "Développeuse front-end",
+      position: "Développeuse front-end",
       company: "Studio Hémisphère",
-      date: "2020 — 2022",
-      description:
+      period: "2020 — 2022",
+      details:
         "Développement de sites et d'applications React pour des clients culturels et éditoriaux. Veille technique et contribution au socle de composants du studio.",
     },
     {
-      title: "UX/UI Designer indépendante",
+      position: "UX/UI Designer indépendante",
       company: "Freelance",
-      date: "2018 — 2020",
-      description:
+      period: "2018 — 2020",
+      details:
         "Accompagnement de startups en early-stage : cadrage, wireframes, design d'interfaces et premiers prototypes haute fidélité.",
     },
   ],
   educations: [
     {
-      title: "Master Design numérique",
+      degree: "Master Design numérique",
       institution: "Université Lumière Lyon 2",
-      date: "2016 — 2018",
-      description:
-        "Spécialisation design d'interaction, ergonomie des interfaces et recherche utilisateur.",
+      period: "2016 — 2018",
+      cgpa: "16,2 / 20",
+      department: "Design d'interaction",
+      thesis: "Les design systems comme outil de cohérence éditoriale",
     },
     {
-      title: "Licence Informatique",
+      degree: "Licence Informatique",
       institution: "Université Claude Bernard Lyon 1",
-      date: "2013 — 2016",
-      description:
-        "Fondamentaux de l'algorithmique, du développement web et des bases de données.",
+      period: "2013 — 2016",
+      cgpa: "14,8 / 20",
+      department: "Informatique",
+      thesis: "Développement web",
     },
   ],
-  visibility: true,
 };
 
 const samplePortfolio: Infer<typeof portfolioValidator> = {
@@ -155,67 +167,79 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
   description: "Une sélection de projets récents.",
   projects: [
     {
-      name: "Maison — site éditorial",
-      description:
+      title: "Maison — site éditorial",
+      categories: ["Web"],
+      link: "https://example.com/",
+      details:
         "Un magazine en ligne : direction artistique, design system éditorial et site React statique, noté 98/100 aux audits.",
-      category: "Web",
-      imageUrl:
+      thumbnail:
         "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
-    },
-    {
-      name: "Aurora — design system",
-      description:
-        "Bibliothèque de composants Figma + React pour une équipe produit de 20 personnes : tokens, documentation et tests.",
-      category: "Design",
-      imageUrl:
-        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
-    },
-    {
-      name: "Kiosk — app mobile",
-      description:
-        "Application de billetterie pensée pour les petites salles de concert : paiement en deux écrans, mode hors-ligne.",
-      category: "Produit",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
-    },
-    {
-      name: "Traces — portfolio interactif",
-      description:
-        "Site expérimental en Three.js : une déambulation scénarisée dans les archives d'un photographe.",
-      category: "Web",
-      imageUrl:
+      images: [
+        "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
+      ],
     },
     {
-      name: "Jardin Public — identité",
-      description:
+      title: "Aurora — design system",
+      categories: ["Design", "Produit"],
+      link: "https://example.com/",
+      details:
+        "Bibliothèque de composants Figma + React pour une équipe produit de 20 personnes : tokens, documentation et tests.",
+      thumbnail:
+        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
+      ],
+    },
+    {
+      title: "Kiosk — app mobile",
+      categories: ["Produit"],
+      link: "https://example.com/",
+      details:
+        "Application de billetterie pensée pour les petites salles de concert : paiement en deux écrans, mode hors-ligne.",
+      thumbnail:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
+      ],
+    },
+    {
+      title: "Traces — portfolio interactif",
+      categories: ["Web"],
+      link: "https://example.com/",
+      details:
+        "Site expérimental en Three.js : une déambulation scénarisée dans les archives d'un photographe.",
+      thumbnail:
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
+      ],
+    },
+    {
+      title: "Jardin Public — identité",
+      categories: ["Design"],
+      link: "https://example.com/",
+      details:
         "Identité visuelle pour une pépinière urbaine : logotype, typographies, papeterie et signalétique.",
-      category: "Design",
-      imageUrl:
+      thumbnail:
         "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
+      images: [
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      ],
     },
     {
-      name: "Voisin — réseau de quartier",
-      description:
+      title: "Voisin — réseau de quartier",
+      categories: ["Produit", "Web"],
+      link: "https://example.com/",
+      details:
         "Du research au MVP : entretiens, parcours de partage entre voisins, prototype testé sur 60 foyers lyonnais.",
-      category: "Produit",
-      imageUrl:
+      thumbnail:
         "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80",
-      sourceUrl: "https://github.com/",
-      demoUrl: "https://example.com/",
+      images: [
+        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80",
+      ],
     },
   ],
-  visibility: true,
 };
 
 const sampleBlog: Infer<typeof blogValidator> = {
@@ -253,43 +277,100 @@ const sampleBlog: Infer<typeof blogValidator> = {
         "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
     },
   ],
-  visibility: true,
 };
 
-const sampleContact: Infer<typeof contactValidator> = {
-  title: "Contact",
-  description:
-    "Un projet en tête ? Une question ? Écrivez-moi — je réponds sous 48 heures.",
-  email: "bonjour@camilleroussel.fr",
-  phone: "+33 6 12 34 56 78",
-  address: "Lyon, France",
-  socials: [
-    { name: "GitHub", url: "https://github.com/" },
-    { name: "LinkedIn", url: "https://linkedin.com/" },
-    { name: "Dribbble", url: "https://dribbble.com/" },
-    { name: "X", url: "https://x.com/" },
-  ],
-  visibility: true,
-};
+const DAY = 24 * 60 * 60 * 1000;
+const NOW = Date.now();
+
+const sampleMessages = [
+  {
+    name: "Alice Martin",
+    email: "alice.martin@studio-exemple.fr",
+    subject: "Mission freelance — refonte de site",
+    message:
+      "Bonjour, nous cherchons une designer produit pour accompagner la refonte de notre site vitrine (3 mois). Votre profil nous intéresse beaucoup — seriez-vous disponible ?",
+    replied: false,
+    createdAt: NOW - 2 * DAY,
+  },
+  {
+    name: "Karim Benali",
+    email: "karim.benali@cabinet-exemple.com",
+    subject: "Opportunité CDI — poste de designer senior",
+    message:
+      "Madame, je vous contacte au nom d'un cabinet de recrutement spécialisé dans les métiers du numérique. Un de nos clients recherche un designer produit senior à Lyon. Pouvons-nous échanger ?",
+    replied: true,
+    createdAt: NOW - 6 * DAY,
+  },
+  {
+    name: "Sofia Ricci",
+    email: "sofia@exemple.io",
+    subject: "Demande de conseil UX",
+    message:
+      "Bonjour, j'ai lu votre article sur les design systems et j'aimerais vos conseils pour structurer le nôtre (équipe de 5). Est-ce un service que vous proposez ?",
+    replied: false,
+    createdAt: NOW - 9 * DAY,
+  },
+];
+
+const BROWSERS = ["Chrome", "Firefox", "Safari", "Edge"];
+const PLATFORMS = ["Windows", "macOS", "Android", "iOS"];
+
+const sampleVisitors = Array.from({ length: 22 }, (_, index) => ({
+  trackingId: `demo-${index}-${Math.random().toString(36).slice(2, 10)}`,
+  isNew: index % 3 === 0,
+  browser: BROWSERS[index % BROWSERS.length],
+  platform: PLATFORMS[index % PLATFORMS.length],
+  createdAt: NOW - (index + 1) * (DAY / 3) - Math.floor(Math.random() * 6) * 3600000,
+}));
 
 /**
  * Seeds all portfolio content once (idempotent — no-op when already seeded).
  * Called from the landing page and the dashboard on first load.
+ *
+ * When the schema changed between versions, stale docs from previous schemas
+ * may still exist in the database (e.g. an old "settings" doc with a
+ * different shape). To guarantee a clean slate matching the current model,
+ * every managed table is wiped before inserting the samples — only when the
+ * seed actually runs (i.e. the brand-new "site" table is empty).
  */
 export const ensureSeed = mutation({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db.query("settings").first();
+    const existing = await ctx.db.query("site").first();
     if (existing) return;
 
+    const managedTables = [
+      "site",
+      "settings",
+      "about",
+      "skills",
+      "services",
+      "resume",
+      "portfolio",
+      "blog",
+      "messages",
+      "visitors",
+    ] as const;
+    for (const table of managedTables) {
+      const stale = await ctx.db.query(table).collect();
+      for (const doc of stale) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+
+    await ctx.db.insert("site", sampleSite);
     await ctx.db.insert("settings", sampleSettings);
-    await ctx.db.insert("hero", sampleHero);
     await ctx.db.insert("about", sampleAbout);
     await ctx.db.insert("skills", sampleSkills);
     await ctx.db.insert("services", sampleServices);
     await ctx.db.insert("resume", sampleResume);
     await ctx.db.insert("portfolio", samplePortfolio);
     await ctx.db.insert("blog", sampleBlog);
-    await ctx.db.insert("contact", sampleContact);
+    for (const message of sampleMessages) {
+      await ctx.db.insert("messages", message);
+    }
+    for (const visitor of sampleVisitors) {
+      await ctx.db.insert("visitors", visitor);
+    }
   },
 });

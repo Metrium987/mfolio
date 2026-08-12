@@ -6,20 +6,13 @@ import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SectionEditor } from "./SectionEditor";
 import {
   Field,
   ImageField,
-  SocialLinksEditor,
   TextAreaField,
   TextField,
+  ToggleField,
   useSectionDraft,
 } from "./fields";
 
@@ -34,121 +27,54 @@ const SWATCHES = [
   "#2364AA",
 ];
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
+type VisibilityKey = Extract<keyof Doc<"settings">, `visibility${string}`>;
 
-export function HeroEditor({ hero }: { hero: Doc<"hero"> | null | undefined }) {
-  const updateHero = useMutation(api.siteMutations.updateHero);
-  const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(hero, {
-    name: "",
-    title: "",
-    subtitle: "",
-    intro: "",
-    avatarUrl: "",
-    socials: [],
-    buttons: [],
-    visibility: true,
-  });
+const VISIBILITY_ITEMS: { key: VisibilityKey; label: string }[] = [
+  { key: "visibilityAbout", label: "Section « À propos »" },
+  { key: "visibilitySkill", label: "Section « Compétences »" },
+  { key: "visibilityEducation", label: "Section « Formation »" },
+  { key: "visibilityExperience", label: "Section « Expérience »" },
+  { key: "visibilityProject", label: "Section « Projets »" },
+  { key: "visibilityService", label: "Section « Services »" },
+  { key: "visibilityContact", label: "Section « Contact »" },
+  { key: "visibilityFooter", label: "Pied de page" },
+  { key: "visibilityCv", label: "Bouton « Télécharger le CV »" },
+  { key: "visibilitySkillProficiency", label: "Niveaux des compétences" },
+  { key: "visibilityBlog", label: "Section « Journal »" },
+];
 
-  const save = async () => {
-    setSaving(true);
-    try {
-      await updateHero({ data: draft.value });
-      draft.reset();
-      toast.success("Section « Accueil » enregistrée");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
-    } finally {
-      setSaving(false);
-    }
-  };
-
+function StringListEditor({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder: string;
+}) {
   return (
-    <SectionEditor
-      title="Accueil"
-      description="Le haut de page : nom, titre, présentation, réseaux et boutons."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
-      onSave={save}
-      saving={saving}
-      dirty={draft.dirty}
-    >
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Nom" value={draft.value.name} onChange={(name) => draft.set({ ...draft.value, name })} placeholder="Camille Roussel" />
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Designer produit & développeuse" />
-        <TextField label="Sous-titre" value={draft.value.subtitle} onChange={(subtitle) => draft.set({ ...draft.value, subtitle })} placeholder="Une courte phrase d'accroche" className="sm:col-span-2" />
-        <TextAreaField label="Introduction" value={draft.value.intro} onChange={(intro) => draft.set({ ...draft.value, intro })} rows={4} placeholder="2-3 phrases de présentation" className="sm:col-span-2" />
-        <ImageField label="Portrait" value={draft.value.avatarUrl} onChange={(avatarUrl) => draft.set({ ...draft.value, avatarUrl })} hint="Importez une image ou collez une URL." className="sm:col-span-2" />
-      </div>
-
-      <div className="mt-6 space-y-2">
-        <p className="text-[13px] font-medium">Boutons</p>
-        {draft.value.buttons.map((button, index) => (
-          <div
-            key={index}
-            className="grid gap-2 rounded-md border border-border bg-background p-3 sm:grid-cols-[1fr_1.2fr_auto_auto]"
-          >
+    <Field label={label}>
+      <div className="space-y-2">
+        {value.map((item, index) => (
+          <div key={index} className="flex items-center gap-2">
             <Input
-              value={button.label}
+              value={item}
               onChange={(event) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  buttons: prev.buttons.map((b, i) =>
-                    i === index ? { ...b, label: event.target.value } : b,
-                  ),
-                }))
+                onChange(
+                  value.map((i, n) => (n === index ? event.target.value : i)),
+                )
               }
-              placeholder="Libellé (ex : Me contacter)"
-              className="bg-background"
+              placeholder={placeholder}
+              className="flex-1 bg-background"
             />
-            <Input
-              value={button.url}
-              onChange={(event) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  buttons: prev.buttons.map((b, i) =>
-                    i === index ? { ...b, url: event.target.value } : b,
-                  ),
-                }))
-              }
-              placeholder="https://… (ex : #contact)"
-              className="bg-background"
-            />
-            <Select
-              value={button.style}
-              onValueChange={(style) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  buttons: prev.buttons.map((b, i) =>
-                    i === index
-                      ? { ...b, style: style as "primary" | "outline" }
-                      : b,
-                  ),
-                }))
-              }
-            >
-              <SelectTrigger className="w-full bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="primary">Principal</SelectItem>
-                <SelectItem value="outline">Contour</SelectItem>
-              </SelectContent>
-            </Select>
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              title="Supprimer le bouton"
-              onClick={() =>
-                draft.set((prev) => ({
-                  ...prev,
-                  buttons: prev.buttons.filter((_, i) => i !== index),
-                }))
-              }
+              size="icon-sm"
+              title="Supprimer"
+              onClick={() => onChange(value.filter((_, n) => n !== index))}
             >
               <Trash2 className="size-4" />
             </Button>
@@ -158,44 +84,98 @@ export function HeroEditor({ hero }: { hero: Doc<"hero"> | null | undefined }) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() =>
-            draft.set((prev) => ({
-              ...prev,
-              buttons: [
-                ...prev.buttons,
-                { label: "", url: "", style: "outline" as const },
-              ],
-            }))
-          }
+          onClick={() => onChange([...value, ""])}
         >
           <Plus className="size-4" />
-          Ajouter un bouton
+          Ajouter
         </Button>
       </div>
+    </Field>
+  );
+}
 
-      <div className="mt-6">
-        <SocialLinksEditor
-          value={draft.value.socials}
-          onChange={(socials) => draft.set({ ...draft.value, socials })}
-        />
-      </div>
-    </SectionEditor>
+function SocialLinksEditor({
+  value,
+  onChange,
+}: {
+  value: { title: string; link: string }[];
+  onChange: (value: { title: string; link: string }[]) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {value.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          Aucun réseau social. Ajoutez-en un ci-dessous.
+        </p>
+      )}
+      {value.map((social, index) => (
+        <div key={index} className="flex flex-wrap items-center gap-2">
+          <Input
+            value={social.title}
+            onChange={(event) =>
+              onChange(
+                value.map((s, n) =>
+                  n === index ? { ...s, title: event.target.value } : s,
+                ),
+              )
+            }
+            placeholder="Nom (ex : GitHub)"
+            className="w-40 bg-background"
+          />
+          <Input
+            value={social.link}
+            onChange={(event) =>
+              onChange(
+                value.map((s, n) =>
+                  n === index ? { ...s, link: event.target.value } : s,
+                ),
+              )
+            }
+            placeholder="https://…"
+            className="min-w-44 flex-1 bg-background"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Supprimer"
+            onClick={() => onChange(value.filter((_, n) => n !== index))}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...value, { title: "", link: "" }])}
+      >
+        <Plus className="size-4" />
+        Ajouter un réseau
+      </Button>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// About
+// About — persona, hero and contact info (Ezfolio "About")
 // ---------------------------------------------------------------------------
 
 export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined }) {
   const updateAbout = useMutation(api.siteMutations.updateAbout);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(about, {
-    title: "",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    avatar: "",
+    cover: "",
     description: "",
-    imageUrl: "",
-    resumeUrl: "",
-    visibility: true,
+    taglines: [],
+    socials: [],
+    cvUrl: "",
   });
 
   const save = async () => {
@@ -215,84 +195,47 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
   return (
     <SectionEditor
       title="À propos"
-      description="Présentation personnelle, photo et lien de CV."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      description="Votre identité : nom, coordonnées, portrait, couverture, slogans, réseaux et CV. Source de l'accueil et du contact du site."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="À propos" />
-        <TextField label="Lien du CV" value={draft.value.resumeUrl} onChange={(resumeUrl) => draft.set({ ...draft.value, resumeUrl })} placeholder="https://…" hint="Laissez vide pour masquer le bouton." />
+        <TextField label="Nom" value={draft.value.name} onChange={(name) => draft.set({ ...draft.value, name })} placeholder="Camille Roussel" />
+        <TextField label="Email" type="email" value={draft.value.email} onChange={(email) => draft.set({ ...draft.value, email })} placeholder="vous@exemple.fr" />
+        <TextField label="Téléphone" value={draft.value.phone} onChange={(phone) => draft.set({ ...draft.value, phone })} placeholder="+33 6 12 34 56 78" />
+        <TextField label="Adresse / ville" value={draft.value.address} onChange={(address) => draft.set({ ...draft.value, address })} placeholder="Lyon, France" />
+      </div>
+
+      <div className="mt-6 grid gap-5 sm:grid-cols-2">
+        <ImageField label="Portrait (avatar)" value={draft.value.avatar} onChange={(avatar) => draft.set({ ...draft.value, avatar })} />
+        <ImageField label="Image de couverture" value={draft.value.cover} onChange={(cover) => draft.set({ ...draft.value, cover })} hint="Bannière en haut du site." />
+      </div>
+
+      <div className="mt-6 grid gap-5 sm:grid-cols-2">
+        <TextField label="Lien du CV" value={draft.value.cvUrl} onChange={(cvUrl) => draft.set({ ...draft.value, cvUrl })} placeholder="https://…" hint="Laissez vide pour masquer le bouton." />
+        <StringListEditor
+          label="Slogans (accueil)"
+          value={draft.value.taglines}
+          onChange={(taglines) => draft.set({ ...draft.value, taglines })}
+          placeholder="Designer produit & développeuse"
+        />
+      </div>
+
+      <div className="mt-6">
         <TextAreaField
           label="Description"
           value={draft.value.description}
           onChange={(description) => draft.set({ ...draft.value, description })}
-          rows={9}
+          rows={8}
           placeholder="Séparez les paragraphes par une ligne vide."
           hint="Une ligne vide crée un nouveau paragraphe."
-          className="sm:col-span-2"
-        />
-        <ImageField
-          label="Photo"
-          value={draft.value.imageUrl}
-          onChange={(imageUrl) => draft.set({ ...draft.value, imageUrl })}
-          className="sm:col-span-2"
         />
       </div>
-    </SectionEditor>
-  );
-}
 
-// ---------------------------------------------------------------------------
-// Contact
-// ---------------------------------------------------------------------------
-
-export function ContactEditor({ contact }: { contact: Doc<"contact"> | null | undefined }) {
-  const updateContact = useMutation(api.siteMutations.updateContact);
-  const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(contact, {
-    title: "",
-    description: "",
-    email: "",
-    phone: "",
-    address: "",
-    socials: [],
-    visibility: true,
-  });
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await updateContact({ data: draft.value });
-      draft.reset();
-      toast.success("Section « Contact » enregistrée");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <SectionEditor
-      title="Contact"
-      description="Coordonnées affichées et réseaux sociaux."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
-      onSave={save}
-      saving={saving}
-      dirty={draft.dirty}
-    >
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Contact" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Un projet en tête ? Écrivez-moi." className="sm:col-span-2" />
-        <TextField label="Email" type="email" value={draft.value.email} onChange={(email) => draft.set({ ...draft.value, email })} placeholder="vous@exemple.fr" />
-        <TextField label="Téléphone" value={draft.value.phone} onChange={(phone) => draft.set({ ...draft.value, phone })} placeholder="+33 6 12 34 56 78" />
-        <TextField label="Adresse / ville" value={draft.value.address} onChange={(address) => draft.set({ ...draft.value, address })} placeholder="Lyon, France" className="sm:col-span-2" />
-      </div>
       <div className="mt-6">
         <Field label="Réseaux sociaux">
           <SocialLinksEditor
@@ -306,23 +249,24 @@ export function ContactEditor({ contact }: { contact: Doc<"contact"> | null | un
 }
 
 // ---------------------------------------------------------------------------
-// Settings
+// Site — identity + dashboard appearance (Ezfolio "Settings")
 // ---------------------------------------------------------------------------
 
-export function SettingsEditor({ settings }: { settings: Doc<"settings"> | null | undefined }) {
-  const updateSettings = useMutation(api.siteMutations.updateSettings);
+export function SiteEditor({ site }: { site: Doc<"site"> | null | undefined }) {
+  const updateSite = useMutation(api.siteMutations.updateSite);
   const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(settings, {
+  const draft = useSectionDraft(site, {
     siteName: "",
     tagline: "",
     footerText: "",
-    themeColor: "#A85B32",
+    logoUrl: "",
+    faviconUrl: "",
   });
 
   const save = async () => {
     setSaving(true);
     try {
-      await updateSettings({ data: draft.value });
+      await updateSite({ data: draft.value });
       draft.reset();
       toast.success("Paramètres enregistrés");
     } catch (error) {
@@ -335,14 +279,14 @@ export function SettingsEditor({ settings }: { settings: Doc<"settings"> | null 
 
   return (
     <SectionEditor
-      title="Paramètres"
-      description="Nom du site, signature et couleur de thème."
+      title="Paramètres du site"
+      description="Nom du site, slogan, texte de pied de page, logo et favicon."
       visibility={true}
       onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
-      showVisibility={false}
     >
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField label="Nom du site" value={draft.value.siteName} onChange={(siteName) => draft.set({ ...draft.value, siteName })} placeholder="Camille Roussel" />
@@ -354,8 +298,69 @@ export function SettingsEditor({ settings }: { settings: Doc<"settings"> | null 
           rows={3}
           className="sm:col-span-2"
         />
+        <ImageField label="Logo" value={draft.value.logoUrl} onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })} hint="Utilisé dans le tableau de bord." />
+        <ImageField label="Favicon" value={draft.value.faviconUrl} onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })} hint="L'icône de l'onglet du navigateur." />
       </div>
-      <div className="mt-6 space-y-2">
+    </SectionEditor>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Config — portfolio rendering (Ezfolio "Config")
+// ---------------------------------------------------------------------------
+
+export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | undefined }) {
+  const updateSettings = useMutation(api.siteMutations.updateSettings);
+  const [saving, setSaving] = useState(false);
+  const draft = useSectionDraft(settings, {
+    themeColor: "#A85B32",
+    googleAnalyticsId: "",
+    maintenanceMode: false,
+    metaTitle: "",
+    metaDescription: "",
+    metaAuthor: "",
+    metaImage: "",
+    scriptHeader: "",
+    scriptFooter: "",
+    visibilityAbout: true,
+    visibilitySkill: true,
+    visibilityEducation: true,
+    visibilityExperience: true,
+    visibilityProject: true,
+    visibilityService: true,
+    visibilityContact: true,
+    visibilityFooter: true,
+    visibilityCv: true,
+    visibilitySkillProficiency: true,
+    visibilityBlog: true,
+  });
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateSettings({ data: draft.value });
+      draft.reset();
+      toast.success("Configuration enregistrée");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SectionEditor
+      title="Config"
+      description="Le rendu global du portfolio : couleur, maintenance, SEO, scripts et visibilité des sections."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      onSave={save}
+      saving={saving}
+      dirty={draft.dirty}
+    >
+      <div className="space-y-2">
         <p className="text-[13px] font-medium">Couleur de thème</p>
         <div className="flex flex-wrap items-center gap-3">
           <input
@@ -387,6 +392,65 @@ export function SettingsEditor({ settings }: { settings: Doc<"settings"> | null 
         <p className="text-xs text-muted-foreground">
           Appliquée aux boutons, liens et accents du site.
         </p>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <ToggleField
+          label="Mode maintenance"
+          description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
+          checked={draft.value.maintenanceMode}
+          onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
+        />
+        <TextField
+          label="Google Analytics ID"
+          value={draft.value.googleAnalyticsId}
+          onChange={(googleAnalyticsId) => draft.set({ ...draft.value, googleAnalyticsId })}
+          placeholder="G-XXXXXXXXXX"
+          hint="Laissez vide pour désactiver."
+        />
+      </div>
+
+      <div className="mt-6 space-y-2">
+        <p className="text-[13px] font-medium">Visibilité des sections</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {VISIBILITY_ITEMS.map((item) => (
+            <ToggleField
+              key={item.key}
+              label={item.label}
+              checked={draft.value[item.key]}
+              onChange={(checked) =>
+                draft.set({ ...draft.value, [item.key]: checked })
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <p className="text-[13px] font-medium">Référencement (SEO)</p>
+        <TextField label="Titre de la page" value={draft.value.metaTitle} onChange={(metaTitle) => draft.set({ ...draft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
+        <TextAreaField label="Description" value={draft.value.metaDescription} onChange={(metaDescription) => draft.set({ ...draft.value, metaDescription })} rows={3} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField label="Auteur" value={draft.value.metaAuthor} onChange={(metaAuthor) => draft.set({ ...draft.value, metaAuthor })} placeholder="Camille Roussel" />
+          <ImageField label="Image de partage" value={draft.value.metaImage} onChange={(metaImage) => draft.set({ ...draft.value, metaImage })} />
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <p className="text-[13px] font-medium">Scripts personnalisés</p>
+        <TextAreaField
+          label="Script d'en-tête (dans <head>)"
+          value={draft.value.scriptHeader}
+          onChange={(scriptHeader) => draft.set({ ...draft.value, scriptHeader })}
+          rows={4}
+          hint="HTML/JS injecté tel quel sur le site public."
+        />
+        <TextAreaField
+          label="Script de pied de page"
+          value={draft.value.scriptFooter}
+          onChange={(scriptFooter) => draft.set({ ...draft.value, scriptFooter })}
+          rows={4}
+        />
       </div>
     </SectionEditor>
   );

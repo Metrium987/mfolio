@@ -13,16 +13,16 @@ export function Services({ services }: { services: Doc<"services"> }) {
         />
         <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
           {services.items.map((service, index) => (
-            <Reveal key={service.name} delay={Math.min(index * 0.06, 0.3)}>
+            <Reveal key={service.title} delay={Math.min(index * 0.06, 0.3)}>
               <div className="group flex h-full flex-col bg-background p-7 transition-colors duration-300 hover:bg-card">
                 <div className="mb-6 flex size-11 items-center justify-center border border-border text-(--studio-accent) transition-colors group-hover:border-(--studio-accent)">
                   <ServiceIcon name={service.icon} className="size-5" />
                 </div>
                 <h3 className="font-display text-lg font-medium tracking-tight text-foreground">
-                  {service.name}
+                  {service.title}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {service.description}
+                  {service.details}
                 </p>
               </div>
             </Reveal>

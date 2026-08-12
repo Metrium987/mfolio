@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type Social = { name: string; url: string };
+export type Social = { title: string; link: string };
 
 /** Product brand — the name of the application itself (not the owner's name). */
 export const APP_NAME = "Mfolio";
@@ -28,6 +28,40 @@ export function monogram(name: string): string {
   if (parts.length === 0) return "•";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/** Detect browser name from the user agent (Ezfolio-style visitor tracking). */
+export function detectBrowser(): string {
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  if (ua.includes("Firefox")) return "Firefox";
+  if (ua.includes("Edg/")) return "Edge";
+  if (ua.includes("Chrome")) return "Chrome";
+  if (ua.includes("Safari")) return "Safari";
+  if (ua.includes("Opera")) return "Opera";
+  return "Autre";
+}
+
+/** Detect device platform from the user agent. */
+export function detectPlatform(): string {
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  if (/Android/i.test(ua)) return "Android";
+  if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+  if (/Windows/i.test(ua)) return "Windows";
+  if (/Mac OS X/i.test(ua)) return "macOS";
+  if (/Linux/i.test(ua)) return "Linux";
+  return "Inconnu";
+}
+
+/** Applies the site favicon by replacing the <link rel="icon"> href. */
+export function applyFavicon(url: string | null | undefined) {
+  if (!url) return;
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+  link.href = url;
 }
 
 /**

@@ -74,14 +74,14 @@ export function SiteFooter({
             <div className="flex flex-wrap gap-3">
               {socials.map((social) => (
                 <a
-                  key={social.name}
-                  href={social.url}
+                  key={social.title}
+                  href={social.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={social.name}
+                  title={social.title}
                   className="flex size-10 items-center justify-center rounded-full border border-border text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
                 >
-                  {monogram(social.name)}
+                  {monogram(social.title)}
                 </a>
               ))}
             </div>

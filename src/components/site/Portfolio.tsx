@@ -1,4 +1,4 @@
-import { ExternalLink, FolderGit2 } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,10 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
   const categories = useMemo(() => {
     const seen = new Set<string>();
     portfolio.projects.forEach((project) => {
-      if (project.category.trim()) seen.add(project.category.trim());
+      project.categories
+        .map((category) => category.trim())
+        .filter(Boolean)
+        .forEach((category) => seen.add(category));
     });
     return Array.from(seen);
   }, [portfolio.projects]);
@@ -17,7 +20,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
   const visible =
     active === "Tous"
       ? portfolio.projects
-      : portfolio.projects.filter((project) => project.category === active);
+      : portfolio.projects.filter((project) => project.categories.includes(active));
 
   return (
     <Container id="portfolio" className="py-24 md:py-32">
@@ -51,54 +54,42 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
         {visible.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((project, index) => (
-              <Reveal key={project.name} delay={Math.min(index * 0.05, 0.25)}>
-                <article className="group border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
-                  {project.imageUrl && (
+              <Reveal key={project.title} delay={Math.min(index * 0.05, 0.25)}>
+                <article className="group flex h-full flex-col border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
+                  {project.thumbnail && (
                     <div className="overflow-hidden">
                       <img
-                        src={project.imageUrl}
-                        alt={project.name}
+                        src={project.thumbnail}
+                        alt={project.title}
                         loading="lazy"
                         className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
                   )}
-                  <div className="px-2 pb-2 pt-5">
+                  <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
                     <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
-                      {project.category || "Projet"}
+                      {project.categories.filter(Boolean).join(" · ") ||
+                        "Projet"}
                     </p>
                     <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
-                      {project.name}
+                      {project.title}
                     </h3>
-                    {project.description && (
+                    {project.details && (
                       <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                        {project.description}
+                        {project.details}
                       </p>
                     )}
-                    {(project.demoUrl || project.sourceUrl) && (
-                      <div className="mt-5 flex items-center gap-4 border-t border-border/70 pt-4">
-                        {project.demoUrl && (
-                          <a
-                            href={project.demoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground transition-colors hover:text-(--studio-accent)"
-                          >
-                            <ExternalLink className="size-3.5" />
-                            Démo
-                          </a>
-                        )}
-                        {project.sourceUrl && (
-                          <a
-                            href={project.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <FolderGit2 className="size-3.5" />
-                            Code
-                          </a>
-                        )}
+                    {project.link && (
+                      <div className="mt-5 flex items-center border-t border-border/70 pt-4">
+                        <a
+                          href={project.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground transition-colors hover:text-(--studio-accent)"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Voir le projet
+                        </a>
                       </div>
                     )}
                   </div>

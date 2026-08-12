@@ -17,52 +17,48 @@ export const roleValidator = v.union(
 export type Role = Infer<typeof roleValidator>;
 
 // ---------------------------------------------------------------------------
-// Shared shape validators
+// Shared shape validators (Ezfolio data model)
 // ---------------------------------------------------------------------------
 
 export const socialValidator = v.object({
-  name: v.string(),
-  url: v.string(),
-});
-
-export const heroButtonValidator = v.object({
-  label: v.string(),
-  url: v.string(),
-  style: v.union(v.literal("primary"), v.literal("outline")),
+  title: v.string(),
+  link: v.string(),
 });
 
 export const skillItemValidator = v.object({
   name: v.string(),
-  level: v.number(),
+  proficiency: v.number(),
 });
 
 export const serviceItemValidator = v.object({
-  name: v.string(),
-  description: v.string(),
+  title: v.string(),
   icon: v.string(),
+  details: v.string(),
 });
 
-export const resumeEntryValidator = v.object({
-  title: v.string(),
+export const experienceValidator = v.object({
+  position: v.string(),
   company: v.string(),
-  date: v.string(),
-  description: v.string(),
+  period: v.string(),
+  details: v.string(),
 });
 
-export const educationEntryValidator = v.object({
-  title: v.string(),
+export const educationValidator = v.object({
+  degree: v.string(),
   institution: v.string(),
-  date: v.string(),
-  description: v.string(),
+  period: v.string(),
+  cgpa: v.string(),
+  department: v.string(),
+  thesis: v.string(),
 });
 
 export const projectValidator = v.object({
-  name: v.string(),
-  description: v.string(),
-  category: v.string(),
-  imageUrl: v.string(),
-  sourceUrl: v.string(),
-  demoUrl: v.string(),
+  title: v.string(),
+  categories: v.array(v.string()),
+  link: v.string(),
+  details: v.string(),
+  thumbnail: v.string(),
+  images: v.array(v.string()),
 });
 
 export const postValidator = v.object({
@@ -74,85 +70,101 @@ export const postValidator = v.object({
 });
 
 // ---------------------------------------------------------------------------
-// Section document validators (single document per section, like Ezfolio)
+// Document validators (single document per section, like Ezfolio)
 // ---------------------------------------------------------------------------
 
-export const settingsValidator = v.object({
+/** Site identity + dashboard appearance (Ezfolio "Settings"). */
+export const siteValidator = v.object({
   siteName: v.string(),
   tagline: v.string(),
   footerText: v.string(),
+  logoUrl: v.string(),
+  faviconUrl: v.string(),
+});
+
+/** Portfolio rendering configuration (Ezfolio "Config" / portfolio_config). */
+export const settingsValidator = v.object({
   themeColor: v.string(),
+  googleAnalyticsId: v.string(),
+  maintenanceMode: v.boolean(),
+  metaTitle: v.string(),
+  metaDescription: v.string(),
+  metaAuthor: v.string(),
+  metaImage: v.string(),
+  scriptHeader: v.string(),
+  scriptFooter: v.string(),
+  visibilityAbout: v.boolean(),
+  visibilitySkill: v.boolean(),
+  visibilityEducation: v.boolean(),
+  visibilityExperience: v.boolean(),
+  visibilityProject: v.boolean(),
+  visibilityService: v.boolean(),
+  visibilityContact: v.boolean(),
+  visibilityFooter: v.boolean(),
+  visibilityCv: v.boolean(),
+  visibilitySkillProficiency: v.boolean(),
+  visibilityBlog: v.boolean(),
 });
 
-export const heroValidator = v.object({
-  name: v.string(),
-  title: v.string(),
-  subtitle: v.string(),
-  intro: v.string(),
-  avatarUrl: v.string(),
-  socials: v.array(socialValidator),
-  buttons: v.array(heroButtonValidator),
-  visibility: v.boolean(),
-});
-
+/** Persona + hero + contact info (Ezfolio "About"). */
 export const aboutValidator = v.object({
-  title: v.string(),
+  name: v.string(),
+  email: v.string(),
+  phone: v.string(),
+  address: v.string(),
+  avatar: v.string(),
+  cover: v.string(),
   description: v.string(),
-  imageUrl: v.string(),
-  resumeUrl: v.string(),
-  visibility: v.boolean(),
+  taglines: v.array(v.string()),
+  socials: v.array(socialValidator),
+  cvUrl: v.string(),
 });
 
 export const skillsValidator = v.object({
   title: v.string(),
   description: v.string(),
   items: v.array(skillItemValidator),
-  visibility: v.boolean(),
 });
 
 export const servicesValidator = v.object({
   title: v.string(),
   description: v.string(),
   items: v.array(serviceItemValidator),
-  visibility: v.boolean(),
 });
 
 export const resumeValidator = v.object({
   title: v.string(),
   description: v.string(),
-  experiences: v.array(resumeEntryValidator),
-  educations: v.array(educationEntryValidator),
-  visibility: v.boolean(),
+  experiences: v.array(experienceValidator),
+  educations: v.array(educationValidator),
 });
 
 export const portfolioValidator = v.object({
   title: v.string(),
   description: v.string(),
   projects: v.array(projectValidator),
-  visibility: v.boolean(),
 });
 
 export const blogValidator = v.object({
   title: v.string(),
   description: v.string(),
   posts: v.array(postValidator),
-  visibility: v.boolean(),
-});
-
-export const contactValidator = v.object({
-  title: v.string(),
-  description: v.string(),
-  email: v.string(),
-  phone: v.string(),
-  address: v.string(),
-  socials: v.array(socialValidator),
-  visibility: v.boolean(),
 });
 
 export const messageValidator = v.object({
   name: v.string(),
   email: v.string(),
+  subject: v.string(),
   message: v.string(),
+  replied: v.boolean(),
+  createdAt: v.number(),
+});
+
+export const visitorValidator = v.object({
+  trackingId: v.string(),
+  isNew: v.boolean(),
+  browser: v.string(),
+  platform: v.string(),
   createdAt: v.number(),
 });
 
@@ -172,17 +184,17 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
-    // Portfolio CMS — single document per section (Ezfolio data model)
+    // Portfolio CMS — Ezfolio data model
+    site: defineTable(siteValidator),
     settings: defineTable(settingsValidator),
-    hero: defineTable(heroValidator),
     about: defineTable(aboutValidator),
     skills: defineTable(skillsValidator),
     services: defineTable(servicesValidator),
     resume: defineTable(resumeValidator),
     portfolio: defineTable(portfolioValidator),
     blog: defineTable(blogValidator),
-    contact: defineTable(contactValidator),
     messages: defineTable(messageValidator),
+    visitors: defineTable(visitorValidator),
   },
   {
     schemaValidation: false,

@@ -1,22 +1,28 @@
 import { useMutation, useQuery } from "convex/react";
 import {
+  BarChart3,
   Briefcase,
   ExternalLink,
   FolderOpen,
+  GraduationCap,
+  Home,
   Inbox,
   Info,
   Layers,
   LogOut,
   Mail,
   Newspaper,
+  PenTool,
   Settings,
+  SlidersHorizontal,
   TrendingUp,
-  User,
+  Users,
+  Wrench,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { api } from "@/convex/_generated/api";
-import { AboutEditor, ContactEditor, HeroEditor, SettingsEditor } from "@/components/admin/editors-basic";
+import { AboutEditor, ConfigEditor, SiteEditor } from "@/components/admin/editors-basic";
 import {
   BlogEditor,
   MessagesView,
@@ -24,26 +30,35 @@ import {
   ResumeEditor,
   ServicesEditor,
   SkillsEditor,
+  VisitorsView,
 } from "@/components/admin/editors-lists";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { APP_NAME, applyThemeColor, monogram } from "@/lib/site";
+import { APP_NAME, applyFavicon, applyThemeColor, monogram } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { id: "hero", label: "Accueil", icon: User },
-  { id: "about", label: "À propos", icon: Info },
-  { id: "skills", label: "Compétences", icon: TrendingUp },
-  { id: "services", label: "Services", icon: Layers },
-  { id: "resume", label: "Parcours", icon: Briefcase },
-  { id: "portfolio", label: "Portfolio", icon: FolderOpen },
-  { id: "blog", label: "Journal", icon: Newspaper },
-  { id: "contact", label: "Contact", icon: Mail },
-  { id: "messages", label: "Messages", icon: Inbox },
-  { id: "settings", label: "Paramètres", icon: Settings },
-] as const;
+type NavItem = {
+  id: string;
+  label: string;
+  icon: typeof Home;
+  group?: string;
+};
 
-type SectionId = (typeof NAV)[number]["id"];
+const NAV: NavItem[] = [
+  { id: "overview", label: "Vue d'ensemble", icon: Home },
+  { id: "config", label: "Config", icon: SlidersHorizontal, group: "Portfolio" },
+  { id: "about", label: "À propos", icon: Info, group: "Portfolio" },
+  { id: "skills", label: "Compétences", icon: TrendingUp, group: "Portfolio" },
+  { id: "services", label: "Services", icon: Layers, group: "Portfolio" },
+  { id: "resume", label: "Parcours", icon: Briefcase, group: "Portfolio" },
+  { id: "portfolio", label: "Projets", icon: FolderOpen, group: "Portfolio" },
+  { id: "blog", label: "Journal", icon: Newspaper, group: "Portfolio" },
+  { id: "visitors", label: "Visiteurs", icon: Users },
+  { id: "messages", label: "Messages", icon: Inbox },
+  { id: "site", label: "Paramètres", icon: Settings },
+];
+
+const GROUPS = Array.from(new Set(NAV.map((item) => item.group).filter(Boolean))) as string[];
 
 function NavButton({
   item,
@@ -51,7 +66,7 @@ function NavButton({
   badge,
   onClick,
 }: {
-  item: (typeof NAV)[number];
+  item: NavItem;
   active: boolean;
   badge?: number;
   onClick: () => void;
@@ -84,13 +99,137 @@ function NavButton({
   );
 }
 
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Home;
+  label: string;
+  value: number | undefined;
+}) {
+  return (
+    <div className="flex items-center gap-4 border border-border bg-card p-4">
+      <div className="flex size-10 shrink-0 items-center justify-center border border-border text-(--studio-accent)">
+        <Icon className="size-5" />
+      </div>
+      <div className="min-w-0">
+        <p className="font-display text-2xl font-light tracking-tight text-foreground">
+          {value ?? "—"}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function Overview() {
+  const stats = useQuery(api.site.getStats);
+
+  const trendMax = Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1]));
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          Vue d'ensemble
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-light tracking-tight text-foreground">
+          Tableau de bord
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Vos contenus et l'activité de votre portfolio en un coup d'œil.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard icon={TrendingUp} label="Compétences" value={stats?.content.skills} />
+        <StatCard icon={GraduationCap} label="Formations" value={stats?.content.educations} />
+        <StatCard icon={Briefcase} label="Expériences" value={stats?.content.experiences} />
+        <StatCard icon={FolderOpen} label="Projets" value={stats?.content.projects} />
+        <StatCard icon={Wrench} label="Services" value={stats?.content.services} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="border border-border bg-card p-5">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            Visiteurs
+          </p>
+          <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+            {[
+              { label: "Total", value: stats?.visitors.total },
+              { label: "Ce mois", value: stats?.visitors.thisMonth },
+              { label: "Cette semaine", value: stats?.visitors.thisWeek },
+              { label: "Aujourd'hui", value: stats?.visitors.today },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p className="font-display text-xl font-light tracking-tight">
+                  {stat.value ?? "—"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+          {stats && (
+            <div className="mt-5">
+              <p className="mb-2 text-xs text-muted-foreground">
+                Tendance — 7 derniers jours
+              </p>
+              <div className="flex h-20 items-end gap-1.5">
+                {stats.visitors.trend.map((day) => (
+                  <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
+                    <div
+                      className="w-full bg-(--studio-accent)/70"
+                      style={{
+                        height: `${Math.max(4, Math.round((day.count / trendMax) * 64))}px`,
+                      }}
+                      title={`${day.date} : ${day.count}`}
+                    />
+                    <span className="text-[9px] text-muted-foreground">{day.date.slice(5)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border border-border bg-card p-5">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            Messages
+          </p>
+          <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+            {[
+              { label: "Total", value: stats?.messages.total },
+              { label: "Ce mois", value: stats?.messages.thisMonth },
+              { label: "Cette semaine", value: stats?.messages.thisWeek },
+              { label: "Aujourd'hui", value: stats?.messages.today },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p className="font-display text-xl font-light tracking-tight">
+                  {stat.value ?? "—"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 border-t border-border/60 pt-4 text-xs leading-relaxed text-muted-foreground">
+            Les demandes arrivent ici depuis le formulaire de contact. Pensez à les marquer
+            comme traitées dans la boîte de réception.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const data = useQuery(api.site.getSiteData);
   const messages = useQuery(api.site.getMessages);
+  const visitors = useQuery(api.site.getVisitors);
   const ensureSeed = useMutation(api.seed.ensureSeed);
-  const [active, setActive] = useState<SectionId>("hero");
+  const [active, setActive] = useState<string>("overview");
 
   useEffect(() => {
     void ensureSeed();
@@ -99,6 +238,10 @@ export default function Dashboard() {
   useEffect(() => {
     applyThemeColor(data?.settings?.themeColor);
   }, [data?.settings?.themeColor]);
+
+  useEffect(() => {
+    applyFavicon(data?.site?.faviconUrl);
+  }, [data?.site?.faviconUrl]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -116,9 +259,39 @@ export default function Dashboard() {
     );
   }
 
-  const siteName = data.settings?.siteName ?? "Portfolio";
+  const siteName = data.site?.siteName ?? "Portfolio";
   const messageCount = messages?.length ?? 0;
   const activeLabel = NAV.find((item) => item.id === active)?.label ?? "";
+  const activeItem = NAV.find((item) => item.id === active);
+
+  const renderContent = () => {
+    switch (active) {
+      case "overview":
+        return <Overview />;
+      case "config":
+        return <ConfigEditor settings={data.settings} />;
+      case "about":
+        return <AboutEditor about={data.about} />;
+      case "skills":
+        return <SkillsEditor skills={data.skills} />;
+      case "services":
+        return <ServicesEditor services={data.services} />;
+      case "resume":
+        return <ResumeEditor resume={data.resume} />;
+      case "portfolio":
+        return <PortfolioEditor portfolio={data.portfolio} />;
+      case "blog":
+        return <BlogEditor blog={data.blog} />;
+      case "visitors":
+        return <VisitorsView visitors={visitors} />;
+      case "messages":
+        return <MessagesView messages={messages} />;
+      case "site":
+        return <SiteEditor site={data.site} />;
+      default:
+        return <Overview />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background lg:flex">
@@ -134,7 +307,7 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {NAV.map((item) => (
+          {NAV.filter((item) => !item.group).map((item) => (
             <NavButton
               key={item.id}
               item={item}
@@ -142,6 +315,23 @@ export default function Dashboard() {
               badge={item.id === "messages" ? messageCount : undefined}
               onClick={() => setActive(item.id)}
             />
+          ))}
+          {GROUPS.map((group) => (
+            <div key={group} className="pt-4">
+              <p className="px-3 pb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                {group}
+              </p>
+              <div className="space-y-1">
+                {NAV.filter((item) => item.group === group).map((item) => (
+                  <NavButton
+                    key={item.id}
+                    item={item}
+                    active={active === item.id}
+                    onClick={() => setActive(item.id)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -239,27 +429,12 @@ export default function Dashboard() {
         </div>
 
         <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 lg:py-10">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Édition
-              </p>
-              <h2 className="font-display text-2xl font-light tracking-tight text-foreground lg:hidden">
-                {activeLabel}
-              </h2>
-            </div>
-          </div>
-
-          {active === "hero" && <HeroEditor hero={data.hero} />}
-          {active === "about" && <AboutEditor about={data.about} />}
-          {active === "skills" && <SkillsEditor skills={data.skills} />}
-          {active === "services" && <ServicesEditor services={data.services} />}
-          {active === "resume" && <ResumeEditor resume={data.resume} />}
-          {active === "portfolio" && <PortfolioEditor portfolio={data.portfolio} />}
-          {active === "blog" && <BlogEditor blog={data.blog} />}
-          {active === "contact" && <ContactEditor contact={data.contact} />}
-          {active === "messages" && <MessagesView messages={messages} />}
-          {active === "settings" && <SettingsEditor settings={data.settings} />}
+          {activeItem?.group && (
+            <p className="mb-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground lg:hidden">
+              {activeItem.group} — {activeLabel}
+            </p>
+          )}
+          {renderContent()}
         </main>
       </div>
     </div>

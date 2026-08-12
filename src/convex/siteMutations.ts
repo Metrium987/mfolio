@@ -4,25 +4,23 @@ import { getCurrentUser } from "./users";
 import {
   aboutValidator,
   blogValidator,
-  contactValidator,
-  heroValidator,
   portfolioValidator,
   resumeValidator,
   servicesValidator,
   settingsValidator,
+  siteValidator,
   skillsValidator,
 } from "./schema";
 
 type SectionTable =
+  | "site"
   | "settings"
-  | "hero"
   | "about"
   | "skills"
   | "services"
   | "resume"
   | "portfolio"
-  | "blog"
-  | "contact";
+  | "blog";
 
 /**
  * Ezfolio keeps one document per section; updates patch it in place and the
@@ -52,19 +50,19 @@ async function requireOwner(ctx: MutationCtx) {
 // Section content updates (owner only)
 // ---------------------------------------------------------------------------
 
+export const updateSite = mutation({
+  args: { data: siteValidator },
+  handler: async (ctx, { data }) => {
+    await requireOwner(ctx);
+    await upsertDoc(ctx, "site", data);
+  },
+});
+
 export const updateSettings = mutation({
   args: { data: settingsValidator },
   handler: async (ctx, { data }) => {
     await requireOwner(ctx);
     await upsertDoc(ctx, "settings", data);
-  },
-});
-
-export const updateHero = mutation({
-  args: { data: heroValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "hero", data);
   },
 });
 
@@ -116,14 +114,6 @@ export const updateBlog = mutation({
   },
 });
 
-export const updateContact = mutation({
-  args: { data: contactValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "contact", data);
-  },
-});
-
 // ---------------------------------------------------------------------------
 // Contact form (public) + messages management (owner only)
 // ---------------------------------------------------------------------------
@@ -132,20 +122,61 @@ export const addMessage = mutation({
   args: v.object({
     name: v.string(),
     email: v.string(),
+    subject: v.string(),
     message: v.string(),
   }),
-  handler: async (ctx, { name, email, message }) => {
+  handler: async (ctx, { name, email, subject, message }) => {
     await ctx.db.insert("messages", {
       name: name.trim(),
       email: email.trim(),
+      subject: subject.trim(),
       message: message.trim(),
+      replied: false,
       createdAt: Date.now(),
     });
   },
 });
 
+export const markMessageReplied = mutation({
+  args: { id: v.id("messages"), replied: v.boolean() },
+  handler: async (ctx, { id, replied }) => {
+    await requireOwner(ctx);
+    await ctx.db.patch(id, { replied });
+  },
+});
+
 export const deleteMessage = mutation({
   args: { id: v.id("messages") },
+  handler: async (ctx, { id }) => {
+    await requireOwner(ctx);
+    await ctx.db.delete(id);
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Visitor tracking (public) + management (owner only)
+// ---------------------------------------------------------------------------
+
+export const trackVisit = mutation({
+  args: v.object({
+    trackingId: v.string(),
+    isNew: v.boolean(),
+    browser: v.string(),
+    platform: v.string(),
+  }),
+  handler: async (ctx, { trackingId, isNew, browser, platform }) => {
+    await ctx.db.insert("visitors", {
+      trackingId,
+      isNew,
+      browser,
+      platform,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const deleteVisitor = mutation({
+  args: { id: v.id("visitors") },
   handler: async (ctx, { id }) => {
     await requireOwner(ctx);
     await ctx.db.delete(id);

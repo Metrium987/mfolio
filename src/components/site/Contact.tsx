@@ -11,9 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { monogram } from "@/lib/site";
 import { Container, Reveal, SectionHeading } from "./Section";
 
-export function Contact({ contact }: { contact: Doc<"contact"> }) {
+export function Contact({ about }: { about: Doc<"about"> }) {
   const addMessage = useMutation(api.siteMutations.addMessage);
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -21,7 +26,7 @@ export function Contact({ contact }: { contact: Doc<"contact"> }) {
     setSending(true);
     try {
       await addMessage(form);
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", subject: "", message: "" });
       toast.success("Message envoyé — merci !");
     } catch (error) {
       console.error(error);
@@ -32,9 +37,19 @@ export function Contact({ contact }: { contact: Doc<"contact"> }) {
   };
 
   const infoRows = [
-    { icon: Mail, label: "Email", value: contact.email, href: `mailto:${contact.email}` },
-    { icon: Phone, label: "Téléphone", value: contact.phone, href: `tel:${contact.phone}` },
-    { icon: MapPin, label: "Localisation", value: contact.address },
+    {
+      icon: Mail,
+      label: "Email",
+      value: about.email,
+      href: about.email ? `mailto:${about.email}` : undefined,
+    },
+    {
+      icon: Phone,
+      label: "Téléphone",
+      value: about.phone,
+      href: about.phone ? `tel:${about.phone}` : undefined,
+    },
+    { icon: MapPin, label: "Localisation", value: about.address },
   ].filter((row) => row.value);
 
   return (
@@ -42,8 +57,8 @@ export function Contact({ contact }: { contact: Doc<"contact"> }) {
       <div className="border-t border-border/70 pt-16 md:pt-20">
         <SectionHeading
           kicker="Contact"
-          title={contact.title}
-          description={contact.description}
+          title="Contact"
+          description="Un projet en tête ? Une question ? Écrivez-moi — je réponds sous 48 heures."
         />
         <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
           <Reveal>
@@ -74,18 +89,18 @@ export function Contact({ contact }: { contact: Doc<"contact"> }) {
               ))}
             </ul>
 
-            {contact.socials.length > 0 && (
+            {about.socials.length > 0 && (
               <div className="mt-10 flex flex-wrap gap-3">
-                {contact.socials.map((social) => (
+                {about.socials.map((social) => (
                   <a
-                    key={social.name}
-                    href={social.url}
+                    key={social.title}
+                    href={social.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title={social.name}
+                    title={social.title}
                     className="flex size-11 items-center justify-center rounded-full border border-border text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
                   >
-                    {monogram(social.name)}
+                    {monogram(social.title)}
                   </a>
                 ))}
               </div>
@@ -126,6 +141,18 @@ export function Contact({ contact }: { contact: Doc<"contact"> }) {
                     className="bg-background"
                   />
                 </div>
+              </div>
+              <div className="mt-5 space-y-2">
+                <Label htmlFor="contact-subject" className="text-[13px]">
+                  Sujet
+                </Label>
+                <Input
+                  id="contact-subject"
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  placeholder="Mission, opportunité, question…"
+                  className="bg-background"
+                />
               </div>
               <div className="mt-5 space-y-2">
                 <Label htmlFor="contact-message" className="text-[13px]">

@@ -1,9 +1,16 @@
-import { useMutation } from "convex/react";
-import { Inbox, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useAction, useMutation } from "convex/react";
+import {
+  ImagePlus,
+  Inbox,
+  Loader2,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,9 +33,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { formatTimestamp, SERVICE_ICON_NAMES } from "@/lib/site";
 import { SectionEditor } from "./SectionEditor";
 import {
+  Field,
   ImageField,
   TextAreaField,
   TextField,
@@ -71,6 +81,160 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
+/** Simple string-list editor (categories, keywords…). */
+function TagsEditor({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder: string;
+}) {
+  return (
+    <Field label={label} hint="Chaque catégorie sert de filtre sur le site.">
+      <div className="space-y-2">
+        {value.map((tag, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <Input
+              value={tag}
+              onChange={(event) =>
+                onChange(
+                  value.map((t, n) => (n === index ? event.target.value : t)),
+                )
+              }
+              placeholder={placeholder}
+              className="flex-1 bg-background"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              title="Supprimer"
+              onClick={() => onChange(value.filter((_, n) => n !== index))}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ))}
+        <AddButton label="Ajouter une catégorie" onClick={() => onChange([...value, ""])} />
+      </div>
+    </Field>
+  );
+}
+
+/** Multiple images per project (Ezfolio thumbnail + images). */
+function ImagesEditor({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+}) {
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const getUrl = useAction(api.files.getUrl);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleFile = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!result.ok) throw new Error("Upload failed");
+      const { storageId } = (await result.json()) as { storageId: string };
+      const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+      if (url) {
+        onChange(value.map((v, n) => (n === index ? url : v)));
+        toast.success("Image importée");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Le téléchargement de l'image a échoué");
+    } finally {
+      setUploadingIndex(null);
+      if (inputRefs.current[index]) inputRefs.current[index].value = "";
+    }
+  };
+
+  return (
+    <Field label={label} hint="Miniatures du projet affichées sur le site.">
+      <div className="space-y-2">
+        {value.map((image, index) => (
+          <div key={index} className="flex flex-wrap items-center gap-2">
+            <div className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden border border-border bg-background">
+              {image ? (
+                <img src={image} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="px-1 text-center text-[10px] text-muted-foreground">
+                  Vide
+                </span>
+              )}
+            </div>
+            <Input
+              value={image}
+              onChange={(event) =>
+                onChange(
+                  value.map((v, n) => (n === index ? event.target.value : v)),
+                )
+              }
+              placeholder="https://… ou importez une image"
+              className="min-w-44 flex-1 bg-background text-xs"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              title="Importer"
+              disabled={uploadingIndex === index}
+              onClick={() => inputRefs.current[index]?.click()}
+            >
+              {uploadingIndex === index ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ImagePlus className="size-4" />
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              title="Supprimer"
+              onClick={() => onChange(value.filter((_, n) => n !== index))}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+            <input
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleFile(index, file);
+              }}
+            />
+          </div>
+        ))}
+        <AddButton
+          label="Ajouter une image"
+          onClick={() => onChange([...value, ""])}
+        />
+      </div>
+    </Field>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Skills
 // ---------------------------------------------------------------------------
@@ -82,7 +246,6 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
     title: "",
     description: "",
     items: [],
-    visibility: true,
   });
 
   const save = async () => {
@@ -103,8 +266,9 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
     <SectionEditor
       title="Compétences"
       description="La liste des compétences avec leur niveau (0-100 %)."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
@@ -132,7 +296,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                 className="max-w-xs bg-background"
               />
               <span className="w-10 text-right font-mono text-sm text-muted-foreground">
-                {item.level}%
+                {item.proficiency}%
               </span>
               <Button
                 type="button"
@@ -150,15 +314,15 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
               </Button>
             </div>
             <Slider
-              value={[item.level]}
+              value={[item.proficiency]}
               min={0}
               max={100}
               step={1}
-              onValueChange={([level]) =>
+              onValueChange={([proficiency]) =>
                 draft.set((prev) => ({
                   ...prev,
                   items: prev.items.map((i, n) =>
-                    n === index ? { ...i, level } : i,
+                    n === index ? { ...i, proficiency } : i,
                   ),
                 }))
               }
@@ -171,7 +335,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
           onClick={() =>
             draft.set((prev) => ({
               ...prev,
-              items: [...prev.items, { name: "", level: 60 }],
+              items: [...prev.items, { name: "", proficiency: 60 }],
             }))
           }
         />
@@ -191,7 +355,6 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
     title: "",
     description: "",
     items: [],
-    visibility: true,
   });
 
   const save = async () => {
@@ -212,8 +375,9 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
     <SectionEditor
       title="Services"
       description="Les prestations proposées, affichées en grille."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
@@ -262,13 +426,13 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
                 </Select>
               </div>
               <TextField
-                label="Nom"
-                value={item.name}
-                onChange={(name) =>
+                label="Titre"
+                value={item.title}
+                onChange={(title) =>
                   draft.set((prev) => ({
                     ...prev,
                     items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name } : i,
+                      n === index ? { ...i, title } : i,
                     ),
                   }))
                 }
@@ -276,13 +440,13 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
               />
             </div>
             <TextAreaField
-              label="Description"
-              value={item.description}
-              onChange={(description) =>
+              label="Détails"
+              value={item.details}
+              onChange={(details) =>
                 draft.set((prev) => ({
                   ...prev,
                   items: prev.items.map((i, n) =>
-                    n === index ? { ...i, description } : i,
+                    n === index ? { ...i, details } : i,
                   ),
                 }))
               }
@@ -295,10 +459,7 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
           onClick={() =>
             draft.set((prev) => ({
               ...prev,
-              items: [
-                ...prev.items,
-                { name: "", description: "", icon: "Layers" },
-              ],
+              items: [...prev.items, { title: "", details: "", icon: "Layers" }],
             }))
           }
         />
@@ -308,7 +469,7 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
 }
 
 // ---------------------------------------------------------------------------
-// Resume
+// Resume — experiences + educations (full Ezfolio fields)
 // ---------------------------------------------------------------------------
 
 export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefined }) {
@@ -319,7 +480,6 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
     description: "",
     experiences: [],
     educations: [],
-    visibility: true,
   });
 
   const save = async () => {
@@ -339,9 +499,10 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
   return (
     <SectionEditor
       title="Parcours"
-      description="Expériences professionnelles et formation, affichées en deux colonnes."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      description="Expériences professionnelles et formation (diplôme, institution, période, CGPA, département, mémoire)."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
@@ -368,12 +529,12 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
               <div className="grid gap-4 sm:grid-cols-2">
                 <TextField
                   label="Poste"
-                  value={item.title}
-                  onChange={(title) =>
+                  value={item.position}
+                  onChange={(position) =>
                     draft.set((prev) => ({
                       ...prev,
                       experiences: prev.experiences.map((i, n) =>
-                        n === index ? { ...i, title } : i,
+                        n === index ? { ...i, position } : i,
                       ),
                     }))
                   }
@@ -393,25 +554,25 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
               </div>
               <TextField
                 label="Période"
-                value={item.date}
-                onChange={(date) =>
+                value={item.period}
+                onChange={(period) =>
                   draft.set((prev) => ({
                     ...prev,
                     experiences: prev.experiences.map((i, n) =>
-                      n === index ? { ...i, date } : i,
+                      n === index ? { ...i, period } : i,
                     ),
                   }))
                 }
                 placeholder="2022 — Aujourd'hui"
               />
               <TextAreaField
-                label="Description"
-                value={item.description}
-                onChange={(description) =>
+                label="Détails"
+                value={item.details}
+                onChange={(details) =>
                   draft.set((prev) => ({
                     ...prev,
                     experiences: prev.experiences.map((i, n) =>
-                      n === index ? { ...i, description } : i,
+                      n === index ? { ...i, details } : i,
                     ),
                   }))
                 }
@@ -426,7 +587,7 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                 ...prev,
                 experiences: [
                   ...prev.experiences,
-                  { title: "", company: "", date: "", description: "" },
+                  { position: "", company: "", period: "", details: "" },
                 ],
               }))
             }
@@ -449,12 +610,12 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
               <div className="grid gap-4 sm:grid-cols-2">
                 <TextField
                   label="Diplôme"
-                  value={item.title}
-                  onChange={(title) =>
+                  value={item.degree}
+                  onChange={(degree) =>
                     draft.set((prev) => ({
                       ...prev,
                       educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, title } : i,
+                        n === index ? { ...i, degree } : i,
                       ),
                     }))
                   }
@@ -472,32 +633,60 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                   }
                 />
               </div>
-              <TextField
-                label="Période"
-                value={item.date}
-                onChange={(date) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    educations: prev.educations.map((i, n) =>
-                      n === index ? { ...i, date } : i,
-                    ),
-                  }))
-                }
-                placeholder="2016 — 2018"
-              />
-              <TextAreaField
-                label="Description"
-                value={item.description}
-                onChange={(description) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    educations: prev.educations.map((i, n) =>
-                      n === index ? { ...i, description } : i,
-                    ),
-                  }))
-                }
-                rows={3}
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Période"
+                  value={item.period}
+                  onChange={(period) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      educations: prev.educations.map((i, n) =>
+                        n === index ? { ...i, period } : i,
+                      ),
+                    }))
+                  }
+                  placeholder="2016 — 2018"
+                />
+                <TextField
+                  label="Moyenne (CGPA)"
+                  value={item.cgpa}
+                  onChange={(cgpa) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      educations: prev.educations.map((i, n) =>
+                        n === index ? { ...i, cgpa } : i,
+                      ),
+                    }))
+                  }
+                  placeholder="16,2 / 20"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Département"
+                  value={item.department}
+                  onChange={(department) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      educations: prev.educations.map((i, n) =>
+                        n === index ? { ...i, department } : i,
+                      ),
+                    }))
+                  }
+                />
+                <TextField
+                  label="Mémoire / spécialité"
+                  value={item.thesis}
+                  onChange={(thesis) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      educations: prev.educations.map((i, n) =>
+                        n === index ? { ...i, thesis } : i,
+                      ),
+                    }))
+                  }
+                />
+              </div>
             </ItemCard>
           ))}
           <AddButton
@@ -507,7 +696,14 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                 ...prev,
                 educations: [
                   ...prev.educations,
-                  { title: "", institution: "", date: "", description: "" },
+                  {
+                    degree: "",
+                    institution: "",
+                    period: "",
+                    cgpa: "",
+                    department: "",
+                    thesis: "",
+                  },
                 ],
               }))
             }
@@ -519,7 +715,7 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
 }
 
 // ---------------------------------------------------------------------------
-// Portfolio
+// Portfolio — projects with categories, thumbnail and multiple images
 // ---------------------------------------------------------------------------
 
 export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | null | undefined }) {
@@ -529,7 +725,6 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
     title: "",
     description: "",
     projects: [],
-    visibility: true,
   });
 
   const save = async () => {
@@ -537,7 +732,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
     try {
       await updatePortfolio({ data: draft.value });
       draft.reset();
-      toast.success("Section « Portfolio » enregistrée");
+      toast.success("Section « Projets » enregistrée");
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de l'enregistrement");
@@ -548,10 +743,11 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
 
   return (
     <SectionEditor
-      title="Portfolio"
-      description="Les projets, avec catégorie, image et liens. Les catégories servent de filtre sur le site."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      title="Projets"
+      description="Les projets du portfolio, avec catégories, vignette, galerie et lien."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
@@ -575,84 +771,81 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
-                label="Nom"
-                value={project.name}
-                onChange={(name) =>
+                label="Titre"
+                value={project.title}
+                onChange={(title) =>
                   draft.set((prev) => ({
                     ...prev,
                     projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, name } : i,
+                      n === index ? { ...i, title } : i,
                     ),
                   }))
                 }
               />
               <TextField
-                label="Catégorie"
-                value={project.category}
-                onChange={(category) =>
+                label="Lien du projet"
+                value={project.link}
+                onChange={(link) =>
                   draft.set((prev) => ({
                     ...prev,
                     projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, category } : i,
+                      n === index ? { ...i, link } : i,
                     ),
                   }))
                 }
-                placeholder="Web, Design, Produit…"
+                placeholder="https://…"
               />
             </div>
-            <ImageField
-              label="Image"
-              value={project.imageUrl}
-              onChange={(imageUrl) =>
+            <TagsEditor
+              label="Catégories"
+              value={project.categories}
+              onChange={(categories) =>
                 draft.set((prev) => ({
                   ...prev,
                   projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, imageUrl } : i,
+                    n === index ? { ...i, categories } : i,
+                  ),
+                }))
+              }
+              placeholder="Web, Design, Produit…"
+            />
+            <ImageField
+              label="Vignette"
+              value={project.thumbnail}
+              onChange={(thumbnail) =>
+                draft.set((prev) => ({
+                  ...prev,
+                  projects: prev.projects.map((i, n) =>
+                    n === index ? { ...i, thumbnail } : i,
+                  ),
+                }))
+              }
+            />
+            <ImagesEditor
+              label="Galerie d'images"
+              value={project.images}
+              onChange={(images) =>
+                draft.set((prev) => ({
+                  ...prev,
+                  projects: prev.projects.map((i, n) =>
+                    n === index ? { ...i, images } : i,
                   ),
                 }))
               }
             />
             <TextAreaField
-              label="Description"
-              value={project.description}
-              onChange={(description) =>
+              label="Détails"
+              value={project.details}
+              onChange={(details) =>
                 draft.set((prev) => ({
                   ...prev,
                   projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, description } : i,
+                    n === index ? { ...i, details } : i,
                   ),
                 }))
               }
               rows={3}
             />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                label="Lien démo"
-                value={project.demoUrl}
-                onChange={(demoUrl) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, demoUrl } : i,
-                    ),
-                  }))
-                }
-                placeholder="https://…"
-              />
-              <TextField
-                label="Lien code source"
-                value={project.sourceUrl}
-                onChange={(sourceUrl) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, sourceUrl } : i,
-                    ),
-                  }))
-                }
-                placeholder="https://…"
-              />
-            </div>
           </ItemCard>
         ))}
         <AddButton
@@ -663,12 +856,12 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
               projects: [
                 ...prev.projects,
                 {
-                  name: "",
-                  description: "",
-                  category: "",
-                  imageUrl: "",
-                  sourceUrl: "",
-                  demoUrl: "",
+                  title: "",
+                  categories: [],
+                  link: "",
+                  details: "",
+                  thumbnail: "",
+                  images: [],
                 },
               ],
             }))
@@ -680,7 +873,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
 }
 
 // ---------------------------------------------------------------------------
-// Blog
+// Blog (bonus — pas dans Ezfolio, conservé)
 // ---------------------------------------------------------------------------
 
 export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
@@ -690,7 +883,6 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
     title: "",
     description: "",
     posts: [],
-    visibility: true,
   });
 
   const save = async () => {
@@ -711,8 +903,9 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
     <SectionEditor
       title="Journal"
       description="Les articles du blog, lus sur le site dans une fenêtre dédiée."
-      visibility={draft.value.visibility}
-      onVisibilityChange={(visibility) => draft.set({ ...draft.value, visibility })}
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
@@ -820,7 +1013,7 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
 }
 
 // ---------------------------------------------------------------------------
-// Messages inbox
+// Messages — with subject and "replied" status (Ezfolio "Message")
 // ---------------------------------------------------------------------------
 
 export function MessagesView({
@@ -829,6 +1022,7 @@ export function MessagesView({
   messages: Doc<"messages">[] | null | undefined;
 }) {
   const deleteMessage = useMutation(api.siteMutations.deleteMessage);
+  const markMessageReplied = useMutation(api.siteMutations.markMessageReplied);
 
   const remove = async (id: Doc<"messages">["_id"]) => {
     try {
@@ -879,7 +1073,8 @@ export function MessagesView({
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-medium text-foreground">{message.name}</p>
+                  <p className="font-medium text-foreground">{message.subject || "(sans objet)"}</p>
+                  <p className="mt-0.5 text-sm text-foreground/90">{message.name}</p>
                   <a
                     href={`mailto:${message.email}`}
                     className="text-sm text-(--studio-accent) hover:underline"
@@ -891,6 +1086,15 @@ export function MessagesView({
                   <span className="text-xs text-muted-foreground">
                     {formatTimestamp(message.createdAt)}
                   </span>
+                  <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                    <Switch
+                      checked={message.replied}
+                      onCheckedChange={(replied) =>
+                        void markMessageReplied({ id: message._id, replied })
+                      }
+                    />
+                    Répondu
+                  </label>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button type="button" variant="ghost" size="icon-sm" title="Supprimer">
@@ -901,8 +1105,7 @@ export function MessagesView({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Le message de {message.name} sera définitivement
-                          supprimé.
+                          Le message de {message.name} sera définitivement supprimé.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -920,6 +1123,95 @@ export function MessagesView({
               </p>
             </article>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Visitors — tracking list (Ezfolio "Visitor")
+// ---------------------------------------------------------------------------
+
+export function VisitorsView({
+  visitors,
+}: {
+  visitors: Doc<"visitors">[] | null | undefined;
+}) {
+  const deleteVisitor = useMutation(api.siteMutations.deleteVisitor);
+
+  if (!visitors) {
+    return (
+      <div className="flex items-center gap-2 border border-border bg-card p-6 text-sm text-muted-foreground">
+        <Users className="size-4" />
+        Chargement…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          Statistiques
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-light tracking-tight text-foreground">
+          Visiteurs
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Les visites du site public, collectées automatiquement.
+        </p>
+      </div>
+
+      {visitors.length === 0 ? (
+        <div className="border border-dashed border-border bg-card p-10 text-center">
+          <Users className="mx-auto size-8 text-muted-foreground/50" />
+          <p className="mt-3 text-sm text-muted-foreground">
+            Aucune visite enregistrée pour le moment.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden border border-border bg-card">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Navigateur</th>
+                <th className="px-4 py-3 font-medium">Plateforme</th>
+                <th className="px-4 py-3 font-medium">Visiteur</th>
+                <th className="px-4 py-3 text-right font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visitors.map((visitor) => (
+                <tr key={visitor._id} className="border-b border-border/60 last:border-0">
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatTimestamp(visitor.createdAt)}
+                  </td>
+                  <td className="px-4 py-3">{visitor.browser}</td>
+                  <td className="px-4 py-3">{visitor.platform}</td>
+                  <td className="px-4 py-3">
+                    {visitor.isNew ? (
+                      <Badge variant="default">Nouveau</Badge>
+                    ) : (
+                      <Badge variant="outline">Retour</Badge>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Supprimer"
+                      onClick={() => void deleteVisitor({ id: visitor._id })}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
