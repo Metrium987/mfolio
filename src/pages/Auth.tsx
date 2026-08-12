@@ -1,3 +1,5 @@
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,10 +15,12 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
 
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/site";
-import { ArrowLeft, ArrowRight, Loader2, Mail, UserX } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, ArrowRight, Loader2, Mail } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
@@ -34,14 +38,19 @@ function resolveRedirectAfterAuth(
   return fallback;
 }
 
+// Provision the default owner account once per page load.
+let adminEnsured = false;
+
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const ensureAdmin = useAction(api.ensureAdmin.ensureAdmin);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
+  const [mode, setMode] = useState<"password" | "otp">("password");
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +61,30 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       navigate(redirect);
     }
   }, [authLoading, isAuthenticated, navigate, redirect]);
+
+  useEffect(() => {
+    if (adminEnsured) return;
+    adminEnsured = true;
+    void ensureAdmin();
+  }, [ensureAdmin]);
+
+  const handlePasswordSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const formData = new FormData(event.currentTarget);
+      formData.set("flow", "signIn");
+      await signIn("password", formData);
+      navigate(redirect);
+    } catch (error) {
+      console.error("Password sign-in error:", error);
+      setError("Email ou mot de passe incorrect.");
+      setIsLoading(false);
+    }
+  };
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,23 +122,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     }
   };
 
-  const handleGuestLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await signIn("anonymous");
-      navigate(redirect);
-    } catch (error) {
-      console.error("Guest login error:", error);
-      setError(
-        `Connexion en invité impossible : ${
-          error instanceof Error ? error.message : "erreur inconnue"
-        }`,
-      );
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Always-visible way back to the public site, whatever the step */}
@@ -121,6 +137,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           {APP_NAME}
         </span>
       </div>
+
       {/* Auth Content */}
       <div className="flex flex-1 items-center justify-center px-5">
         <Card className="min-w-[360px] max-w-[420px] border-border pb-0 shadow-[0_1px_0_rgba(0,0,0,0.02),0_24px_48px_-32px_rgba(28,25,21,0.25)]">
@@ -139,65 +156,130 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   Connexion
                 </CardTitle>
                 <CardDescription>
-                  Entrez votre adresse email pour accéder à votre tableau de
-                  bord.
+                  {mode === "password"
+                    ? "Connectez-vous avec votre email et votre mot de passe."
+                    : "Entrez votre adresse email pour recevoir un code de connexion."}
                 </CardDescription>
-              </CardHeader>
-              <form onSubmit={handleEmailSubmit}>
-                <CardContent>
-                  <div className="relative flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        name="email"
-                        placeholder="vous@exemple.fr"
-                        type="email"
-                        className="bg-background pl-9"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      size="icon"
-                      disabled={isLoading}
-                      title="Envoyer le code"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <ArrowRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
-                  <div className="mt-5">
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase tracking-[0.18em]">
-                        <span className="bg-card px-2 text-muted-foreground">
-                          Ou
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button
+                <div className="mt-5 grid grid-cols-2 gap-1 rounded-full border border-border bg-muted p-1">
+                  {(
+                    [
+                      { id: "password", label: "Mot de passe" },
+                      { id: "otp", label: "Code par email" },
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      key={option.id}
                       type="button"
-                      variant="outline"
-                      className="mt-4 w-full"
-                      onClick={handleGuestLogin}
-                      disabled={isLoading}
+                      onClick={() => {
+                        setMode(option.id);
+                        setError(null);
+                      }}
+                      aria-pressed={mode === option.id}
+                      className={cn(
+                        "rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors",
+                        mode === option.id
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
                     >
-                      <UserX className="mr-2 h-4 w-4" />
-                      Continuer en invité
-                    </Button>
-                  </div>
-                </CardContent>
-              </form>
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </CardHeader>
+
+              {mode === "password" ? (
+                <form onSubmit={handlePasswordSubmit}>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="login-email" className="text-[13px]">
+                          Email
+                        </Label>
+                        <Input
+                          id="login-email"
+                          name="email"
+                          type="email"
+                          placeholder="vous@exemple.fr"
+                          autoComplete="email"
+                          required
+                          disabled={isLoading}
+                          className="bg-background"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="login-password"
+                          className="text-[13px]"
+                        >
+                          Mot de passe
+                        </Label>
+                        <Input
+                          id="login-password"
+                          name="password"
+                          type="password"
+                          placeholder="••••••••"
+                          autoComplete="current-password"
+                          required
+                          disabled={isLoading}
+                          className="bg-background"
+                        />
+                      </div>
+                      {error && (
+                        <p className="text-sm text-red-500">{error}</p>
+                      )}
+                      <Button
+                        type="submit"
+                        className="w-full rounded-full"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : null}
+                        Se connecter
+                      </Button>
+                    </div>
+                    <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+                      Compte par défaut : admin@admin.com / admin123
+                    </p>
+                  </CardContent>
+                </form>
+              ) : (
+                <form onSubmit={handleEmailSubmit}>
+                  <CardContent>
+                    <div className="relative flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          name="email"
+                          placeholder="vous@exemple.fr"
+                          type="email"
+                          className="bg-background pl-9"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        variant="outline"
+                        size="icon"
+                        disabled={isLoading}
+                        title="Envoyer le code"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ArrowRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {error && (
+                      <p className="mt-2 text-sm text-red-500">{error}</p>
+                    )}
+                  </CardContent>
+                </form>
+              )}
             </>
           ) : (
             <>
