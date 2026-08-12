@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import {
   BarChart3,
   Briefcase,
@@ -33,6 +33,7 @@ import {
   VisitorsView,
 } from "@/components/admin/editors-lists";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME, applyFavicon, applyThemeColor, monogram } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -228,12 +229,58 @@ export default function Dashboard() {
   const data = useQuery(api.site.getSiteData);
   const messages = useQuery(api.site.getMessages);
   const visitors = useQuery(api.site.getVisitors);
+  const integrations = useQuery(api.site.getIntegrations);
   const ensureSeed = useMutation(api.seed.ensureSeed);
+  const translateAllContent = useAction(api.translate.translateAllContent);
   const [active, setActive] = useState<string>("overview");
+  const [autoTranslateRan, setAutoTranslateRan] = useState(false);
 
   useEffect(() => {
     void ensureSeed();
   }, [ensureSeed]);
+
+  // Once: if a DeepL key is set but the content has no English mirrors yet
+  // (e.g. the key was entered before auto-translation existed), generate the
+  // translations automatically so the site's EN switcher works immediately.
+  useEffect(() => {
+    if (autoTranslateRan || !data || !integrations) return;
+    if (!integrations.deeplKeySet) return;
+    const contentSections = [
+      data.site,
+      data.settings,
+      data.about,
+      data.skills,
+      data.services,
+      data.resume,
+      data.portfolio,
+      data.blog,
+    ];
+    const fullyTranslated = contentSections.every((section) => section && section.en);
+    if (fullyTranslated) return;
+    setAutoTranslateRan(true);
+    const run = async () => {
+      try {
+        const results = await translateAllContent();
+        const ok = Object.values(results).filter((r) => r === "ok").length;
+        const failed = Object.values(results).filter((r) => r === "failed").length;
+        if (failed > 0) {
+          toast.error(
+            `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL dans Paramètres → Intégrations.`,
+          );
+        } else {
+          toast.success(
+            "Contenu traduit en anglais automatiquement — le site est maintenant bilingue.",
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error(
+          "La traduction automatique a échoué. Vérifiez votre clé DeepL dans Paramètres → Intégrations.",
+        );
+      }
+    };
+    void run();
+  }, [data, integrations, autoTranslateRan, translateAllContent]);
 
   useEffect(() => {
     applyThemeColor(data?.settings?.themeColor);
