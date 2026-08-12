@@ -244,8 +244,12 @@ export default function Dashboard() {
   }, [data?.site?.faviconUrl]);
 
   const handleSignOut = async () => {
+    // Leave the protected route first: once the session clears, RequireAuth
+    // redirects to /auth — which would race the navigation home and leave the
+    // user stuck on the auth page. Navigating to the public landing first
+    // makes the redirect deterministic.
+    navigate("/", { replace: true });
     await signOut();
-    navigate("/");
   };
 
   if (!data) {
