@@ -46,13 +46,30 @@ export const updateAdminEmail = mutation({
       return { changed: false };
     }
 
-    // Refuse an email already used by another account.
+    // Another user may already own this email (e.g. created through the OTP
+    // code flow with the same address). Merge that user into the owner's
+    // account — re-link its auth accounts, drop its sessions, remove the
+    // duplicate — so the email can be reused as the password login.
     const otherUser = await ctx.db
       .query("users")
       .withIndex("email", (q) => q.eq("email", email))
       .unique();
     if (otherUser && otherUser._id !== account.userId) {
-      throw new Error("Cet email est déjà utilisé par un autre compte");
+      const linkedAccounts = await ctx.db
+        .query("authAccounts")
+        .filter((q) => q.eq(q.field("userId"), otherUser._id))
+        .collect();
+      for (const linked of linkedAccounts) {
+        await ctx.db.patch(linked._id, { userId: account.userId });
+      }
+      const staleSessions = await ctx.db
+        .query("authSessions")
+        .filter((q) => q.eq(q.field("userId"), otherUser._id))
+        .collect();
+      for (const session of staleSessions) {
+        await ctx.db.delete(session._id);
+      }
+      await ctx.db.delete(otherUser._id);
     }
 
     await ctx.db.patch(account._id, { providerAccountId: email });
