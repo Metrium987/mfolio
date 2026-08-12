@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -18,16 +18,17 @@ export function Hero({
 }) {
   const { t, pick } = useSiteLang();
   const [taglineIndex, setTaglineIndex] = useState(0);
+  const reduce = useReducedMotion();
   const taglines = about.taglines.filter(Boolean);
 
   useEffect(() => {
-    if (taglines.length < 2) return;
+    if (taglines.length < 2 || reduce) return;
     const interval = setInterval(
       () => setTaglineIndex((index) => (index + 1) % taglines.length),
       3800,
     );
     return () => clearInterval(interval);
-  }, [taglines.length]);
+  }, [taglines.length, reduce]);
 
   return (
     <Container id="top" className="pb-24 pt-16 sm:pt-20">
@@ -64,20 +65,29 @@ export function Hero({
           {taglines.length > 0 && (
             <Reveal delay={0.12}>
               <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent) sm:text-3xl">
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={taglineIndex}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
+                {reduce ? (
+                  <p>
                     {pick(
                       taglines[taglineIndex],
                       about.en?.taglines?.[taglineIndex],
                     )}
-                  </motion.p>
-                </AnimatePresence>
+                  </p>
+                ) : (
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={taglineIndex}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      {pick(
+                        taglines[taglineIndex],
+                        about.en?.taglines?.[taglineIndex],
+                      )}
+                    </motion.p>
+                  </AnimatePresence>
+                )}
               </div>
             </Reveal>
           )}

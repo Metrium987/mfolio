@@ -117,6 +117,36 @@ export default function Landing() {
     setMeta("property", "og:image", settings.metaImage);
   }, [data?.settings, data?.site, pick]);
 
+  // Structured data (Schema.org Person) so search engines understand who
+  // the site belongs to — a standard expectation for professional portfolios.
+  useEffect(() => {
+    const about = data?.about;
+    if (!about) return;
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: about.name,
+      email: about.email || undefined,
+      telephone: about.phone || undefined,
+      address: about.address
+        ? { "@type": "PostalAddress", addressLocality: about.address }
+        : undefined,
+      image: about.avatar || undefined,
+      url: window.location.origin,
+      sameAs: about.socials.map((social) => social.link).filter(Boolean),
+    };
+    let tag = document.getElementById(
+      "mfolio-ld-person",
+    ) as HTMLScriptElement | null;
+    if (!tag) {
+      tag = document.createElement("script");
+      tag.id = "mfolio-ld-person";
+      tag.type = "application/ld+json";
+      document.head.appendChild(tag);
+    }
+    tag.textContent = JSON.stringify(schema);
+  }, [data?.about]);
+
   // Google Analytics
   useEffect(() => {
     const gaId = data?.settings?.googleAnalyticsId;
@@ -206,6 +236,7 @@ export default function Landing() {
         siteName={siteName}
         links={nav}
         logoUrl={data.site?.logoUrl}
+        email={data.about?.email}
       />
       {settings?.visibilityAbout && data.about && (
         <Hero
