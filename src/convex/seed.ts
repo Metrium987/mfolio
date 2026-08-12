@@ -336,8 +336,44 @@ const sampleVisitors = Array.from({ length: 22 }, (_, index) => ({
 export const ensureSeed = mutation({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db.query("site").first();
-    if (existing) return;
+    const [site, settings, about, skills, services, resume, portfolio, blog] =
+      await Promise.all([
+        ctx.db.query("site").first(),
+        ctx.db.query("settings").first(),
+        ctx.db.query("about").first(),
+        ctx.db.query("skills").first(),
+        ctx.db.query("services").first(),
+        ctx.db.query("resume").first(),
+        ctx.db.query("portfolio").first(),
+        ctx.db.query("blog").first(),
+      ]);
+
+    // A complete seed has one document per content table, and the settings
+    // document must carry the current schema's visibility config. Stale docs
+    // left over from an earlier schema iteration (or a partially applied
+    // seed) can leave the site with a `site` doc but no sections — reseed
+    // from scratch whenever that happens so the portfolio always renders
+    // fully. Checking for the previous `site`-only state is not enough.
+    const settingsCurrent =
+      settings &&
+      typeof settings.maintenanceMode === "boolean" &&
+      typeof settings.visibilityAbout === "boolean" &&
+      typeof settings.visibilitySkill === "boolean" &&
+      typeof settings.visibilityContact === "boolean";
+    const aboutCurrent = about && Array.isArray(about.socials);
+
+    if (
+      site &&
+      settingsCurrent &&
+      aboutCurrent &&
+      skills &&
+      services &&
+      resume &&
+      portfolio &&
+      blog
+    ) {
+      return;
+    }
 
     const managedTables = [
       "site",
