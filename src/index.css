@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&display=swap");
+@import url("https://api.fontshare.com/v2/css?f[]=zodiak@300,400,500,600,700&f[]=switzer@400,500,600,700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
@@ -41,9 +41,13 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  /* Switzer replaces Inter/Instrument Sans — faces on Impeccable's
+     anti-pattern list of overused AI-generator fonts. */
+  --font-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif;
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  /* Zodiak replaces Fraunces — flagged as overused by the Impeccable
+     design detector. Keeps the editorial serif personality. */
+  --font-display: "Zodiak", Georgia, "Times New Roman", serif;
 }
 
 /* ---------------------------------------------------------------------------
@@ -124,7 +128,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
   html {
     scroll-behavior: smooth;
@@ -135,6 +139,20 @@
   button:not([disabled]),
   [role="button"]:not([disabled]) {
     cursor: pointer;
+  }
+
+  /* Keyboard focus that matches the theme — applies to custom elements that
+     don't ship their own focus ring (shadcn components keep theirs). */
+  :where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+    outline: 2px solid
+      color-mix(in oklab, var(--studio-accent) 80%, transparent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 

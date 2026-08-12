@@ -31,7 +31,12 @@ export function Hero({
   }, [taglines.length, reduce]);
 
   return (
-    <Container id="top" className="pb-24 pt-16 sm:pt-20">
+    <Container id="top" className="relative pb-24 pt-16 sm:pt-20">
+      {/* Subtle warm wash in the theme accent — depth without clutter. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[540px] bg-[radial-gradient(70%_120%_at_50%_0%,color-mix(in_oklab,var(--studio-accent)_10%,transparent),transparent_72%)]"
+      />
       {about.cover && (
         <Reveal className="mb-14">
           <div className="relative">
