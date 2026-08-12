@@ -1,16 +1,6 @@
 import { v } from "convex/values";
 import { mutation, MutationCtx } from "./_generated/server";
 import { getCurrentUser } from "./users";
-import {
-  aboutValidator,
-  blogValidator,
-  portfolioValidator,
-  resumeValidator,
-  servicesValidator,
-  settingsValidator,
-  siteValidator,
-  skillsValidator,
-} from "./schema";
 
 type SectionTable =
   | "site"
@@ -21,6 +11,17 @@ type SectionTable =
   | "resume"
   | "portfolio"
   | "blog";
+
+const SECTION_NAMES = [
+  "site",
+  "settings",
+  "about",
+  "skills",
+  "services",
+  "resume",
+  "portfolio",
+  "blog",
+] as const;
 
 /**
  * Ezfolio keeps one document per section; updates patch it in place and the
@@ -46,92 +47,47 @@ async function requireOwner(ctx: MutationCtx) {
   return user;
 }
 
-// ---------------------------------------------------------------------------
-// Section content updates (owner only)
-// ---------------------------------------------------------------------------
-
-export const updateSite = mutation({
-  args: { data: siteValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "site", data);
+/**
+ * Internal write used by the translate actions (owner only). The section data
+ * is validated by the action's own args validator before it reaches here.
+ */
+export const persistSection = mutation({
+  args: {
+    section: v.union(...SECTION_NAMES.map((s) => v.literal(s))),
+    data: v.any(),
+    en: v.optional(v.any()),
   },
-});
-
-export const updateSettings = mutation({
-  args: { data: settingsValidator },
-  handler: async (ctx, { data }) => {
+  handler: async (ctx, { section, data, en }) => {
     await requireOwner(ctx);
-    await upsertDoc(ctx, "settings", data);
+    await upsertDoc(ctx, section, en !== undefined ? { ...data, en } : data);
   },
 });
 
 /**
  * Patch-only update for external service keys (Google Analytics, DeepL).
- * Kept separate from updateSettings so editing one integration never
- * overwrites the others with a stale draft.
+ * The DeepL key is write-only: the client sends a replacement only when the
+ * owner types one, and `clearDeeplKey` explicitly removes it. An empty string
+ * means "keep the stored key".
  */
 export const updateIntegrations = mutation({
   args: v.object({
     googleAnalyticsId: v.string(),
-    deeplApiKey: v.string(),
+    deeplApiKey: v.optional(v.string()),
+    clearDeeplKey: v.optional(v.boolean()),
   }),
-  handler: async (ctx, { googleAnalyticsId, deeplApiKey }) => {
+  handler: async (ctx, { googleAnalyticsId, deeplApiKey, clearDeeplKey }) => {
     await requireOwner(ctx);
     const settings = await ctx.db.query("settings").first();
     if (!settings) throw new Error("Settings not found");
-    await ctx.db.patch(settings._id, {
+    const patch: { googleAnalyticsId: string; deeplApiKey?: string } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
-      deeplApiKey: deeplApiKey.trim(),
-    });
-  },
-});
-
-export const updateAbout = mutation({
-  args: { data: aboutValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "about", data);
-  },
-});
-
-export const updateSkills = mutation({
-  args: { data: skillsValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "skills", data);
-  },
-});
-
-export const updateServices = mutation({
-  args: { data: servicesValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "services", data);
-  },
-});
-
-export const updateResume = mutation({
-  args: { data: resumeValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "resume", data);
-  },
-});
-
-export const updatePortfolio = mutation({
-  args: { data: portfolioValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "portfolio", data);
-  },
-});
-
-export const updateBlog = mutation({
-  args: { data: blogValidator },
-  handler: async (ctx, { data }) => {
-    await requireOwner(ctx);
-    await upsertDoc(ctx, "blog", data);
+    };
+    if (clearDeeplKey) {
+      patch.deeplApiKey = "";
+    } else if (deeplApiKey && deeplApiKey.trim() !== "") {
+      patch.deeplApiKey = deeplApiKey.trim();
+    }
+    await ctx.db.patch(settings._id, patch);
   },
 });
 

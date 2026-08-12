@@ -20,7 +20,49 @@ export const getSiteData = query({
         ctx.db.query("blog").first(),
       ]);
 
-    return { site, settings, about, skills, services, resume, portfolio, blog };
+    // The DeepL key is write-only: never send it to clients, even the owner
+    // (the dashboard shows a masked "key set" state instead).
+    return {
+      site,
+      settings: settings ? { ...settings, deeplApiKey: "" } : null,
+      about,
+      skills,
+      services,
+      resume,
+      portfolio,
+      blog,
+    };
+  },
+});
+
+/**
+ * Integration key state for the dashboard (owner only). Returns the GA id
+ * (public by design) and whether a DeepL key is set — never the key itself.
+ */
+export const getIntegrations = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+    const settings = await ctx.db.query("settings").first();
+    return {
+      googleAnalyticsId: settings?.googleAnalyticsId ?? "",
+      deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
+    };
+  },
+});
+
+/**
+ * Owner-only access to the raw settings doc (contains the DeepL key). Used
+ * by the translate action; defined here because queries can't live in a
+ * "use node" file.
+ */
+export const getSettingsForBackend = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+    return ctx.db.query("settings").first();
   },
 });
 

@@ -70,6 +70,84 @@ export const postValidator = v.object({
 });
 
 // ---------------------------------------------------------------------------
+// English variants (auto-generated via DeepL — stored per section)
+// ---------------------------------------------------------------------------
+
+export const siteEnValidator = v.object({
+  tagline: v.string(),
+  footerText: v.string(),
+});
+
+export const settingsEnValidator = v.object({
+  metaTitle: v.string(),
+  metaDescription: v.string(),
+});
+
+export const aboutEnValidator = v.object({
+  description: v.string(),
+  taglines: v.array(v.string()),
+});
+
+export const skillsEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(v.object({ name: v.string() })),
+});
+
+export const servicesEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(
+    v.object({
+      title: v.string(),
+      details: v.string(),
+    }),
+  ),
+});
+
+export const resumeEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  experiences: v.array(
+    v.object({
+      position: v.string(),
+      details: v.string(),
+    }),
+  ),
+  educations: v.array(
+    v.object({
+      degree: v.string(),
+      department: v.string(),
+      thesis: v.string(),
+    }),
+  ),
+});
+
+export const portfolioEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  projects: v.array(
+    v.object({
+      title: v.string(),
+      categories: v.array(v.string()),
+      details: v.string(),
+    }),
+  ),
+});
+
+export const blogEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  posts: v.array(
+    v.object({
+      title: v.string(),
+      excerpt: v.string(),
+      content: v.string(),
+    }),
+  ),
+});
+
+// ---------------------------------------------------------------------------
 // Document validators (single document per section, like Ezfolio)
 // ---------------------------------------------------------------------------
 
@@ -80,6 +158,7 @@ export const siteValidator = v.object({
   footerText: v.string(),
   logoUrl: v.string(),
   faviconUrl: v.string(),
+  en: v.optional(siteEnValidator),
 });
 
 /** Portfolio rendering configuration (Ezfolio "Config" / portfolio_config). */
@@ -105,6 +184,7 @@ export const settingsValidator = v.object({
   visibilityCv: v.boolean(),
   visibilitySkillProficiency: v.boolean(),
   visibilityBlog: v.boolean(),
+  en: v.optional(settingsEnValidator),
 });
 
 /** Persona + hero + contact info (Ezfolio "About"). */
@@ -119,18 +199,21 @@ export const aboutValidator = v.object({
   taglines: v.array(v.string()),
   socials: v.array(socialValidator),
   cvUrl: v.string(),
+  en: v.optional(aboutEnValidator),
 });
 
 export const skillsValidator = v.object({
   title: v.string(),
   description: v.string(),
   items: v.array(skillItemValidator),
+  en: v.optional(skillsEnValidator),
 });
 
 export const servicesValidator = v.object({
   title: v.string(),
   description: v.string(),
   items: v.array(serviceItemValidator),
+  en: v.optional(servicesEnValidator),
 });
 
 export const resumeValidator = v.object({
@@ -138,18 +221,21 @@ export const resumeValidator = v.object({
   description: v.string(),
   experiences: v.array(experienceValidator),
   educations: v.array(educationValidator),
+  en: v.optional(resumeEnValidator),
 });
 
 export const portfolioValidator = v.object({
   title: v.string(),
   description: v.string(),
   projects: v.array(projectValidator),
+  en: v.optional(portfolioEnValidator),
 });
 
 export const blogValidator = v.object({
   title: v.string(),
   description: v.string(),
   posts: v.array(postValidator),
+  en: v.optional(blogEnValidator),
 });
 
 export const messageValidator = v.object({
