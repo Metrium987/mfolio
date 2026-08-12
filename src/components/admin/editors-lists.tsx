@@ -301,9 +301,9 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                   }))
                 }
                 placeholder="Nom de la compétence"
-                className="max-w-xs bg-background"
+                className="min-w-0 max-w-xs flex-1 bg-background"
               />
-              <span className="w-10 text-right font-mono text-sm text-muted-foreground">
+              <span className="w-10 shrink-0 text-right font-mono text-sm text-muted-foreground">
                 {item.proficiency}%
               </span>
               <Button
@@ -311,6 +311,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                 variant="ghost"
                 size="icon-sm"
                 title="Supprimer"
+                className="shrink-0"
                 onClick={() =>
                   draft.set((prev) => ({
                     ...prev,
@@ -1182,8 +1183,8 @@ export function VisitorsView({
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden border border-border bg-card">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto border border-border bg-card">
+          <table className="w-full min-w-[560px] text-left text-sm">
             <thead>
               <tr className="border-b border-border text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Date</th>
