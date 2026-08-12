@@ -318,8 +318,19 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
       </div>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <ImageField label="Portrait (avatar)" value={draft.value.avatar} onChange={(avatar) => draft.set({ ...draft.value, avatar })} />
-        <ImageField label="Image de couverture" value={draft.value.cover} onChange={(cover) => draft.set({ ...draft.value, cover })} hint="Bannière en haut du site." />
+        <ImageField
+          label="Portrait (avatar)"
+          value={draft.value.avatar}
+          onChange={(avatar) => draft.set({ ...draft.value, avatar })}
+          guide={{ ratio: "4:5", formats: "JPG, WebP, PNG", size: "~1000 × 1250 px" }}
+        />
+        <ImageField
+          label="Image de couverture"
+          value={draft.value.cover}
+          onChange={(cover) => draft.set({ ...draft.value, cover })}
+          hint="Bannière en haut du site."
+          guide={{ ratio: "21:9", formats: "JPG, WebP", size: "~1600 × 700 px" }}
+        />
       </div>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -721,8 +732,28 @@ export function SiteEditor({
           rows={3}
           className="sm:col-span-2"
         />
-        <ImageField label="Logo" value={draft.value.logoUrl} onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })} hint="Utilisé dans le tableau de bord." />
-        <ImageField label="Favicon" value={draft.value.faviconUrl} onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })} hint="L'icône de l'onglet du navigateur." />
+        <ImageField
+          label="Logo"
+          value={draft.value.logoUrl}
+          onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })}
+          hint="Affiché dans l'en-tête du site et le tableau de bord."
+          guide={{
+            ratio: "libre (carré idéal)",
+            formats: "PNG transparent ou SVG",
+            size: "~500 × 500 px ou plus",
+          }}
+        />
+        <ImageField
+          label="Favicon"
+          value={draft.value.faviconUrl}
+          onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })}
+          hint="L'icône de l'onglet du navigateur."
+          guide={{
+            ratio: "carré",
+            formats: "ICO, PNG ou SVG",
+            size: "64 × 64 px min — 512 × 512 idéal",
+          }}
+        />
       </div>
 
       <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
@@ -863,7 +894,12 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
         <TextAreaField label="Description" value={draft.value.metaDescription} onChange={(metaDescription) => draft.set({ ...draft.value, metaDescription })} rows={3} />
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Auteur" value={draft.value.metaAuthor} onChange={(metaAuthor) => draft.set({ ...draft.value, metaAuthor })} placeholder="Camille Roussel" />
-          <ImageField label="Image de partage" value={draft.value.metaImage} onChange={(metaImage) => draft.set({ ...draft.value, metaImage })} />
+          <ImageField
+            label="Image de partage"
+            value={draft.value.metaImage}
+            onChange={(metaImage) => draft.set({ ...draft.value, metaImage })}
+            guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
+          />
         </div>
       </div>
 

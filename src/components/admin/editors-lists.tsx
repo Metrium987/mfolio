@@ -39,6 +39,8 @@ import { SectionEditor } from "./SectionEditor";
 import {
   Field,
   ImageField,
+  ImageGuideChip,
+  type ImageGuide,
   TextAreaField,
   TextField,
   useSectionDraft,
@@ -130,10 +132,12 @@ function ImagesEditor({
   label,
   value,
   onChange,
+  guide,
 }: {
   label: string;
   value: string[];
   onChange: (value: string[]) => void;
+  guide?: ImageGuide;
 }) {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const getUrl = useAction(api.files.getUrl);
@@ -166,7 +170,11 @@ function ImagesEditor({
   };
 
   return (
-    <Field label={label} hint="Miniatures du projet affichées sur le site.">
+    <Field
+      label={label}
+      hint="Les images de la galerie, visibles en cliquant sur le projet sur le site."
+      labelExtra={guide ? <ImageGuideChip guide={guide} /> : undefined}
+    >
       <div className="space-y-2">
         {value.map((image, index) => (
           <div key={index} className="flex flex-wrap items-center gap-2">
@@ -820,6 +828,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
                   ),
                 }))
               }
+              guide={{ ratio: "4:3", formats: "JPG, WebP", size: "~1200 × 900 px" }}
             />
             <ImagesEditor
               label="Galerie d'images"
@@ -832,6 +841,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
                   ),
                 }))
               }
+              guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 750 px" }}
             />
             <TextAreaField
               label="Détails"
@@ -965,6 +975,7 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
                   ),
                 }))
               }
+              guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 675 px" }}
             />
             <TextAreaField
               label="Extrait"
