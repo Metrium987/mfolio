@@ -23,6 +23,7 @@ const sampleSite: Infer<typeof siteValidator> = {
 const sampleSettings: Infer<typeof settingsValidator> = {
   themeColor: "#A85B32",
   googleAnalyticsId: "",
+  deeplApiKey: "",
   maintenanceMode: false,
   metaTitle: "Camille Roussel — Designer produit & développeuse",
   metaDescription:
@@ -361,6 +362,13 @@ export const ensureSeed = mutation({
       typeof settings.visibilitySkill === "boolean" &&
       typeof settings.visibilityContact === "boolean";
     const aboutCurrent = about && Array.isArray(about.socials);
+
+    // Fields added after an earlier seed run may be missing from an existing
+    // settings doc (e.g. deeplApiKey). Patch just that field instead of
+    // wiping the whole database, which would discard owner customizations.
+    if (settings && typeof settings.deeplApiKey !== "string") {
+      await ctx.db.patch(settings._id, { deeplApiKey: "" });
+    }
 
     if (
       site &&

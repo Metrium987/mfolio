@@ -1,6 +1,6 @@
 import { useMutation } from "convex/react";
-import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -249,10 +249,105 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
 }
 
 // ---------------------------------------------------------------------------
+// Integrations — external service keys (Google Analytics, DeepL)
+// ---------------------------------------------------------------------------
+
+function IntegrationsCard({
+  settings,
+}: {
+  settings: Doc<"settings"> | null | undefined;
+}) {
+  const updateIntegrations = useMutation(api.siteMutations.updateIntegrations);
+  const [googleAnalyticsId, setGoogleAnalyticsId] = useState(
+    settings?.googleAnalyticsId ?? "",
+  );
+  const [deeplApiKey, setDeeplApiKey] = useState(settings?.deeplApiKey ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
+    setDeeplApiKey(settings?.deeplApiKey ?? "");
+  }, [settings?.googleAnalyticsId, settings?.deeplApiKey]);
+
+  const dirty =
+    googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
+    deeplApiKey !== (settings?.deeplApiKey ?? "");
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateIntegrations({
+        googleAnalyticsId: googleAnalyticsId.trim(),
+        deeplApiKey: deeplApiKey.trim(),
+      });
+      toast.success("Clés API enregistrées");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement des clés");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="kicker">Intégrations</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Les clés des services externes connectés au site public.
+        </p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <TextField
+          label="Google Analytics ID"
+          value={googleAnalyticsId}
+          onChange={setGoogleAnalyticsId}
+          placeholder="G-XXXXXXXXXX"
+          hint="Identifiant de mesure GA4. Laissez vide pour désactiver le suivi."
+        />
+        <TextField
+          label="Clé API DeepL"
+          value={deeplApiKey}
+          onChange={setDeeplApiKey}
+          placeholder="Votre clé d'authentification DeepL"
+          type="password"
+          hint="Utilisée pour la traduction automatique du contenu (FR → EN). Stockée en base, jamais affichée sur le site."
+        />
+      </div>
+      <div className="flex items-center justify-end gap-3">
+        {dirty && (
+          <span className="text-xs text-muted-foreground">
+            Modifications non enregistrées
+          </span>
+        )}
+        <Button
+          onClick={save}
+          disabled={saving || !dirty}
+          className="rounded-full"
+        >
+          {saving ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
+          {saving ? "Enregistrement…" : "Enregistrer les clés"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Site — identity + dashboard appearance (Ezfolio "Settings")
 // ---------------------------------------------------------------------------
 
-export function SiteEditor({ site }: { site: Doc<"site"> | null | undefined }) {
+export function SiteEditor({
+  site,
+  settings,
+}: {
+  site: Doc<"site"> | null | undefined;
+  settings: Doc<"settings"> | null | undefined;
+}) {
   const updateSite = useMutation(api.siteMutations.updateSite);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(site, {
@@ -301,6 +396,10 @@ export function SiteEditor({ site }: { site: Doc<"site"> | null | undefined }) {
         <ImageField label="Logo" value={draft.value.logoUrl} onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })} hint="Utilisé dans le tableau de bord." />
         <ImageField label="Favicon" value={draft.value.faviconUrl} onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })} hint="L'icône de l'onglet du navigateur." />
       </div>
+
+      <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
+        <IntegrationsCard settings={settings} />
+      </div>
     </SectionEditor>
   );
 }
@@ -315,6 +414,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
   const draft = useSectionDraft(settings, {
     themeColor: "#A85B32",
     googleAnalyticsId: "",
+    deeplApiKey: "",
     maintenanceMode: false,
     metaTitle: "",
     metaDescription: "",
@@ -338,7 +438,9 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
   const save = async () => {
     setSaving(true);
     try {
-      await updateSettings({ data: draft.value });
+      await updateSettings({
+        data: { ...draft.value, deeplApiKey: draft.value.deeplApiKey ?? "" },
+      });
       draft.reset();
       toast.success("Configuration enregistrée");
     } catch (error) {
@@ -394,20 +496,17 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 space-y-4">
         <ToggleField
           label="Mode maintenance"
           description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
           checked={draft.value.maintenanceMode}
           onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
         />
-        <TextField
-          label="Google Analytics ID"
-          value={draft.value.googleAnalyticsId}
-          onChange={(googleAnalyticsId) => draft.set({ ...draft.value, googleAnalyticsId })}
-          placeholder="G-XXXXXXXXXX"
-          hint="Laissez vide pour désactiver."
-        />
+        <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+          Les clés API (Google Analytics, DeepL) se configurent dans le menu
+          «&nbsp;Paramètres&nbsp;» → section Intégrations.
+        </div>
       </div>
 
       <div className="mt-6 space-y-2">

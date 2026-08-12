@@ -66,6 +66,27 @@ export const updateSettings = mutation({
   },
 });
 
+/**
+ * Patch-only update for external service keys (Google Analytics, DeepL).
+ * Kept separate from updateSettings so editing one integration never
+ * overwrites the others with a stale draft.
+ */
+export const updateIntegrations = mutation({
+  args: v.object({
+    googleAnalyticsId: v.string(),
+    deeplApiKey: v.string(),
+  }),
+  handler: async (ctx, { googleAnalyticsId, deeplApiKey }) => {
+    await requireOwner(ctx);
+    const settings = await ctx.db.query("settings").first();
+    if (!settings) throw new Error("Settings not found");
+    await ctx.db.patch(settings._id, {
+      googleAnalyticsId: googleAnalyticsId.trim(),
+      deeplApiKey: deeplApiKey.trim(),
+    });
+  },
+});
+
 export const updateAbout = mutation({
   args: { data: aboutValidator },
   handler: async (ctx, { data }) => {

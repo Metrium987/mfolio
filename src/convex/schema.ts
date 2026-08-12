@@ -86,6 +86,7 @@ export const siteValidator = v.object({
 export const settingsValidator = v.object({
   themeColor: v.string(),
   googleAnalyticsId: v.string(),
+  deeplApiKey: v.string(),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),

@@ -291,7 +291,7 @@ export default function Dashboard() {
       case "messages":
         return <MessagesView messages={messages} />;
       case "site":
-        return <SiteEditor site={data.site} />;
+        return <SiteEditor site={data.site} settings={data.settings} />;
       default:
         return <Overview />;
     }
