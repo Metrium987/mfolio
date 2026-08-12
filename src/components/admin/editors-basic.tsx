@@ -1,9 +1,9 @@
 import { useAction, useMutation, useQuery } from "convex/react";
-import { Languages, Loader2, Plus, Save, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FileText, Languages, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionEditor } from "./SectionEditor";
@@ -89,6 +89,113 @@ function StringListEditor({
           <Plus className="size-4" />
           Ajouter
         </Button>
+      </div>
+    </Field>
+  );
+}
+
+/** CV upload: import a PDF into Convex storage, or paste a direct URL. */
+function CvField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const getUrl = useAction(api.files.getUrl);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!result.ok) throw new Error("Upload failed");
+      const { storageId } = (await result.json()) as { storageId: string };
+      const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+      if (url) {
+        onChange(url);
+        toast.success("CV importé — pensez à enregistrer la section.");
+      } else {
+        toast.error("Impossible de récupérer le fichier");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Le téléchargement du CV a échoué");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <Field
+      label="CV (PDF)"
+      hint="Importez votre CV en PDF — il sera proposé en téléchargement sur le site."
+    >
+      <div className="space-y-2.5">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <FileText className="size-4" />
+            )}
+            {uploading
+              ? "Envoi…"
+              : value
+                ? "Remplacer le CV"
+                : "Importer le CV (PDF)"}
+          </Button>
+          {value && (
+            <>
+              <a
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[13px] font-medium text-(--studio-accent) hover:underline"
+              >
+                Voir le CV
+              </a>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange("")}
+              >
+                Retirer
+              </Button>
+            </>
+          )}
+        </div>
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="…ou collez l'URL directe de votre CV"
+          className="bg-background text-xs"
+        />
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void handleFile(file);
+          }}
+        />
       </div>
     </Field>
   );
@@ -182,7 +289,7 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
     setSaving(true);
     try {
       await updateAbout({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « À propos » enregistrée");
     } catch (error) {
       console.error(error);
@@ -216,7 +323,10 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
       </div>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <TextField label="Lien du CV" value={draft.value.cvUrl} onChange={(cvUrl) => draft.set({ ...draft.value, cvUrl })} placeholder="https://…" hint="Laissez vide pour masquer le bouton." />
+        <CvField
+          value={draft.value.cvUrl}
+          onChange={(cvUrl) => draft.set({ ...draft.value, cvUrl })}
+        />
         <StringListEditor
           label="Slogans (accueil)"
           value={draft.value.taglines}
@@ -580,7 +690,7 @@ export function SiteEditor({
     setSaving(true);
     try {
       await updateSite({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Paramètres enregistrés");
     } catch (error) {
       console.error(error);
@@ -663,7 +773,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
       await updateSettings({
         data: { ...draft.value, deeplApiKey: draft.value.deeplApiKey ?? "" },
       });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Configuration enregistrée");
     } catch (error) {
       console.error(error);

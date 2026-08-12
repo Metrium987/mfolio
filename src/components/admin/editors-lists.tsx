@@ -252,7 +252,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
     setSaving(true);
     try {
       await updateSkills({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « Compétences » enregistrée");
     } catch (error) {
       console.error(error);
@@ -361,7 +361,7 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
     setSaving(true);
     try {
       await updateServices({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « Services » enregistrée");
     } catch (error) {
       console.error(error);
@@ -486,7 +486,7 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
     setSaving(true);
     try {
       await updateResume({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « Parcours » enregistrée");
     } catch (error) {
       console.error(error);
@@ -731,7 +731,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
     setSaving(true);
     try {
       await updatePortfolio({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « Projets » enregistrée");
     } catch (error) {
       console.error(error);
@@ -889,7 +889,7 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
     setSaving(true);
     try {
       await updateBlog({ data: draft.value });
-      draft.reset();
+      draft.commit(draft.value);
       toast.success("Section « Journal » enregistrée");
     } catch (error) {
       console.error(error);

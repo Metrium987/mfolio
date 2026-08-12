@@ -302,9 +302,11 @@ export function SocialLinksEditor({
 // Section draft hook — mirrors a Convex doc locally until "Save" is pressed
 // ---------------------------------------------------------------------------
 
-type Draft<T> = Omit<T, "_id" | "_creationTime">;
+type Draft<T> = Omit<T, "_id" | "_creationTime" | "en">;
 
-export function useSectionDraft<T extends { _id: unknown; _creationTime: unknown }>(
+export function useSectionDraft<
+  T extends { _id: unknown; _creationTime: unknown; en?: unknown },
+>(
   doc: T | null | undefined,
   empty: Draft<T>,
 ) {
@@ -312,19 +314,21 @@ export function useSectionDraft<T extends { _id: unknown; _creationTime: unknown
 
   useEffect(() => {
     if (doc && draft === null) {
-      const { _id, _creationTime, ...fields } = doc;
+      const { _id, _creationTime, en: _en, ...fields } = doc;
       void _id;
       void _creationTime;
-      setDraft(fields);
+      void _en;
+      setDraft(fields as Draft<T>);
     }
   }, [doc, draft]);
 
   const source = useMemo<Draft<T> | undefined>(() => {
     if (!doc) return undefined;
-    const { _id, _creationTime, ...fields } = doc;
+    const { _id, _creationTime, en: _en, ...fields } = doc;
     void _id;
     void _creationTime;
-    return fields;
+    void _en;
+    return fields as Draft<T>;
   }, [doc]);
 
   const value: Draft<T> = draft ?? source ?? empty;
@@ -344,5 +348,11 @@ export function useSectionDraft<T extends { _id: unknown; _creationTime: unknown
 
   const reset = useCallback(() => setDraft(null), []);
 
-  return { value, set, dirty, reset };
+  /**
+   * Keep the just-saved values as the current draft so the form shows them
+   * immediately and never flashes back to the pre-save document.
+   */
+  const commit = useCallback((saved: Draft<T>) => setDraft(saved), []);
+
+  return { value, set, dirty, reset, commit };
 }
