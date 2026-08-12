@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router";
+import { APP_NAME } from "@/lib/site";
 
 export default function NotFound() {
   return (
@@ -6,18 +8,30 @@ export default function NotFound() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen flex flex-col"
+      className="flex min-h-screen flex-col bg-background"
     >
-
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="max-w-5xl mx-auto relative px-4">
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-lg text-gray-600">Page Not Found</p>
-            </div>
+      <div className="flex flex-1 flex-col items-center justify-center px-5">
+        <div className="text-center">
+          <p className="kicker mb-6">{APP_NAME}</p>
+          <h1 className="font-display text-7xl font-light tracking-tight text-foreground">
+            404
+          </h1>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Cette page n'existe pas ou a été déplacée.
+          </p>
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Retour au portfolio
+            </Link>
+            <Link
+              to="/dashboard"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
+            >
+              Tableau de bord
+            </Link>
           </div>
         </div>
       </div>

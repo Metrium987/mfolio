@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
-import { monogram, type Social } from "@/lib/site";
+import { APP_NAME, monogram, type Social } from "@/lib/site";
 
 export function SiteHeader({
   siteName,
@@ -93,7 +93,12 @@ export function SiteFooter({
           <span>
             © {new Date().getFullYear()} {siteName}
           </span>
-          <span>Édité depuis le tableau de bord</span>
+          <Link
+            to="/dashboard"
+            className="transition-colors hover:text-foreground"
+          >
+            Propulsé par {APP_NAME}
+          </Link>
         </div>
       </div>
     </footer>

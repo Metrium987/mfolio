@@ -17,6 +17,11 @@ import {
 
 export type Social = { name: string; url: string };
 
+/** Product brand — the name of the application itself (not the owner's name). */
+export const APP_NAME = "Mfolio";
+export const APP_DESCRIPTION =
+  "Un portfolio moderne et professionnel, entièrement configurable depuis votre tableau de bord.";
+
 /** Two-letter monogram used for social links (lucide has no brand icons). */
 export function monogram(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);

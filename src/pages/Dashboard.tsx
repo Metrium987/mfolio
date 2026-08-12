@@ -27,7 +27,7 @@ import {
 } from "@/components/admin/editors-lists";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { applyThemeColor, monogram } from "@/lib/site";
+import { APP_NAME, applyThemeColor, monogram } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -125,8 +125,8 @@ export default function Dashboard() {
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="border-b border-border px-5 py-6">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            Tableau de bord
+          <p className="text-[11px] uppercase tracking-[0.2em] text-(--studio-accent)">
+            {APP_NAME} · Tableau de bord
           </p>
           <p className="mt-1 truncate font-display text-xl font-medium tracking-tight text-foreground">
             {siteName}
@@ -183,8 +183,8 @@ export default function Dashboard() {
         <div className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md lg:hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-3">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Tableau de bord
+              <p className="text-[10px] uppercase tracking-[0.2em] text-(--studio-accent)">
+                {APP_NAME} · Tableau de bord
               </p>
               <p className="truncate font-display text-base font-medium tracking-tight">
                 {siteName}
