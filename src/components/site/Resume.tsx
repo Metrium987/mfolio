@@ -1,4 +1,5 @@
 import type { Doc } from "@/convex/_generated/dataModel";
+import { useSiteLang } from "@/lib/i18n";
 import { Container, Reveal, SectionHeading } from "./Section";
 
 function ExperienceEntry({
@@ -69,54 +70,71 @@ function EducationEntry({
 }
 
 export function Resume({ resume }: { resume: Doc<"resume"> }) {
+  const { t, pick } = useSiteLang();
+
   return (
     <Container id="resume" className="py-24 md:py-32">
       <div className="border-t border-border/70 pt-16 md:pt-20">
         <SectionHeading
-          kicker="Parcours"
-          title={resume.title}
-          description={resume.description}
+          kicker={t("resume.kicker")}
+          title={pick(resume.title, resume.en?.title)}
+          description={pick(resume.description, resume.en?.description)}
         />
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           <Reveal>
-            <p className="kicker mb-8">Expérience</p>
+            <p className="kicker mb-8">{t("resume.experience")}</p>
             {resume.experiences.length > 0 ? (
               <ul>
-                {resume.experiences.map((experience) => (
+                {resume.experiences.map((experience, index) => (
                   <ExperienceEntry
                     key={`${experience.position}-${experience.period}`}
-                    position={experience.position}
+                    position={pick(
+                      experience.position,
+                      resume.en?.experiences?.[index]?.position,
+                    )}
                     company={experience.company}
                     period={experience.period}
-                    details={experience.details}
+                    details={pick(
+                      experience.details,
+                      resume.en?.experiences?.[index]?.details,
+                    )}
                   />
                 ))}
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Aucune expérience renseignée.
+                {t("resume.noExperience")}
               </p>
             )}
           </Reveal>
           <Reveal delay={0.12}>
-            <p className="kicker mb-8">Formation</p>
+            <p className="kicker mb-8">{t("resume.education")}</p>
             {resume.educations.length > 0 ? (
               <ul>
-                {resume.educations.map((education) => (
+                {resume.educations.map((education, index) => (
                   <EducationEntry
                     key={`${education.degree}-${education.period}`}
-                    degree={education.degree}
+                    degree={pick(
+                      education.degree,
+                      resume.en?.educations?.[index]?.degree,
+                    )}
                     institution={education.institution}
                     period={education.period}
                     cgpa={education.cgpa}
-                    department={education.department}
-                    thesis={education.thesis}
+                    department={pick(
+                      education.department,
+                      resume.en?.educations?.[index]?.department,
+                    )}
+                    thesis={pick(
+                      education.thesis,
+                      resume.en?.educations?.[index]?.thesis,
+                    )}
                   />
                 ))}
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Aucune formation renseignée.
+                {t("resume.noEducation")}
               </p>
             )}
           </Reveal>

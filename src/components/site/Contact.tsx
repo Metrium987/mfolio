@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useSiteLang } from "@/lib/i18n";
 import { monogram } from "@/lib/site";
 import { Container, Reveal, SectionHeading } from "./Section";
 
 export function Contact({ about }: { about: Doc<"about"> }) {
   const addMessage = useMutation(api.siteMutations.addMessage);
+  const { t } = useSiteLang();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -27,10 +29,10 @@ export function Contact({ about }: { about: Doc<"about"> }) {
     try {
       await addMessage(form);
       setForm({ name: "", email: "", subject: "", message: "" });
-      toast.success("Message envoyé — merci !");
+      toast.success(t("contact.success"));
     } catch (error) {
       console.error(error);
-      toast.error("L'envoi a échoué. Réessayez dans un instant.");
+      toast.error(t("contact.error"));
     } finally {
       setSending(false);
     }
@@ -39,26 +41,26 @@ export function Contact({ about }: { about: Doc<"about"> }) {
   const infoRows = [
     {
       icon: Mail,
-      label: "Email",
+      label: t("contact.email"),
       value: about.email,
       href: about.email ? `mailto:${about.email}` : undefined,
     },
     {
       icon: Phone,
-      label: "Téléphone",
+      label: t("contact.phone"),
       value: about.phone,
       href: about.phone ? `tel:${about.phone}` : undefined,
     },
-    { icon: MapPin, label: "Localisation", value: about.address },
+    { icon: MapPin, label: t("contact.location"), value: about.address },
   ].filter((row) => row.value);
 
   return (
     <Container id="contact" className="py-24 md:py-32">
       <div className="border-t border-border/70 pt-16 md:pt-20">
         <SectionHeading
-          kicker="Contact"
-          title="Contact"
-          description="Un projet en tête ? Une question ? Écrivez-moi — je réponds sous 48 heures."
+          kicker={t("nav.contact")}
+          title={t("nav.contact")}
+          description={t("contact.description")}
         />
         <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
           <Reveal>
@@ -112,31 +114,31 @@ export function Contact({ about }: { about: Doc<"about"> }) {
               onSubmit={handleSubmit}
               className="border border-border bg-card p-6 sm:p-8"
             >
-              <p className="kicker mb-6">Écrivez-moi</p>
+              <p className="kicker mb-6">{t("contact.writeMe")}</p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="contact-name" className="text-[13px]">
-                    Nom
+                    {t("contact.name")}
                   </Label>
                   <Input
                     id="contact-name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Votre nom"
+                    placeholder={t("contact.namePlaceholder")}
                     required
                     className="bg-background"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contact-email" className="text-[13px]">
-                    Email
+                    {t("contact.email")}
                   </Label>
                   <Input
                     id="contact-email"
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="vous@exemple.fr"
+                    placeholder={t("contact.emailPlaceholder")}
                     required
                     className="bg-background"
                   />
@@ -144,25 +146,25 @@ export function Contact({ about }: { about: Doc<"about"> }) {
               </div>
               <div className="mt-5 space-y-2">
                 <Label htmlFor="contact-subject" className="text-[13px]">
-                  Sujet
+                  {t("contact.subject")}
                 </Label>
                 <Input
                   id="contact-subject"
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                  placeholder="Mission, opportunité, question…"
+                  placeholder={t("contact.subjectPlaceholder")}
                   className="bg-background"
                 />
               </div>
               <div className="mt-5 space-y-2">
                 <Label htmlFor="contact-message" className="text-[13px]">
-                  Message
+                  {t("contact.message")}
                 </Label>
                 <Textarea
                   id="contact-message"
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Parlez-moi de votre projet…"
+                  placeholder={t("contact.messagePlaceholder")}
                   rows={6}
                   required
                   className="bg-background"
@@ -178,7 +180,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                 ) : (
                   <Send className="size-4" />
                 )}
-                Envoyer le message
+                {t("contact.send")}
               </Button>
             </form>
           </Reveal>

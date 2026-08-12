@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
+import { useSiteLang } from "@/lib/i18n";
 import { monogram } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { Container, Reveal } from "./Section";
@@ -15,6 +16,7 @@ export function Hero({
   siteName: string;
   visibilityCv: boolean;
 }) {
+  const { t, pick } = useSiteLang();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const taglines = about.taglines.filter(Boolean);
 
@@ -70,7 +72,10 @@ export function Hero({
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    {taglines[taglineIndex]}
+                    {pick(
+                      taglines[taglineIndex],
+                      about.en?.taglines?.[taglineIndex],
+                    )}
                   </motion.p>
                 </AnimatePresence>
               </div>
@@ -80,7 +85,7 @@ export function Hero({
           {about.description && (
             <Reveal delay={0.18}>
               <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-                {about.description.split(/\n{2,}/)[0]}
+                {pick(about.description, about.en?.description).split(/\n{2,}/)[0]}
               </p>
             </Reveal>
           )}
@@ -91,7 +96,7 @@ export function Hero({
                 href="#contact"
                 className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Me contacter
+                {t("hero.contact")}
                 <ArrowUpRight className="size-4" />
               </a>
               {visibilityCv && about.cvUrl && (
@@ -101,7 +106,7 @@ export function Hero({
                   rel="noopener noreferrer"
                   className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
                 >
-                  Télécharger le CV
+                  {t("hero.downloadCv")}
                   <ArrowDown className="size-4" />
                 </a>
               )}
@@ -111,7 +116,7 @@ export function Hero({
           {about.socials.length > 0 && (
             <Reveal delay={0.3}>
               <div className="mt-12 border-t border-border/70 pt-6">
-                <p className="kicker mb-4">Réseaux & profils</p>
+                <p className="kicker mb-4">{t("hero.networks")}</p>
                 <div className="flex flex-wrap gap-3">
                   {about.socials.map((social) => (
                     <a
@@ -141,13 +146,13 @@ export function Hero({
               <figure className="border border-border bg-card p-2 shadow-[0_1px_0_rgba(0,0,0,0.02),0_24px_48px_-28px_rgba(28,25,21,0.3)]">
                 <img
                   src={about.avatar}
-                  alt={`Portrait de ${about.name}`}
+                  alt={`${t("hero.alt")} ${about.name}`}
                   className="aspect-[4/5] w-full object-cover"
                   loading="eager"
                 />
               </figure>
               <p className="mt-3 text-right text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Fig. 01 — Portrait
+                {t("hero.portrait")}
               </p>
             </div>
           </Reveal>

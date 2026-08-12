@@ -6,20 +6,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSiteLang } from "@/lib/i18n";
 import { Container, Reveal, SectionHeading } from "./Section";
 
 export function Blog({ blog }: { blog: Doc<"blog"> }) {
-  const [openPost, setOpenPost] = useState<Doc<"blog">["posts"][number] | null>(
-    null,
-  );
+  const { t, pick } = useSiteLang();
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const openPost = openIndex !== null ? blog.posts[openIndex] : null;
+  const openPostEn = openIndex !== null ? blog.en?.posts?.[openIndex] : null;
 
   return (
     <Container id="blog" className="py-24 md:py-32">
       <div className="border-t border-border/70 pt-16 md:pt-20">
         <SectionHeading
-          kicker="Journal"
-          title={blog.title}
-          description={blog.description}
+          kicker={t("blog.kicker")}
+          title={pick(blog.title, blog.en?.title)}
+          description={pick(blog.description, blog.en?.description)}
         />
         {blog.posts.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +29,7 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
               <Reveal key={post.title} delay={Math.min(index * 0.06, 0.3)}>
                 <button
                   type="button"
-                  onClick={() => setOpenPost(post)}
+                  onClick={() => setOpenIndex(index)}
                   className="group block w-full text-left"
                 >
                   <article className="border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
@@ -46,15 +48,15 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                         {post.date}
                       </p>
                       <h3 className="mt-2 font-display text-lg font-medium leading-snug tracking-tight text-foreground group-hover:underline group-hover:decoration-(--studio-accent) group-hover:underline-offset-4">
-                        {post.title}
+                        {pick(post.title, blog.en?.posts?.[index]?.title)}
                       </h3>
                       {post.excerpt && (
                         <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                          {post.excerpt}
+                          {pick(post.excerpt, blog.en?.posts?.[index]?.excerpt)}
                         </p>
                       )}
                       <span className="mt-4 inline-block text-[13px] font-medium text-(--studio-accent)">
-                        Lire l'article →
+                        {t("blog.readMore")}
                       </span>
                     </div>
                   </article>
@@ -64,12 +66,15 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Aucun article publié pour le moment.
+            {t("blog.noPosts")}
           </p>
         )}
       </div>
 
-      <Dialog open={openPost !== null} onOpenChange={(open) => !open && setOpenPost(null)}>
+      <Dialog
+        open={openPost !== null}
+        onOpenChange={(open) => !open && setOpenIndex(null)}
+      >
         <DialogContent className="max-h-[85vh] overflow-y-auto border-border sm:max-w-2xl">
           {openPost && (
             <>
@@ -85,13 +90,15 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                   {openPost.date}
                 </p>
                 <DialogTitle className="font-display text-2xl font-light tracking-tight">
-                  {openPost.title}
+                  {pick(openPost.title, openPostEn?.title)}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 text-[15px] leading-relaxed text-muted-foreground">
-                {openPost.content.split(/\n{2,}/).map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                {pick(openPost.content, openPostEn?.content)
+                  .split(/\n{2,}/)
+                  .map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
               </div>
             </>
           )}

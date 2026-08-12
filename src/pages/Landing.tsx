@@ -11,6 +11,7 @@ import { Portfolio } from "@/components/site/Portfolio";
 import { Resume } from "@/components/site/Resume";
 import { Services } from "@/components/site/Services";
 import { Skills } from "@/components/site/Skills";
+import { useSiteLang } from "@/lib/i18n";
 import {
   APP_NAME,
   applyFavicon,
@@ -55,27 +56,28 @@ function injectBlock(html: string, parent: HTMLElement) {
 }
 
 function MaintenanceScreen() {
+  const { t } = useSiteLang();
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center">
       <p className="kicker mb-6">{APP_NAME}</p>
       <h1 className="font-display text-4xl font-light tracking-tight text-foreground sm:text-5xl">
-        Site en maintenance
+        {t("maintenance.title")}
       </h1>
       <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-        Le portfolio est en cours de rafraîchissement. Revenez dans quelques
-        instants — le propriétaire a activé le mode maintenance.
+        {t("maintenance.body")}
       </p>
       <Link
         to="/dashboard"
         className="mt-8 inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
       >
-        Accès propriétaire
+        {t("maintenance.owner")}
       </Link>
     </main>
   );
 }
 
 export default function Landing() {
+  const { t, pick } = useSiteLang();
   const data = useQuery(api.site.getSiteData);
   const ensureSeed = useMutation(api.seed.ensureSeed);
   const trackVisit = useMutation(api.siteMutations.trackVisit);
@@ -96,19 +98,24 @@ export default function Landing() {
     applyFavicon(data?.site?.faviconUrl);
   }, [data?.site?.faviconUrl]);
 
-  // SEO meta tags
+  // SEO meta tags (English mirrors when the EN language is active)
   useEffect(() => {
     const settings = data?.settings;
     const site = data?.site;
     if (!settings) return;
-    const title = settings.metaTitle || site?.siteName || APP_NAME;
+    const metaTitle = pick(settings.metaTitle, settings.en?.metaTitle);
+    const metaDescription = pick(
+      settings.metaDescription,
+      settings.en?.metaDescription,
+    );
+    const title = metaTitle || site?.siteName || APP_NAME;
     document.title = title;
-    setMeta("name", "description", settings.metaDescription);
+    setMeta("name", "description", metaDescription);
     setMeta("name", "author", settings.metaAuthor);
     setMeta("property", "og:title", title);
-    setMeta("property", "og:description", settings.metaDescription);
+    setMeta("property", "og:description", metaDescription);
     setMeta("property", "og:image", settings.metaImage);
-  }, [data?.settings, data?.site]);
+  }, [data?.settings, data?.site, pick]);
 
   // Google Analytics
   useEffect(() => {
@@ -164,22 +171,22 @@ export default function Landing() {
     if (!data) return [];
     const settings = data.settings;
     const links: { label: string; id: string }[] = [];
-    if (settings?.visibilityAbout) links.push({ label: "À propos", id: "about" });
-    if (settings?.visibilitySkill) links.push({ label: "Compétences", id: "skills" });
-    if (settings?.visibilityService) links.push({ label: "Services", id: "services" });
+    if (settings?.visibilityAbout) links.push({ label: t("nav.about"), id: "about" });
+    if (settings?.visibilitySkill) links.push({ label: t("nav.skills"), id: "skills" });
+    if (settings?.visibilityService) links.push({ label: t("nav.services"), id: "services" });
     if (settings?.visibilityExperience || settings?.visibilityEducation)
-      links.push({ label: "Parcours", id: "resume" });
-    if (settings?.visibilityProject) links.push({ label: "Projets", id: "portfolio" });
-    if (settings?.visibilityBlog) links.push({ label: "Journal", id: "blog" });
-    if (settings?.visibilityContact) links.push({ label: "Contact", id: "contact" });
+      links.push({ label: t("nav.resume"), id: "resume" });
+    if (settings?.visibilityProject) links.push({ label: t("nav.portfolio"), id: "portfolio" });
+    if (settings?.visibilityBlog) links.push({ label: t("nav.blog"), id: "blog" });
+    if (settings?.visibilityContact) links.push({ label: t("nav.contact"), id: "contact" });
     return links;
-  }, [data]);
+  }, [data, t]);
 
   if (!data) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <p className="font-display text-lg tracking-tight">Chargement…</p>
+          <p className="font-display text-lg tracking-tight">{t("loading")}</p>
           <div className="mx-auto mt-4 h-px w-24 animate-pulse bg-border" />
         </div>
       </main>
@@ -223,12 +230,7 @@ export default function Landing() {
       {settings?.visibilityBlog && data.blog && <Blog blog={data.blog} />}
       {settings?.visibilityContact && data.about && <Contact about={data.about} />}
       {settings?.visibilityFooter && (
-        <SiteFooter
-          siteName={siteName}
-          tagline={data.site?.tagline}
-          footerText={data.site?.footerText}
-          socials={data.about?.socials}
-        />
+        <SiteFooter site={data.site} socials={data.about?.socials} />
       )}
     </main>
   );

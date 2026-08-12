@@ -1,5 +1,5 @@
-import { useMutation } from "convex/react";
-import { Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { Languages, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -163,7 +163,7 @@ function SocialLinksEditor({
 // ---------------------------------------------------------------------------
 
 export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined }) {
-  const updateAbout = useMutation(api.siteMutations.updateAbout);
+  const updateAbout = useAction(api.translate.updateAbout);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(about, {
     name: "",
@@ -258,32 +258,86 @@ function IntegrationsCard({
   settings: Doc<"settings"> | null | undefined;
 }) {
   const updateIntegrations = useMutation(api.siteMutations.updateIntegrations);
+  const translateAllContent = useAction(api.translate.translateAllContent);
+  const integrations = useQuery(api.site.getIntegrations);
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState(
     settings?.googleAnalyticsId ?? "",
   );
-  const [deeplApiKey, setDeeplApiKey] = useState(settings?.deeplApiKey ?? "");
+  // The DeepL key is write-only (never sent back to the browser): this field
+  // only ever holds what the owner just typed.
+  const [deeplApiKey, setDeeplApiKey] = useState("");
   const [saving, setSaving] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const deeplKeySet = integrations?.deeplKeySet ?? false;
 
   useEffect(() => {
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
-    setDeeplApiKey(settings?.deeplApiKey ?? "");
-  }, [settings?.googleAnalyticsId, settings?.deeplApiKey]);
+  }, [settings?.googleAnalyticsId]);
 
   const dirty =
     googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
-    deeplApiKey !== (settings?.deeplApiKey ?? "");
+    deeplApiKey.trim() !== "";
+
+  /** Translate every section once and report the outcome. */
+  const translateAll = async () => {
+    setTranslating(true);
+    try {
+      const results = await translateAllContent();
+      const ok = Object.values(results).filter((r) => r === "ok").length;
+      const failed = Object.values(results).filter((r) => r === "failed").length;
+      if (failed > 0) {
+        toast.error(
+          `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL.`,
+        );
+      } else {
+        toast.success(`${ok} section(s) traduite(s) en anglais.`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("La traduction a échoué. Vérifiez votre clé DeepL.");
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
     try {
+      const newKey = deeplApiKey.trim();
       await updateIntegrations({
         googleAnalyticsId: googleAnalyticsId.trim(),
-        deeplApiKey: deeplApiKey.trim(),
+        deeplApiKey: newKey,
       });
-      toast.success("Clés API enregistrées");
+      setDeeplApiKey("");
+      if (newKey) {
+        // First time a key is set (or replaced): translate existing content
+        // right away so the EN version is never left empty.
+        toast.success("Clé DeepL enregistrée — traduction du contenu en cours…");
+        await translateAll();
+      } else {
+        toast.success("Clés API enregistrées");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de l'enregistrement des clés");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeKey = async () => {
+    setSaving(true);
+    try {
+      await updateIntegrations({
+        googleAnalyticsId: googleAnalyticsId.trim(),
+        clearDeeplKey: true,
+      });
+      toast.success(
+        "Clé DeepL supprimée — les traductions déjà générées sont conservées.",
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la suppression de la clé");
     } finally {
       setSaving(false);
     }
@@ -305,24 +359,71 @@ function IntegrationsCard({
           placeholder="G-XXXXXXXXXX"
           hint="Identifiant de mesure GA4. Laissez vide pour désactiver le suivi."
         />
-        <TextField
-          label="Clé API DeepL"
-          value={deeplApiKey}
-          onChange={setDeeplApiKey}
-          placeholder="Votre clé d'authentification DeepL"
-          type="password"
-          hint="Utilisée pour la traduction automatique du contenu (FR → EN). Stockée en base, jamais affichée sur le site."
-        />
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-[13px] font-medium">Clé API DeepL</label>
+            {deeplKeySet && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Clé configurée
+              </span>
+            )}
+          </div>
+          <Input
+            type="password"
+            value={deeplApiKey}
+            onChange={(event) => setDeeplApiKey(event.target.value)}
+            placeholder={
+              deeplKeySet
+                ? "•••••••• (conserver la clé actuelle)"
+                : "Votre clé d'authentification DeepL"
+            }
+            className="bg-background"
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Traduction automatique du contenu (FR → EN). La clé n'est jamais
+            renvoyée au navigateur — laissez le champ vide pour la conserver.
+          </p>
+        </div>
       </div>
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {dirty && (
           <span className="text-xs text-muted-foreground">
             Modifications non enregistrées
           </span>
         )}
+        {deeplKeySet && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void translateAll()}
+              disabled={translating || saving}
+              className="rounded-full"
+            >
+              {translating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Languages className="size-4" />
+              )}
+              {translating ? "Traduction…" : "Traduire tout le contenu"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void removeKey()}
+              disabled={saving}
+              className="rounded-full text-muted-foreground"
+            >
+              Retirer la clé
+            </Button>
+          </>
+        )}
         <Button
-          onClick={save}
-          disabled={saving || !dirty}
+          onClick={() => void save()}
+          disabled={saving || translating || !dirty}
           className="rounded-full"
         >
           {saving ? (
@@ -348,7 +449,7 @@ export function SiteEditor({
   site: Doc<"site"> | null | undefined;
   settings: Doc<"settings"> | null | undefined;
 }) {
-  const updateSite = useMutation(api.siteMutations.updateSite);
+  const updateSite = useAction(api.translate.updateSite);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(site, {
     siteName: "",
@@ -409,7 +510,7 @@ export function SiteEditor({
 // ---------------------------------------------------------------------------
 
 export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | undefined }) {
-  const updateSettings = useMutation(api.siteMutations.updateSettings);
+  const updateSettings = useAction(api.translate.updateSettings);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(settings, {
     themeColor: "#A85B32",

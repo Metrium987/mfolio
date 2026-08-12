@@ -1,5 +1,6 @@
 import { ArrowDown } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
+import { useSiteLang } from "@/lib/i18n";
 import { Container, Reveal } from "./Section";
 
 export function About({
@@ -9,14 +10,17 @@ export function About({
   about: Doc<"about">;
   visibilityCv: boolean;
 }) {
-  const paragraphs = about.description.split(/\n{2,}/).filter(Boolean);
+  const { t, pick } = useSiteLang();
+  const paragraphs = pick(about.description, about.en?.description)
+    .split(/\n{2,}/)
+    .filter(Boolean);
 
   return (
     <Container id="about" className="py-24 md:py-32">
       <div className="grid items-start gap-14 lg:grid-cols-[0.4fr_1fr] lg:gap-20">
         <div>
           <Reveal>
-            <p className="kicker mb-4">À propos</p>
+            <p className="kicker mb-4">{t("about.kicker")}</p>
             <h2 className="font-display text-3xl font-light tracking-tight text-foreground sm:text-4xl">
               {about.name}
             </h2>
@@ -29,7 +33,7 @@ export function About({
                 rel="noopener noreferrer"
                 className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
               >
-                Télécharger le CV
+                {t("hero.downloadCv")}
                 <ArrowDown className="size-4" />
               </a>
             </Reveal>

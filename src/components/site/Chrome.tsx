@@ -1,6 +1,38 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { useSiteLang, type SiteLang } from "@/lib/i18n";
 import { APP_NAME, monogram, type Social } from "@/lib/site";
+import { cn } from "@/lib/utils";
+
+const LANGS: SiteLang[] = ["fr", "en"];
+
+function LangSwitcher() {
+  const { lang, setLang } = useSiteLang();
+  return (
+    <div
+      className="flex items-center rounded-full border border-border p-0.5 text-[11px] font-medium"
+      aria-label="Language"
+    >
+      {LANGS.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => setLang(option)}
+          aria-pressed={lang === option}
+          className={cn(
+            "rounded-full px-2.5 py-1 uppercase tracking-wide transition-colors",
+            lang === option
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function SiteHeader({
   siteName,
@@ -9,6 +41,7 @@ export function SiteHeader({
   siteName: string;
   links: { label: string; id: string }[];
 }) {
+  const { t } = useSiteLang();
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
@@ -29,29 +62,33 @@ export function SiteHeader({
             </a>
           ))}
         </nav>
-        <Link
-          to="/dashboard"
-          className="group inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground"
-        >
-          Admin
-          <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <LangSwitcher />
+          <Link
+            to="/dashboard"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground"
+          >
+            {t("header.admin")}
+            <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        </div>
       </div>
     </header>
   );
 }
 
 export function SiteFooter({
-  siteName,
-  tagline,
-  footerText,
+  site,
   socials,
 }: {
-  siteName: string;
-  tagline?: string;
-  footerText?: string;
+  site?: Doc<"site"> | null;
   socials?: Social[];
 }) {
+  const { t, pick } = useSiteLang();
+  const siteName = site?.siteName || "Portfolio";
+  const tagline = pick(site?.tagline ?? "", site?.en?.tagline);
+  const footerText = pick(site?.footerText ?? "", site?.en?.footerText);
+
   return (
     <footer className="border-t border-border/70">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-14 sm:px-8 md:flex-row md:items-start md:justify-between">
@@ -70,7 +107,7 @@ export function SiteFooter({
         </div>
         {socials && socials.length > 0 && (
           <div>
-            <p className="kicker mb-4">Réseaux</p>
+            <p className="kicker mb-4">{t("footer.networks")}</p>
             <div className="flex flex-wrap gap-3">
               {socials.map((social) => (
                 <a
@@ -97,7 +134,7 @@ export function SiteFooter({
             to="/dashboard"
             className="transition-colors hover:text-foreground"
           >
-            Propulsé par {APP_NAME}
+            {t("footer.poweredBy")} {APP_NAME}
           </Link>
         </div>
       </div>

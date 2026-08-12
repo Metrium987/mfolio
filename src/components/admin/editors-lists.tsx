@@ -240,7 +240,7 @@ function ImagesEditor({
 // ---------------------------------------------------------------------------
 
 export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefined }) {
-  const updateSkills = useMutation(api.siteMutations.updateSkills);
+  const updateSkills = useAction(api.translate.updateSkills);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(skills, {
     title: "",
@@ -349,7 +349,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
 // ---------------------------------------------------------------------------
 
 export function ServicesEditor({ services }: { services: Doc<"services"> | null | undefined }) {
-  const updateServices = useMutation(api.siteMutations.updateServices);
+  const updateServices = useAction(api.translate.updateServices);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(services, {
     title: "",
@@ -473,7 +473,7 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
 // ---------------------------------------------------------------------------
 
 export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefined }) {
-  const updateResume = useMutation(api.siteMutations.updateResume);
+  const updateResume = useAction(api.translate.updateResume);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(resume, {
     title: "",
@@ -719,7 +719,7 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
 // ---------------------------------------------------------------------------
 
 export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | null | undefined }) {
-  const updatePortfolio = useMutation(api.siteMutations.updatePortfolio);
+  const updatePortfolio = useAction(api.translate.updatePortfolio);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(portfolio, {
     title: "",
@@ -877,7 +877,7 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
 // ---------------------------------------------------------------------------
 
 export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
-  const updateBlog = useMutation(api.siteMutations.updateBlog);
+  const updateBlog = useAction(api.translate.updateBlog);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(blog, {
     title: "",
