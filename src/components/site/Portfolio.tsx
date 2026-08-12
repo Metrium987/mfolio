@@ -1,6 +1,12 @@
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useSiteLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Container, Reveal, SectionHeading } from "./Section";
@@ -34,6 +40,12 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
   // Filtering always happens on the French source categories; only the label
   // is translated, so the active filter stays correct in both languages.
   const [active, setActive] = useState<string | null>(null);
+  // Open project dialog — the original array index is kept so the English
+  // mirror (aligned by position) stays correct.
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const openProject = openIndex !== null ? portfolio.projects[openIndex] : null;
+  const openProjectEn =
+    openIndex !== null ? portfolio.en?.projects?.[openIndex] : null;
 
   return (
     <Container id="portfolio" className="py-24 md:py-32">
@@ -89,63 +101,60 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                   key={project.title}
                   delay={Math.min(index * 0.05, 0.25)}
                 >
-                  <article className="group flex h-full flex-col border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
-                    {project.thumbnail && (
-                      <div className="overflow-hidden">
-                        <img
-                          src={project.thumbnail}
-                          alt={pick(
+                  <button
+                    type="button"
+                    onClick={() => setOpenIndex(index)}
+                    className="group block w-full text-left"
+                  >
+                    <article className="flex h-full flex-col border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
+                      {project.thumbnail && (
+                        <div className="overflow-hidden">
+                          <img
+                            src={project.thumbnail}
+                            alt={pick(
+                              project.title,
+                              portfolio.en?.projects?.[index]?.title,
+                            )}
+                            loading="lazy"
+                            className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
+                        <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+                          {project.categories
+                            .map((category, catIndex) =>
+                              pick(
+                                category,
+                                portfolio.en?.projects?.[index]?.categories?.[
+                                  catIndex
+                                ],
+                              ),
+                            )
+                            .filter(Boolean)
+                            .join(" · ") || t("portfolio.project")}
+                        </p>
+                        <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
+                          {pick(
                             project.title,
                             portfolio.en?.projects?.[index]?.title,
                           )}
-                          loading="lazy"
-                          className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                        />
-                      </div>
-                    )}
-                    <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
-                        {project.categories
-                          .map((category, catIndex) =>
-                            pick(
-                              category,
-                              portfolio.en?.projects?.[index]?.categories?.[
-                                catIndex
-                              ],
-                            ),
-                          )
-                          .filter(Boolean)
-                          .join(" · ") || t("portfolio.project")}
-                      </p>
-                      <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
-                        {pick(
-                          project.title,
-                          portfolio.en?.projects?.[index]?.title,
+                        </h3>
+                        {project.details && (
+                          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                            {pick(
+                              project.details,
+                              portfolio.en?.projects?.[index]?.details,
+                            )}
+                          </p>
                         )}
-                      </h3>
-                      {project.details && (
-                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                          {pick(
-                            project.details,
-                            portfolio.en?.projects?.[index]?.details,
-                          )}
-                        </p>
-                      )}
-                      {project.link && (
-                        <div className="mt-5 flex items-center border-t border-border/70 pt-4">
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground transition-colors hover:text-(--studio-accent)"
-                          >
-                            <ExternalLink className="size-3.5" />
-                            {t("portfolio.viewProject")}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </article>
+                        <span className="mt-5 inline-flex items-center gap-1.5 border-t border-border/70 pt-4 text-[13px] font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
+                          {t("portfolio.viewProject")}
+                          <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </span>
+                      </div>
+                    </article>
+                  </button>
                 </Reveal>
               );
             })}
@@ -156,6 +165,108 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
           </p>
         )}
       </div>
+
+      {/* Project detail — full gallery, description and link (Ezfolio modal) */}
+      <Dialog
+        open={openProject !== null}
+        onOpenChange={(open) => !open && setOpenIndex(null)}
+      >
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-border sm:max-w-3xl">
+          {openProject && (
+            <ProjectGallery
+              images={[
+                openProject.thumbnail,
+                ...openProject.images.filter((image) => image !== openProject.thumbnail),
+              ].filter(Boolean)}
+              title={pick(
+                openProject.title,
+                openProjectEn?.title,
+              )}
+            />
+          )}
+          {openProject && (
+            <>
+              <DialogHeader>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+                  {openProject.categories
+                    .map((category, catIndex) =>
+                      pick(
+                        category,
+                        openProjectEn?.categories?.[catIndex],
+                      ),
+                    )
+                    .filter(Boolean)
+                    .join(" · ") || t("portfolio.project")}
+                </p>
+                <DialogTitle className="font-display text-2xl font-light tracking-tight">
+                  {pick(openProject.title, openProjectEn?.title)}
+                </DialogTitle>
+              </DialogHeader>
+              {openProject.details && (
+                <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground">
+                  {pick(openProject.details, openProjectEn?.details)}
+                </p>
+              )}
+              {openProject.link && (
+                <a
+                  href={openProject.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-fit items-center gap-1.5 border-t border-border/70 pt-4 text-[13px] font-medium text-foreground transition-colors hover:text-(--studio-accent)"
+                >
+                  <ExternalLink className="size-3.5" />
+                  {t("portfolio.viewProject")}
+                </a>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
+  );
+}
+
+/** Simple gallery: main image + clickable thumbnails. */
+function ProjectGallery({ images, title }: { images: string[]; title: string }) {
+  const [current, setCurrent] = useState(0);
+  const safeIndex = Math.min(Math.max(current, 0), Math.max(images.length - 1, 0));
+  const currentImage = images[safeIndex] ?? "";
+
+  if (!currentImage) return null;
+
+  return (
+    <div>
+      <figure className="border border-border bg-card p-2">
+        <img
+          src={currentImage}
+          alt={title}
+          className="aspect-[16/10] w-full object-cover"
+        />
+      </figure>
+      {images.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {images.map((image, index) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setCurrent(index)}
+              aria-label={`Image ${index + 1}`}
+              className={cn(
+                "size-16 overflow-hidden border transition-colors",
+                index === safeIndex
+                  ? "border-foreground"
+                  : "border-border opacity-60 hover:opacity-100",
+              )}
+            >
+              <img
+                src={image}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

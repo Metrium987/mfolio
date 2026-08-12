@@ -351,9 +351,19 @@ export default function Dashboard() {
           <p className="text-[11px] uppercase tracking-[0.2em] text-(--studio-accent)">
             {APP_NAME} · Tableau de bord
           </p>
-          <p className="mt-1 truncate font-display text-xl font-medium tracking-tight text-foreground">
-            {siteName}
-          </p>
+          <div className="mt-1 flex items-center gap-2.5">
+            {data.site?.logoUrl ? (
+              <img
+                src={data.site.logoUrl}
+                alt=""
+                className="max-h-8 w-auto max-w-36 object-contain"
+              />
+            ) : (
+              <p className="truncate font-display text-xl font-medium tracking-tight text-foreground">
+                {siteName}
+              </p>
+            )}
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -426,9 +436,17 @@ export default function Dashboard() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-(--studio-accent)">
                 {APP_NAME} · Tableau de bord
               </p>
-              <p className="truncate font-display text-base font-medium tracking-tight">
-                {siteName}
-              </p>
+              {data.site?.logoUrl ? (
+                <img
+                  src={data.site.logoUrl}
+                  alt=""
+                  className="max-h-7 w-auto max-w-32 object-contain"
+                />
+              ) : (
+                <p className="truncate font-display text-base font-medium tracking-tight">
+                  {siteName}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button

@@ -202,7 +202,11 @@ export default function Landing() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <SiteHeader siteName={siteName} links={nav} />
+      <SiteHeader
+        siteName={siteName}
+        links={nav}
+        logoUrl={data.site?.logoUrl}
+      />
       {settings?.visibilityAbout && data.about && (
         <Hero
           about={data.about}

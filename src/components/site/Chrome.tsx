@@ -37,9 +37,11 @@ function LangSwitcher() {
 export function SiteHeader({
   siteName,
   links,
+  logoUrl,
 }: {
   siteName: string;
   links: { label: string; id: string }[];
+  logoUrl?: string;
 }) {
   const { t } = useSiteLang();
   return (
@@ -47,9 +49,17 @@ export function SiteHeader({
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
         <a
           href="#top"
-          className="font-display text-lg font-medium tracking-tight text-foreground"
+          className="flex items-center gap-2.5 font-display text-lg font-medium tracking-tight text-foreground"
         >
-          {siteName}
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="max-h-9 w-auto max-w-40 object-contain"
+            />
+          ) : (
+            siteName
+          )}
         </a>
         <nav className="hidden items-center gap-7 md:flex">
           {links.map((link) => (
