@@ -22,13 +22,13 @@ export function Hero({
   const taglines = about.taglines.filter(Boolean);
 
   useEffect(() => {
-    if (taglines.length < 2 || reduce) return;
+    if (taglines.length < 2) return;
     const interval = setInterval(
       () => setTaglineIndex((index) => (index + 1) % taglines.length),
       3800,
     );
     return () => clearInterval(interval);
-  }, [taglines.length, reduce]);
+  }, [taglines.length]);
 
   return (
     <Container id="top" className="relative pb-24 pt-16 sm:pt-20">
@@ -75,29 +75,23 @@ export function Hero({
           {taglines.length > 0 && (
             <Reveal delay={0.12}>
               <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent)">
-                {reduce ? (
-                  <p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={taglineIndex}
+                    initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+                    transition={{
+                      duration: reduce ? 0.25 : 0.4,
+                      ease: "easeOut",
+                    }}
+                  >
                     {pick(
                       taglines[taglineIndex],
                       about.en?.taglines?.[taglineIndex],
                     )}
-                  </p>
-                ) : (
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key={taglineIndex}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      {pick(
-                        taglines[taglineIndex],
-                        about.en?.taglines?.[taglineIndex],
-                      )}
-                    </motion.p>
-                  </AnimatePresence>
-                )}
+                  </motion.p>
+                </AnimatePresence>
               </div>
             </Reveal>
           )}
