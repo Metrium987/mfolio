@@ -756,7 +756,17 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
   const save = async () => {
     setSaving(true);
     try {
-      await updatePortfolio({ data: draft.value });
+      // Normalize role/result for projects saved before those fields existed.
+      await updatePortfolio({
+        data: {
+          ...draft.value,
+          projects: draft.value.projects.map((project) => ({
+            ...project,
+            role: project.role ?? "",
+            result: project.result ?? "",
+          })),
+        },
+      });
       draft.commit(draft.value);
       toast.success("Section « Projets » enregistrée");
     } catch (error) {
@@ -820,6 +830,34 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
                   }))
                 }
                 placeholder="https://…"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                label="Rôle"
+                value={project.role ?? ""}
+                onChange={(role) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    projects: prev.projects.map((p, n) =>
+                      n === index ? { ...p, role } : p,
+                    ),
+                  }))
+                }
+                placeholder="Designer produit & développeur"
+              />
+              <TextField
+                label="Résultat / impact"
+                value={project.result ?? ""}
+                onChange={(result) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    projects: prev.projects.map((p, n) =>
+                      n === index ? { ...p, result } : p,
+                    ),
+                  }))
+                }
+                placeholder="+38 % de conversion"
               />
             </div>
             <TagsEditor
@@ -890,6 +928,8 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
                   details: "",
                   thumbnail: "",
                   images: [],
+                  role: "",
+                  result: "",
                 },
               ],
             }))

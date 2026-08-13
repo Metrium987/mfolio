@@ -63,6 +63,8 @@ export const UI_STRINGS = {
   "portfolio.kicker": { fr: "Portfolio", en: "Portfolio" },
   "portfolio.all": { fr: "Tous", en: "All" },
   "portfolio.project": { fr: "Projet", en: "Project" },
+  "portfolio.role": { fr: "Rôle", en: "Role" },
+  "portfolio.result": { fr: "Résultat", en: "Result" },
   "portfolio.viewProject": { fr: "Voir le projet", en: "View project" },
   "portfolio.noProjects": {
     fr: "Aucun projet dans cette catégorie.",

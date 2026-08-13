@@ -59,6 +59,8 @@ export const projectValidator = v.object({
   details: v.string(),
   thumbnail: v.string(),
   images: v.array(v.string()),
+  role: v.string(),
+  result: v.string(),
 });
 
 export const postValidator = v.object({
@@ -142,6 +144,8 @@ export const portfolioEnValidator = v.object({
       title: v.string(),
       categories: v.array(v.string()),
       details: v.string(),
+      role: v.string(),
+      result: v.string(),
     }),
   ),
 });

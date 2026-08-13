@@ -71,6 +71,8 @@ const SECTION_PATHS: Record<SectionName, string[][]> = {
     ["projects", "*", "title"],
     ["projects", "*", "categories", "*"],
     ["projects", "*", "details"],
+    ["projects", "*", "role"],
+    ["projects", "*", "result"],
   ],
   blog: [
     ["title"],

@@ -140,6 +140,14 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                             portfolio.en?.projects?.[index]?.title,
                           )}
                         </h3>
+                        {project.role && (
+                          <p className="mt-1 text-sm font-medium text-muted-foreground">
+                            {pick(
+                              project.role,
+                              portfolio.en?.projects?.[index]?.role,
+                            )}
+                          </p>
+                        )}
                         {project.details && (
                           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                             {pick(
@@ -202,6 +210,30 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                   {pick(openProject.title, openProjectEn?.title)}
                 </DialogTitle>
               </DialogHeader>
+              {(openProject.role || openProject.result) && (
+                <div className="flex flex-wrap gap-x-8 gap-y-2 border-y border-border/70 py-3 text-sm">
+                  {openProject.role && (
+                    <span>
+                      <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                        {t("portfolio.role")} ·{" "}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {pick(openProject.role, openProjectEn?.role)}
+                      </span>
+                    </span>
+                  )}
+                  {openProject.result && (
+                    <span>
+                      <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                        {t("portfolio.result")} ·{" "}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {pick(openProject.result, openProjectEn?.result)}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              )}
               {openProject.details && (
                 <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground">
                   {pick(openProject.details, openProjectEn?.details)}

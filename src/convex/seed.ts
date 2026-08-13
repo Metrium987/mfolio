@@ -181,6 +181,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Un magazine en ligne : direction artistique, design system éditorial et site React statique, noté 98/100 aux audits.",
+      role: "Designer produit & développeur",
+      result: "Score Lighthouse 98/100 · 40 000 lecteurs mensuels.",
       thumbnail:
         "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -194,6 +196,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Bibliothèque de composants Figma + React pour une équipe produit de 20 personnes : tokens, documentation et tests.",
+      role: "Design system lead",
+      result: "Adopté par une équipe produit de 20 personnes.",
       thumbnail:
         "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -206,6 +210,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Application de billetterie pensée pour les petites salles de concert : paiement en deux écrans, mode hors-ligne.",
+      role: "Product designer",
+      result: "Parcours de paiement réduit de 5 à 2 écrans.",
       thumbnail:
         "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -218,6 +224,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Site expérimental en Three.js : une déambulation scénarisée dans les archives d'un photographe.",
+      role: "Développeur créatif",
+      result: "Honorable mention — Awwwards.",
       thumbnail:
         "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -230,6 +238,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Identité visuelle pour une pépinière urbaine : logotype, typographies, papeterie et signalétique.",
+      role: "Directeur artistique",
+      result: "Identité déployée sur 12 points de vente.",
       thumbnail:
         "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -242,6 +252,8 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
       link: "https://example.com/",
       details:
         "Du research au MVP : entretiens, parcours de partage entre voisins, prototype testé sur 60 foyers lyonnais.",
+      role: "Designer & chercheur UX",
+      result: "MVP testé auprès de 60 foyers lyonnais.",
       thumbnail:
         "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80",
       images: [
@@ -462,6 +474,30 @@ export const ensureSeed = mutation({
           name: item.name,
           details: item.details,
           icon: typeof item.icon === "string" ? item.icon : "",
+        })),
+      });
+    }
+    // Projects gained role/result fields later — backfill empty strings so
+    // they validate against the current schema when edited.
+    if (
+      portfolio &&
+      Array.isArray(portfolio.projects) &&
+      portfolio.projects.some(
+        (project) =>
+          typeof project.role !== "string" ||
+          typeof project.result !== "string",
+      )
+    ) {
+      await ctx.db.patch(portfolio._id, {
+        projects: portfolio.projects.map((project) => ({
+          title: project.title,
+          categories: project.categories,
+          link: project.link,
+          details: project.details,
+          thumbnail: project.thumbnail,
+          images: project.images,
+          role: typeof project.role === "string" ? project.role : "",
+          result: typeof project.result === "string" ? project.result : "",
         })),
       });
     }
