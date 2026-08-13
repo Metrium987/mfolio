@@ -24,6 +24,8 @@ export function Hero({
 
   // Reset the typewriter whenever the active tagline changes.
   useEffect(() => {
+    // Intentional: rewind the typing animation for the new tagline.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTypedCount(0);
   }, [taglineIndex]);
 

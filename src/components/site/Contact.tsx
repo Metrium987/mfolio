@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSiteLang } from "@/lib/i18n";
-import { monogram } from "@/lib/site";
+import { getOrCreateVisitorId, monogram } from "@/lib/site";
 import { Container, Reveal, SectionHeading } from "./Section";
 
 export function Contact({ about }: { about: Doc<"about"> }) {
@@ -22,17 +22,29 @@ export function Contact({ about }: { about: Doc<"about"> }) {
     message: "",
   });
   const [sending, setSending] = useState(false);
+  // Anti-spam: honeypot field — bots fill it, humans never see it. If it is
+  // filled the backend silently drops the message.
+  const [honeypot, setHoneypot] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSending(true);
     try {
-      await addMessage(form);
+      await addMessage({
+        ...form,
+        honeypot,
+        visitorId: getOrCreateVisitorId(),
+      });
       setForm({ name: "", email: "", subject: "", message: "" });
+      setHoneypot("");
       toast.success(t("contact.success"));
     } catch (error) {
       console.error(error);
-      toast.error(t("contact.error"));
+      toast.error(
+        error instanceof Error && error.message.startsWith("Trop de messages")
+          ? error.message
+          : t("contact.error"),
+      );
     } finally {
       setSending(false);
     }
@@ -114,6 +126,18 @@ export function Contact({ about }: { about: Doc<"about"> }) {
               onSubmit={handleSubmit}
               className="border border-border bg-card p-6 sm:p-8"
             >
+              {/* Anti-spam honeypot — visually hidden, ignored by humans. */}
+              <div className="hidden" aria-hidden="true">
+                <label htmlFor="contact-website">Site web</label>
+                <input
+                  id="contact-website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
               <p className="kicker mb-6">{t("contact.writeMe")}</p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -125,6 +149,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder={t("contact.namePlaceholder")}
+                    maxLength={100}
                     required
                     className="bg-background"
                   />
@@ -139,6 +164,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder={t("contact.emailPlaceholder")}
+                    maxLength={200}
                     required
                     className="bg-background"
                   />
@@ -153,6 +179,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   placeholder={t("contact.subjectPlaceholder")}
+                  maxLength={200}
                   className="bg-background"
                 />
               </div>
@@ -166,6 +193,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                   placeholder={t("contact.messagePlaceholder")}
                   rows={6}
+                  maxLength={5000}
                   required
                   className="bg-background"
                 />

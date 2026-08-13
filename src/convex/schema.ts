@@ -323,6 +323,10 @@ export const messageValidator = v.object({
   message: v.string(),
   replied: v.boolean(),
   createdAt: v.number(),
+  // Anti-spam: visitor fingerprint used by the per-visitor rate limit.
+  // Lengths are capped in the addMessage mutation handler (this Convex
+  // version's v.string() does not accept maxLength options).
+  visitorId: v.optional(v.string()),
 });
 
 export const visitorValidator = v.object({

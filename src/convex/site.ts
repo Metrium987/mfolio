@@ -1,6 +1,13 @@
 import { query } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import type { Doc } from "./_generated/dataModel";
+import {
+  DAY,
+  countByWindow,
+  startOfDayUTC,
+  startOfMonthUTC,
+  startOfWeekUTC,
+} from "../lib/stats";
 
 /**
  * Strip legacy settings fields that are no longer in the schema (e.g. the
@@ -107,32 +114,6 @@ export const getSettingsForBackend = query({
   },
 });
 
-const DAY = 24 * 60 * 60 * 1000;
-
-function startOfDayUTC(ts: number): number {
-  const date = new Date(ts);
-  date.setUTCHours(0, 0, 0, 0);
-  return date.getTime();
-}
-
-function startOfWeekUTC(ts: number): number {
-  const date = new Date(startOfDayUTC(ts));
-  // Monday as first day of the week
-  const day = (date.getUTCDay() + 6) % 7;
-  date.setUTCDate(date.getUTCDate() - day);
-  return date.getTime();
-}
-
-function startOfMonthUTC(ts: number): number {
-  const date = new Date(ts);
-  date.setUTCDate(1);
-  date.setUTCHours(0, 0, 0, 0);
-  return date.getTime();
-}
-
-function countByWindow(items: { createdAt: number }[], since: number): number {
-  return items.filter((item) => item.createdAt >= since).length;
-}
 
 /**
  * Dashboard home stats — visitor + message counts and a 7-day visitor trend

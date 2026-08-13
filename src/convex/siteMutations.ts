@@ -132,15 +132,46 @@ export const addMessage = mutation({
     email: v.string(),
     subject: v.string(),
     message: v.string(),
+    // Anti-spam: hidden honeypot field (bots fill it, humans never see it).
+    honeypot: v.optional(v.string()),
+    // Visitor fingerprint (localStorage id) for the per-visitor rate limit.
+    visitorId: v.optional(v.string()),
   }),
-  handler: async (ctx, { name, email, subject, message }) => {
+  handler: async (ctx, { name, email, subject, message, honeypot, visitorId }) => {
+    // Honeypot: silently drop bot submissions (no insert, no notification).
+    if (honeypot && honeypot.trim() !== "") {
+      return;
+    }
+
+    // Length caps (defense in depth — the client also limits input length).
+    if (name.length > 100 || email.length > 200 || subject.length > 200) {
+      throw new Error("Message trop long.");
+    }
+    if (message.length > 5000) {
+      throw new Error("Message trop long.");
+    }
+
+    // Free per-visitor rate limit (in-database sliding window, 1 hour).
+    const now = Date.now();
+    const recent = await ctx.db.query("messages").order("desc").take(50);
+    const recentFromVisitor = recent.filter(
+      (m) =>
+        m.visitorId &&
+        m.visitorId === visitorId &&
+        m.createdAt > now - 60 * 60 * 1000,
+    );
+    if (visitorId && recentFromVisitor.length >= 3) {
+      throw new Error("Trop de messages envoyés. Réessayez plus tard.");
+    }
+
     await ctx.db.insert("messages", {
       name: name.trim(),
       email: email.trim(),
       subject: subject.trim(),
       message: message.trim(),
       replied: false,
-      createdAt: Date.now(),
+      createdAt: now,
+      visitorId: visitorId?.trim() || undefined,
     });
 
     // Email the owner in the background through the built-in gateway. The

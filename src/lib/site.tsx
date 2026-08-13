@@ -16,7 +16,6 @@ import {
   Building2,
   Calculator,
   CalendarDays,
-  Camera,
   Car,
   ChartColumn,
   ChartLine,
@@ -155,6 +154,27 @@ export function detectBrowser(): string {
 }
 
 /** Detect device platform from the user agent. */
+/**
+ * Visitor fingerprint for the anti-spam rate limit. Persisted in
+ * localStorage so a returning visitor keeps the same id; shared by the
+ * landing tracker and the contact form.
+ */
+export const VISITOR_STORAGE_KEY = "mfolio_visitor";
+
+export function getOrCreateVisitorId(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const existing = window.localStorage.getItem(VISITOR_STORAGE_KEY);
+    if (existing) return existing;
+    const id = `v-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(VISITOR_STORAGE_KEY, id);
+    return id;
+  } catch {
+    // storage unavailable (private mode) — rate limit is simply not applied
+    return undefined;
+  }
+}
+
 export function detectPlatform(): string {
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   if (/Android/i.test(ua)) return "Android";

@@ -494,8 +494,11 @@ function IntegrationsCard({
   const deeplKeySet = integrations?.deeplKeySet ?? false;
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time form sync
+       when the fetched settings arrive (before any user interaction) */
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
     setNotificationEmail(settings?.notificationEmail ?? "");
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [settings?.googleAnalyticsId, settings?.notificationEmail]);
 
   const dirty =
@@ -685,8 +688,10 @@ function SecurityCard() {
   const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
+    // Sync the form field with the fetched account (before user interaction).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (account) setEmail(account.email);
-  }, [account?.email]);
+  }, [account]);
 
   const saveEmail = async () => {
     const value = email.trim();

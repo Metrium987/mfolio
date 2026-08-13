@@ -120,8 +120,6 @@ export function ManageList<T extends object>({
   };
 
   const previewItem = previewIndex !== null ? items[previewIndex] : undefined;
-  const deletingItem =
-    deletingIndex !== null ? items[deletingIndex] : undefined;
 
   return (
     <div className="space-y-3">

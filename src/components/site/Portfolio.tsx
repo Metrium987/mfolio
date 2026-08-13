@@ -116,6 +116,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                               portfolio.en?.projects?.[index]?.title,
                             )}
                             loading="lazy"
+                            decoding="async"
                             className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                           />
                         </div>

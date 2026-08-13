@@ -20,10 +20,12 @@ import {
 } from "@/lib/sections";
 import {
   APP_NAME,
+  VISITOR_STORAGE_KEY,
   applyFavicon,
   applyThemeColor,
   detectBrowser,
   detectPlatform,
+  getOrCreateVisitorId,
 } from "@/lib/site";
 
 let seedRequested = false;
@@ -38,6 +40,22 @@ function setMeta(attr: "name" | "property", key: string, content: string) {
     document.head.appendChild(tag);
   }
   tag.setAttribute("content", content);
+}
+
+/** Create/update a <link> tag (canonical, alternate…). */
+function setLink(rel: string, href: string, hreflang?: string) {
+  if (!href) return;
+  const selector = hreflang
+    ? `link[rel="${rel}"][hreflang="${hreflang}"]`
+    : `link[rel="${rel}"]:not([hreflang])`;
+  let tag = document.querySelector<HTMLLinkElement>(selector);
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.setAttribute("rel", rel);
+    if (hreflang) tag.setAttribute("hreflang", hreflang);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("href", href);
 }
 
 /**
@@ -83,7 +101,7 @@ function MaintenanceScreen() {
 }
 
 export default function Landing() {
-  const { t, pick } = useSiteLang();
+  const { t, pick, lang } = useSiteLang();
   const data = useQuery(api.site.getSiteData);
   const ensureSeed = useMutation(api.seed.ensureSeed);
   const trackVisit = useMutation(api.siteMutations.trackVisit);
@@ -104,7 +122,10 @@ export default function Landing() {
     applyFavicon(data?.site?.faviconUrl);
   }, [data?.site?.faviconUrl]);
 
-  // SEO meta tags (English mirrors when the EN language is active)
+  // SEO meta tags (English mirrors when the EN language is active). The
+  // index.html static fallback covers scrapers that don't run JavaScript
+  // (LinkedIn, Facebook, WhatsApp…); this runtime sync keeps everything
+  // exact for crawlers that do.
   useEffect(() => {
     const settings = data?.settings;
     const site = data?.site;
@@ -115,13 +136,29 @@ export default function Landing() {
       settings.en?.metaDescription,
     );
     const title = metaTitle || site?.siteName || APP_NAME;
+    const url = window.location.origin + window.location.pathname;
     document.title = title;
+    // Reflect the active UI language in the document (a11y + SEO).
+    document.documentElement.lang = lang;
     setMeta("name", "description", metaDescription);
     setMeta("name", "author", settings.metaAuthor);
+    setLink("canonical", url);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", metaDescription);
     setMeta("property", "og:image", settings.metaImage);
-  }, [data?.settings, data?.site, pick]);
+    setMeta("property", "og:url", url);
+    setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", site?.siteName || APP_NAME);
+    setMeta("property", "og:locale", lang === "en" ? "en_US" : "fr_FR");
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", metaDescription);
+    setMeta("name", "twitter:image", settings.metaImage);
+    // The portfolio is a single page served in two languages.
+    setLink("alternate", url, "fr");
+    setLink("alternate", url, "en");
+    setLink("alternate", url, "x-default");
+  }, [data?.settings, data?.site, pick, lang]);
 
   // Structured data (Schema.org Person) so search engines understand who
   // the site belongs to — a standard expectation for professional portfolios.
@@ -178,18 +215,15 @@ export default function Landing() {
         .querySelectorAll("[data-mfolio-script]")
         .forEach((node) => node.remove());
     };
-  }, [data?.settings?.scriptHeader, data?.settings?.scriptFooter]);
+  }, [data?.settings]);
 
   // Visitor tracking (Ezfolio)
   useEffect(() => {
     const track = async () => {
       try {
-        const storageKey = "mfolio_visitor";
-        const existing = localStorage.getItem(storageKey);
-        const trackingId =
-          existing ??
-          `v-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-        if (!existing) localStorage.setItem(storageKey, trackingId);
+        const existing = window.localStorage.getItem(VISITOR_STORAGE_KEY);
+        const trackingId = getOrCreateVisitorId();
+        if (!trackingId) return;
         await trackVisit({
           trackingId,
           isNew: !existing,

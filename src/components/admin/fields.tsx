@@ -390,6 +390,9 @@ export function useSectionDraft<
       void _id;
       void _creationTime;
       void _en;
+      // Intentional: initialize the draft once when the fetched doc arrives
+      // (the editor starts blank while the query is loading).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraft(fields as Draft<T>);
     }
   }, [doc, draft]);

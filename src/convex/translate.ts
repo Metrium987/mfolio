@@ -1,6 +1,5 @@
 "use node";
 
-import { v } from "convex/values";
 import { action, type ActionCtx } from "./_generated/server";
 import { api } from "./_generated/api";
 import { levelLabel, levelToNumber } from "../lib/levels";
@@ -392,6 +391,9 @@ export const translateAllContent = action({
         _creationTime?: unknown;
         en?: unknown;
       };
+      void _id;
+      void _creationTime;
+      void _oldEn;
       try {
         const translated = await translateOne(ctx, section, content);
         if (!translated) {

@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "src/convex/_generated"] },
   {
     extends: [
       js.configs.recommended,
@@ -24,10 +24,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      // Fast-refresh splitting does not apply here: the managed preview has
+      // HMR disabled (vite server.hmr: false), and template files legitimately
+      // export hooks/helpers alongside components.
+      "react-refresh/only-export-components": "off",
     },
   },
 );

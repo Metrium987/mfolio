@@ -1,6 +1,5 @@
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
-  BarChart3,
   Briefcase,
   ExternalLink,
   FolderOpen,
@@ -11,9 +10,7 @@ import {
   Languages,
   Layers,
   LogOut,
-  Mail,
   Newspaper,
-  PenTool,
   Settings,
   SlidersHorizontal,
   Sparkles,
@@ -264,6 +261,9 @@ export default function Dashboard() {
     ];
     const fullyTranslated = contentSections.every((section) => section && section.en);
     if (fullyTranslated) return;
+    // Intentional one-time guard: mark the auto-translate as started so the
+    // effect never re-runs on every data update.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAutoTranslateRan(true);
     const run = async () => {
       try {

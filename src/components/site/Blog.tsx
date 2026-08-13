@@ -39,6 +39,7 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                           src={post.imageUrl}
                           alt=""
                           loading="lazy"
+                          decoding="async"
                           className="aspect-[16/10] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                         />
                       </div>

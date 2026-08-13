@@ -15,7 +15,16 @@ export const emailOtp = Email({
     const alphabet = "0123456789";
     return generateRandomString(random, alphabet, 6);
   },
-  async sendVerificationRequest({ identifier: email, token }, ctx?: any) {
+  async sendVerificationRequest(
+    { identifier: email, token }: { identifier: string; token: string },
+    ctx?: {
+      db?: {
+        query: (
+          table: string,
+        ) => { first: () => Promise<{ siteName?: string } | null> };
+      };
+    },
+  ) {
     // Use the owner's site name when available so the email is branded with
     // the portfolio's own name — never the platform project name.
     let appName = "Mfolio";
