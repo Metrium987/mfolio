@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { mutation, MutationCtx } from "./_generated/server";
+import { internalMutation, mutation, MutationCtx } from "./_generated/server";
 import { api } from "./_generated/api";
+import { DAY } from "../lib/stats";
 import { getCurrentUser } from "./users";
 
 type SectionTable =
@@ -236,5 +237,36 @@ export const deleteVisitor = mutation({
   handler: async (ctx, { id }) => {
     await requireOwner(ctx);
     await ctx.db.delete(id);
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Retention — automatic cleanup of old visitor rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Deletes visitor rows older than 90 days. Runs daily from
+ * convex/scheduler.ts; defined as an internal mutation so it can never be
+ * called directly from a client. Messages are business data and are never
+ * auto-deleted.
+ */
+export const purgeOldVisitors = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - 90 * DAY;
+    let deleted = 0;
+    // Delete in bounded batches so each read never exceeds 500 rows.
+    for (;;) {
+      const stale = await ctx.db
+        .query("visitors")
+        .withIndex("by_createdAt", (q) => q.lt("createdAt", cutoff))
+        .take(500);
+      if (stale.length === 0) break;
+      for (const visitor of stale) {
+        await ctx.db.delete(visitor._id);
+      }
+      deleted += stale.length;
+    }
+    return { deleted };
   },
 });

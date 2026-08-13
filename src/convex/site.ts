@@ -4,6 +4,11 @@ import type { Doc } from "./_generated/dataModel";
 import {
   DAY,
   countByWindow,
+  deviceBucket,
+  distinctCount,
+  distinctCountSince,
+  groupCounts,
+  hourHistogram,
   startOfDayUTC,
   startOfMonthUTC,
   startOfWeekUTC,
@@ -131,6 +136,15 @@ export const getStats = query({
     ]);
 
     const now = Date.now();
+    const todayStart = startOfDayUTC(now);
+    const weekStart = startOfWeekUTC(now);
+    const monthStart = startOfMonthUTC(now);
+    // Visitors are purged daily past this age (see scheduler.ts), so the
+    // derived stats below are computed over the retained window.
+    const retention = now - 90 * DAY;
+    const retainedVisitors = visitors.filter(
+      (visitor) => visitor.createdAt >= retention,
+    );
 
     // Last 7 days trend (oldest → newest)
     const trend: { date: string; count: number }[] = [];
@@ -146,19 +160,68 @@ export const getStats = query({
       });
     }
 
+    // Device breakdown (mobile / desktop / other)
+    const devices = { mobile: 0, desktop: 0, other: 0 };
+    for (const visitor of retainedVisitors) {
+      devices[deviceBucket(visitor.platform)] += 1;
+    }
+
+    // Top browsers over the retained window
+    const browsers = groupCounts(
+      retainedVisitors,
+      (visitor) => visitor.browser || "Inconnu",
+      6,
+    );
+
+    // New vs returning (this month)
+    const monthVisitors = visitors.filter((visitor) => visitor.createdAt >= monthStart);
+    const newCount = monthVisitors.filter((visitor) => visitor.isNew).length;
+
+    // Hourly distribution (UTC) over the retained window
+    const hours = hourHistogram(retainedVisitors);
+
+    // Contact conversion: messages vs unique visitors (same 90-day window)
+    const uniqueVisitors90 = distinctCountSince(
+      visitors,
+      (visitor) => visitor.trackingId,
+      retention,
+    );
+    const messages90 = countByWindow(messages, retention);
+
     return {
       visitors: {
         total: visitors.length,
-        today: countByWindow(visitors, startOfDayUTC(now)),
-        thisWeek: countByWindow(visitors, startOfWeekUTC(now)),
-        thisMonth: countByWindow(visitors, startOfMonthUTC(now)),
+        today: countByWindow(visitors, todayStart),
+        thisWeek: countByWindow(visitors, weekStart),
+        thisMonth: countByWindow(visitors, monthStart),
         trend,
+        unique: {
+          total: distinctCount(visitors.map((visitor) => visitor.trackingId)),
+          today: distinctCountSince(visitors, (visitor) => visitor.trackingId, todayStart),
+          thisWeek: distinctCountSince(visitors, (visitor) => visitor.trackingId, weekStart),
+          thisMonth: distinctCountSince(visitors, (visitor) => visitor.trackingId, monthStart),
+        },
+        devices,
+        browsers,
+        returning: {
+          new: newCount,
+          returning: monthVisitors.length - newCount,
+        },
+        hours,
       },
       messages: {
         total: messages.length,
-        today: countByWindow(messages, startOfDayUTC(now)),
-        thisWeek: countByWindow(messages, startOfWeekUTC(now)),
-        thisMonth: countByWindow(messages, startOfMonthUTC(now)),
+        today: countByWindow(messages, todayStart),
+        thisWeek: countByWindow(messages, weekStart),
+        thisMonth: countByWindow(messages, monthStart),
+      },
+      conversion: {
+        visitors: uniqueVisitors90,
+        messages: messages90,
+        rate:
+          uniqueVisitors90 > 0
+            ? Math.round((messages90 / uniqueVisitors90) * 1000) / 10
+            : 0,
       },
       content: {
         skills: (await ctx.db.query("skills").first())?.items.length ?? 0,

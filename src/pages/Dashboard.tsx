@@ -132,6 +132,36 @@ function Overview() {
 
   const trendMax = Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1]));
 
+  const deviceTotal =
+    (stats?.visitors.devices.mobile ?? 0) +
+    (stats?.visitors.devices.desktop ?? 0) +
+    (stats?.visitors.devices.other ?? 0);
+  const deviceRows = [
+    { key: "mobile" as const, label: "Mobile" },
+    { key: "desktop" as const, label: "Ordinateur" },
+    { key: "other" as const, label: "Autre" },
+  ].map((row) => {
+    const count = stats?.visitors.devices[row.key] ?? 0;
+    return {
+      ...row,
+      count,
+      pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
+    };
+  });
+  const browserTotal =
+    stats?.visitors.browsers.reduce((sum, browser) => sum + browser.count, 0) ?? 0;
+  const hourMax = Math.max(1, ...(stats?.visitors.hours ?? []));
+  const hasHours = stats ? stats.visitors.hours.some((count) => count > 0) : false;
+  const peakHour = stats
+    ? stats.visitors.hours.indexOf(Math.max(...stats.visitors.hours))
+    : -1;
+  const returnTotal =
+    (stats?.visitors.returning.new ?? 0) + (stats?.visitors.returning.returning ?? 0);
+  const returnNewPct =
+    returnTotal > 0
+      ? Math.round(((stats?.visitors.returning.new ?? 0) / returnTotal) * 100)
+      : 0;
+
   return (
     <div className="space-y-8">
       <div>
@@ -175,6 +205,23 @@ function Overview() {
             ))}
           </div>
           {stats && (
+            <div className="mt-4 grid grid-cols-4 gap-2 border-t border-border/60 pt-3 text-center">
+              {[
+                { label: "Uniques · mois", value: stats.visitors.unique.thisMonth },
+                { label: "Uniques · sem.", value: stats.visitors.unique.thisWeek },
+                { label: "Uniques · jour", value: stats.visitors.unique.today },
+                { label: "Uniques · total", value: stats.visitors.unique.total },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="font-display text-xl font-light tracking-tight">
+                    {stat.value ?? "—"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {stats && (
             <div className="mt-5">
               <p className="mb-2 text-xs text-muted-foreground">
                 Tendance — 7 derniers jours
@@ -216,12 +263,173 @@ function Overview() {
               </div>
             ))}
           </div>
-          <p className="mt-6 border-t border-border/60 pt-4 text-xs leading-relaxed text-muted-foreground">
+          {stats && (
+            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/60 pt-3 text-center">
+              <div>
+                <p className="font-display text-xl font-light tracking-tight">
+                  {stats.conversion.messages}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Demandes</p>
+              </div>
+              <div>
+                <p className="font-display text-xl font-light tracking-tight">
+                  {stats.conversion.visitors}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Visiteurs uniques</p>
+              </div>
+              <div>
+                <p className="font-display text-xl font-light tracking-tight">
+                  {stats.conversion.rate} %
+                </p>
+                <p className="text-[11px] text-muted-foreground">Taux de contact</p>
+              </div>
+            </div>
+          )}
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
             Les demandes arrivent ici depuis le formulaire de contact. Pensez à les marquer
             comme traitées dans la boîte de réception.
           </p>
         </div>
       </div>
+
+      {stats && (
+        <div className="space-y-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              Audience
+            </p>
+            <h2 className="mt-1 font-display text-xl font-light tracking-tight text-foreground">
+              Activité du portfolio
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              90 derniers jours — Google Analytics conserve l'historique complet en parallèle.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="border border-border bg-card p-5">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Appareils
+              </p>
+              {deviceTotal === 0 ? (
+                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {deviceRows.map((row) => (
+                    <div key={row.label}>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{row.label}</span>
+                        <span className="font-medium text-foreground">
+                          {row.count} · {row.pct} %
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full bg-muted/60">
+                        <div
+                          className="h-full bg-(--studio-accent)"
+                          style={{ width: `${row.pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border border-border bg-card p-5">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Navigateurs
+              </p>
+              {browserTotal === 0 ? (
+                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+              ) : (
+                <>
+                  <div className="mt-4 space-y-2">
+                    {stats.visitors.browsers.map((browser) => (
+                      <div
+                        key={browser.key}
+                        className="flex items-center justify-between gap-3 text-xs"
+                      >
+                        <span className="truncate text-muted-foreground">{browser.key}</span>
+                        <span className="font-medium text-foreground">{browser.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
+                    {browserTotal} visites analysées
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="border border-border bg-card p-5">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Nouveaux vs retours
+              </p>
+              {returnTotal === 0 ? (
+                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+              ) : (
+                <>
+                  <div className="mt-4 flex h-2 w-full overflow-hidden bg-muted/60">
+                    <div
+                      className="bg-(--studio-accent)"
+                      style={{ width: `${returnNewPct}%` }}
+                    />
+                    <div
+                      className="bg-muted-foreground/40"
+                      style={{ width: `${100 - returnNewPct}%` }}
+                    />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Nouveaux · {stats.visitors.returning.new} ({returnNewPct} %)
+                    </span>
+                    <span className="text-muted-foreground">
+                      Retours · {stats.visitors.returning.returning} ({100 - returnNewPct} %)
+                    </span>
+                  </div>
+                  <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
+                    Sur les visites de ce mois.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="border border-border bg-card p-5">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                Heures de pointe
+              </p>
+              {!hasHours ? (
+                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+              ) : (
+                <>
+                  <div className="mt-4 flex h-20 items-end gap-[3px]">
+                    {stats.visitors.hours.map((count, hour) => (
+                      <div
+                        key={hour}
+                        className="flex-1 bg-(--studio-accent)/70"
+                        style={{
+                          height: `${Math.max(3, Math.round((count / hourMax) * 72))}px`,
+                        }}
+                        title={`${hour} h : ${count}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                    <span>0 h</span>
+                    <span>6 h</span>
+                    <span>12 h</span>
+                    <span>18 h</span>
+                    <span>23 h</span>
+                  </div>
+                  <p className="mt-2 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
+                    Pic d'activité à {peakHour} h — fuseau UTC.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

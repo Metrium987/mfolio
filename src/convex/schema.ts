@@ -366,7 +366,7 @@ const schema = defineSchema(
     languages: defineTable(languagesValidator),
     interests: defineTable(interestsValidator),
     messages: defineTable(messageValidator),
-    visitors: defineTable(visitorValidator),
+    visitors: defineTable(visitorValidator).index("by_createdAt", ["createdAt"]),
   },
   {
     schemaValidation: false,
