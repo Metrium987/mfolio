@@ -116,6 +116,37 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
         />
         <div className="space-y-16 lg:space-y-20">
           <Reveal>
+            <p className="kicker mb-8">{t("resume.education")}</p>
+            {resume.educations.length > 0 ? (
+              <ul className="max-w-3xl">
+                {resume.educations.map((education, index) => (
+                  <EducationEntry
+                    key={`${education.degree}-${education.period}`}
+                    degree={pick(
+                      education.degree,
+                      resume.en?.educations?.[index]?.degree,
+                    )}
+                    institution={education.institution}
+                    period={education.period}
+                    cgpa={education.cgpa}
+                    department={pick(
+                      education.department,
+                      resume.en?.educations?.[index]?.department,
+                    )}
+                    thesis={pick(
+                      education.thesis,
+                      resume.en?.educations?.[index]?.thesis,
+                    )}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t("resume.noEducation")}
+              </p>
+            )}
+          </Reveal>
+          <Reveal delay={0.1}>
             <p className="kicker mb-8">{t("resume.experience")}</p>
             {resume.experiences.length > 0 ? (
               <ul className="max-w-3xl">
@@ -155,37 +186,6 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t("resume.noExperience")}
-              </p>
-            )}
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="kicker mb-8">{t("resume.education")}</p>
-            {resume.educations.length > 0 ? (
-              <ul className="max-w-3xl">
-                {resume.educations.map((education, index) => (
-                  <EducationEntry
-                    key={`${education.degree}-${education.period}`}
-                    degree={pick(
-                      education.degree,
-                      resume.en?.educations?.[index]?.degree,
-                    )}
-                    institution={education.institution}
-                    period={education.period}
-                    cgpa={education.cgpa}
-                    department={pick(
-                      education.department,
-                      resume.en?.educations?.[index]?.department,
-                    )}
-                    thesis={pick(
-                      education.thesis,
-                      resume.en?.educations?.[index]?.thesis,
-                    )}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("resume.noEducation")}
               </p>
             )}
           </Reveal>
