@@ -55,6 +55,7 @@ import {
   TextField,
   useSectionDraft,
 } from "./fields";
+import { ManageList, PreviewLabel } from "./manage-list";
 
 /** Common French contract types offered as a pick-list in the Resume editor. */
 const CONTRACT_TYPES = [
@@ -547,7 +548,11 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
 // Resume — experiences + educations (full Ezfolio fields)
 // ---------------------------------------------------------------------------
 
-export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefined }) {
+export function ResumeEditor({
+  resume,
+}: {
+  resume: Doc<"resume"> | null | undefined;
+}) {
   const updateResume = useAction(api.translate.updateResume);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(resume, {
@@ -587,274 +592,285 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
         <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Mon expérience et ma formation." />
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <div className="space-y-4">
+      <div className="mt-8 space-y-10">
+        <div className="space-y-3">
           <p className="text-[13px] font-medium">Expériences</p>
-          {draft.value.experiences.map((item, index) => (
-            <ItemCard
-              key={index}
-              title={`Expérience ${index + 1}`}
-              onRemove={() =>
-                draft.set((prev) => ({
-                  ...prev,
-                  experiences: prev.experiences.filter((_, n) => n !== index),
-                }))
-              }
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Poste"
-                  value={item.position}
-                  onChange={(position) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      experiences: prev.experiences.map((i, n) =>
-                        n === index ? { ...i, position } : i,
-                      ),
-                    }))
-                  }
-                />
-                <TextField
-                  label="Entreprise"
-                  value={item.company}
-                  onChange={(company) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      experiences: prev.experiences.map((i, n) =>
-                        n === index ? { ...i, company } : i,
-                      ),
-                    }))
-                  }
-                />
-              </div>
-              <TextField
-                label="Période"
-                value={item.period}
-                onChange={(period) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    experiences: prev.experiences.map((i, n) =>
-                      n === index ? { ...i, period } : i,
-                    ),
-                  }))
-                }
-                placeholder="2022 — Aujourd'hui"
-              />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Lieu"
-                  value={item.location ?? ""}
-                  onChange={(location) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      experiences: prev.experiences.map((i, n) =>
-                        n === index ? { ...i, location } : i,
-                      ),
-                    }))
-                  }
-                  placeholder="Lyon, France"
-                  hint="Facultatif — masqué sur le site si vide."
-                />
-                <Field
-                  label="Type de contrat"
-                  hint="Facultatif — « Non précisé » masque le champ."
-                >
-                  <Select
-                    value={item.contractType || "none"}
-                    onValueChange={(contractType) =>
-                      draft.set((prev) => ({
-                        ...prev,
-                        experiences: prev.experiences.map((i, n) =>
-                          n === index
-                            ? {
-                                ...i,
-                                contractType:
-                                  contractType === "none" ? "" : contractType,
-                              }
-                            : i,
-                        ),
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Non précisé</SelectItem>
-                      {CONTRACT_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-              <TextAreaField
-                label="Détails"
-                value={item.details}
-                onChange={(details) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    experiences: prev.experiences.map((i, n) =>
-                      n === index ? { ...i, details } : i,
-                    ),
-                  }))
-                }
-                rows={3}
-              />
-              <TagsEditor
-                label="Réalisations clés"
-                value={item.achievements ?? []}
-                onChange={(achievements) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    experiences: prev.experiences.map((i, n) =>
-                      n === index ? { ...i, achievements } : i,
-                    ),
-                  }))
-                }
-                placeholder="+38 % de conversion…"
-                hint="Accomplissements mesurables, affichés en puces. Facultatif — laissez vide pour masquer."
-                addLabel="Ajouter une réalisation"
-              />
-            </ItemCard>
-          ))}
-          <AddButton
-            label="Ajouter une expérience"
-            onClick={() =>
-              draft.set((prev) => ({
-                ...prev,
-                experiences: [
-                  ...prev.experiences,
-                  {
-                    position: "",
-                    company: "",
-                    period: "",
-                    location: "",
-                    contractType: "",
-                    details: "",
-                    achievements: [],
-                  },
-                ],
-              }))
+          <ManageList
+            items={draft.value.experiences}
+            onItemsChange={(experiences) =>
+              draft.set((prev) => ({ ...prev, experiences }))
             }
-          />
-        </div>
-
-        <div className="space-y-4">
-          <p className="text-[13px] font-medium">Formations</p>
-          {draft.value.educations.map((item, index) => (
-            <ItemCard
-              key={index}
-              title={`Formation ${index + 1}`}
-              onRemove={() =>
-                draft.set((prev) => ({
-                  ...prev,
-                  educations: prev.educations.filter((_, n) => n !== index),
-                }))
-              }
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Diplôme"
-                  value={item.degree}
-                  onChange={(degree) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, degree } : i,
-                      ),
-                    }))
-                  }
-                />
-                <TextField
-                  label="Établissement"
-                  value={item.institution}
-                  onChange={(institution) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, institution } : i,
-                      ),
-                    }))
-                  }
-                />
+            emptyItem={() => ({
+              position: "",
+              company: "",
+              period: "",
+              location: "",
+              contractType: "",
+              details: "",
+              achievements: [],
+            })}
+            addLabel="Ajouter une expérience"
+            itemLabel={(item, index) =>
+              item.position.trim() || `Expérience ${index + 1}`
+            }
+            summary={(item) => (
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">
+                  {item.position.trim() || "Sans intitulé"}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {[item.company, item.period].filter(Boolean).join(" · ") || "—"}
+                </p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+            )}
+            form={(item, update) => (
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Poste"
+                    value={item.position}
+                    onChange={(position) => update({ position })}
+                  />
+                  <TextField
+                    label="Entreprise"
+                    value={item.company}
+                    onChange={(company) => update({ company })}
+                  />
+                </div>
                 <TextField
                   label="Période"
                   value={item.period}
-                  onChange={(period) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, period } : i,
-                      ),
-                    }))
-                  }
-                  placeholder="2016 — 2018"
+                  onChange={(period) => update({ period })}
+                  placeholder="2022 — Aujourd'hui"
                 />
-                <TextField
-                  label="Moyenne (CGPA)"
-                  value={item.cgpa}
-                  onChange={(cgpa) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, cgpa } : i,
-                      ),
-                    }))
-                  }
-                  placeholder="16,2 / 20"
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Lieu"
+                    value={item.location}
+                    onChange={(location) => update({ location })}
+                    placeholder="Lyon, France"
+                    hint="Facultatif — masqué sur le site si vide."
+                  />
+                  <Field
+                    label="Type de contrat"
+                    hint="Facultatif — « Non précisé » masque le champ."
+                  >
+                    <Select
+                      value={item.contractType || "none"}
+                      onValueChange={(contractType) =>
+                        update({
+                          contractType:
+                            contractType === "none" ? "" : contractType,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Non précisé</SelectItem>
+                        {CONTRACT_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+                <TextAreaField
+                  label="Détails"
+                  value={item.details}
+                  onChange={(details) => update({ details })}
+                  rows={3}
+                />
+                <TagsEditor
+                  label="Réalisations clés"
+                  value={item.achievements ?? []}
+                  onChange={(achievements) => update({ achievements })}
+                  placeholder="+38 % de conversion…"
+                  hint="Accomplissements mesurables, affichés en puces. Facultatif — laissez vide pour masquer."
+                  addLabel="Ajouter une réalisation"
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Département"
-                  value={item.department}
-                  onChange={(department) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, department } : i,
-                      ),
-                    }))
-                  }
-                />
-                <TextField
-                  label="Mémoire / spécialité"
-                  value={item.thesis}
-                  onChange={(thesis) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      educations: prev.educations.map((i, n) =>
-                        n === index ? { ...i, thesis } : i,
-                      ),
-                    }))
-                  }
-                />
+            )}
+            preview={(item) => (
+              <div className="space-y-4">
+                <div>
+                  <PreviewLabel>Poste</PreviewLabel>
+                  <p className="mt-1 font-medium text-foreground">
+                    {item.position}
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <PreviewLabel>Entreprise</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.company || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <PreviewLabel>Période</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.period || "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <PreviewLabel>Lieu</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.location || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <PreviewLabel>Type de contrat</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.contractType || "—"}
+                    </p>
+                  </div>
+                </div>
+                {item.details && (
+                  <div>
+                    <PreviewLabel>Détails</PreviewLabel>
+                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                      {item.details}
+                    </p>
+                  </div>
+                )}
+                {item.achievements.length > 0 && (
+                  <div>
+                    <PreviewLabel>Réalisations clés</PreviewLabel>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                      {item.achievements.map((achievement, i) => (
+                        <li key={i}>{achievement}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </ItemCard>
-          ))}
-          <AddButton
-            label="Ajouter une formation"
-            onClick={() =>
-              draft.set((prev) => ({
-                ...prev,
-                educations: [
-                  ...prev.educations,
-                  {
-                    degree: "",
-                    institution: "",
-                    period: "",
-                    cgpa: "",
-                    department: "",
-                    thesis: "",
-                  },
-                ],
-              }))
+            )}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-[13px] font-medium">Formations</p>
+          <ManageList
+            items={draft.value.educations}
+            onItemsChange={(educations) =>
+              draft.set((prev) => ({ ...prev, educations }))
             }
+            emptyItem={() => ({
+              degree: "",
+              institution: "",
+              period: "",
+              cgpa: "",
+              department: "",
+              thesis: "",
+            })}
+            addLabel="Ajouter une formation"
+            itemLabel={(item, index) =>
+              item.degree.trim() || `Formation ${index + 1}`
+            }
+            summary={(item) => (
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">
+                  {item.degree.trim() || "Sans intitulé"}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {[item.institution, item.period].filter(Boolean).join(" · ") ||
+                    "—"}
+                </p>
+              </div>
+            )}
+            form={(item, update) => (
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Diplôme"
+                    value={item.degree}
+                    onChange={(degree) => update({ degree })}
+                  />
+                  <TextField
+                    label="Établissement"
+                    value={item.institution}
+                    onChange={(institution) => update({ institution })}
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Période"
+                    value={item.period}
+                    onChange={(period) => update({ period })}
+                    placeholder="2016 — 2018"
+                  />
+                  <TextField
+                    label="Moyenne (CGPA)"
+                    value={item.cgpa}
+                    onChange={(cgpa) => update({ cgpa })}
+                    placeholder="16,2 / 20"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Département"
+                    value={item.department}
+                    onChange={(department) => update({ department })}
+                  />
+                  <TextField
+                    label="Mémoire / spécialité"
+                    value={item.thesis}
+                    onChange={(thesis) => update({ thesis })}
+                  />
+                </div>
+              </div>
+            )}
+            preview={(item) => (
+              <div className="space-y-4">
+                <div>
+                  <PreviewLabel>Diplôme</PreviewLabel>
+                  <p className="mt-1 font-medium text-foreground">
+                    {item.degree}
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <PreviewLabel>Établissement</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.institution || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <PreviewLabel>Période</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.period || "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <PreviewLabel>Moyenne (CGPA)</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.cgpa || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <PreviewLabel>Département</PreviewLabel>
+                    <p className="mt-1 text-sm text-foreground">
+                      {item.department || "—"}
+                    </p>
+                  </div>
+                </div>
+                {item.thesis && (
+                  <div>
+                    <PreviewLabel>Mémoire / spécialité</PreviewLabel>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {item.thesis}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           />
         </div>
       </div>
@@ -866,7 +882,11 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
 // Portfolio — projects with categories, thumbnail and multiple images
 // ---------------------------------------------------------------------------
 
-export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | null | undefined }) {
+export function PortfolioEditor({
+  portfolio,
+}: {
+  portfolio: Doc<"portfolio"> | null | undefined;
+}) {
   const updatePortfolio = useAction(api.translate.updatePortfolio);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(portfolio, {
@@ -915,147 +935,175 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
         <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Une sélection de projets récents." />
       </div>
 
-      <div className="mt-6 space-y-4">
-        {draft.value.projects.map((project, index) => (
-          <ItemCard
-            key={index}
-            title={`Projet ${index + 1}`}
-            onRemove={() =>
-              draft.set((prev) => ({
-                ...prev,
-                projects: prev.projects.filter((_, n) => n !== index),
-              }))
-            }
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                label="Titre"
-                value={project.title}
-                onChange={(title) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, title } : i,
-                    ),
-                  }))
-                }
-              />
-              <TextField
-                label="Lien du projet"
-                value={project.link}
-                onChange={(link) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((i, n) =>
-                      n === index ? { ...i, link } : i,
-                    ),
-                  }))
-                }
-                placeholder="https://…"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                label="Rôle"
-                value={project.role ?? ""}
-                onChange={(role) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((p, n) =>
-                      n === index ? { ...p, role } : p,
-                    ),
-                  }))
-                }
-                placeholder="Designer produit & développeur"
-              />
-              <TextField
-                label="Résultat / impact"
-                value={project.result ?? ""}
-                onChange={(result) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    projects: prev.projects.map((p, n) =>
-                      n === index ? { ...p, result } : p,
-                    ),
-                  }))
-                }
-                placeholder="+38 % de conversion"
-              />
-            </div>
-            <TagsEditor
-              label="Catégories"
-              value={project.categories}
-              onChange={(categories) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, categories } : i,
-                  ),
-                }))
-              }
-              placeholder="Web, Design, Produit…"
-            />
-            <ImageField
-              label="Vignette"
-              value={project.thumbnail}
-              onChange={(thumbnail) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, thumbnail } : i,
-                  ),
-                }))
-              }
-              guide={{ ratio: "4:3", formats: "JPG, WebP", size: "~1200 × 900 px" }}
-            />
-            <ImagesEditor
-              label="Galerie d'images"
-              value={project.images}
-              onChange={(images) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, images } : i,
-                  ),
-                }))
-              }
-              guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 750 px" }}
-            />
-            <TextAreaField
-              label="Détails"
-              value={project.details}
-              onChange={(details) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  projects: prev.projects.map((i, n) =>
-                    n === index ? { ...i, details } : i,
-                  ),
-                }))
-              }
-              rows={3}
-            />
-          </ItemCard>
-        ))}
-        <AddButton
-          label="Ajouter un projet"
-          onClick={() =>
-            draft.set((prev) => ({
-              ...prev,
-              projects: [
-                ...prev.projects,
-                {
-                  title: "",
-                  categories: [],
-                  link: "",
-                  details: "",
-                  thumbnail: "",
-                  images: [],
-                  role: "",
-                  result: "",
-                },
-              ],
-            }))
+      <div className="mt-8 space-y-3">
+        <ManageList
+          items={draft.value.projects}
+          onItemsChange={(projects) =>
+            draft.set((prev) => ({ ...prev, projects }))
           }
+          emptyItem={() => ({
+            title: "",
+            categories: [],
+            link: "",
+            details: "",
+            thumbnail: "",
+            images: [],
+            role: "",
+            result: "",
+          })}
+          addLabel="Ajouter un projet"
+          itemLabel={(item, index) =>
+            item.title.trim() || `Projet ${index + 1}`
+          }
+          summary={(item) => (
+            <div className="min-w-0">
+              <p className="font-medium text-foreground">
+                {item.title.trim() || "Sans titre"}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">
+                {item.categories.length > 0
+                  ? item.categories.join(", ")
+                  : "—"}
+              </p>
+            </div>
+          )}
+          form={(item, update) => (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Titre"
+                  value={item.title}
+                  onChange={(title) => update({ title })}
+                />
+                <TextField
+                  label="Lien du projet"
+                  value={item.link}
+                  onChange={(link) => update({ link })}
+                  placeholder="https://…"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Rôle"
+                  value={item.role ?? ""}
+                  onChange={(role) => update({ role })}
+                  placeholder="Designer produit & développeur"
+                />
+                <TextField
+                  label="Résultat / impact"
+                  value={item.result ?? ""}
+                  onChange={(result) => update({ result })}
+                  placeholder="+38 % de conversion"
+                />
+              </div>
+              <TagsEditor
+                label="Catégories"
+                value={item.categories}
+                onChange={(categories) => update({ categories })}
+                placeholder="Web, Design, Produit…"
+              />
+              <ImageField
+                label="Vignette"
+                value={item.thumbnail}
+                onChange={(thumbnail) => update({ thumbnail })}
+                guide={{ ratio: "4:3", formats: "JPG, WebP", size: "~1200 × 900 px" }}
+              />
+              <ImagesEditor
+                label="Galerie d'images"
+                value={item.images}
+                onChange={(images) => update({ images })}
+                guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 750 px" }}
+              />
+              <TextAreaField
+                label="Détails"
+                value={item.details}
+                onChange={(details) => update({ details })}
+                rows={3}
+              />
+            </div>
+          )}
+          preview={(item) => (
+            <div className="space-y-4">
+              <div>
+                <PreviewLabel>Projet</PreviewLabel>
+                <p className="mt-1 font-medium text-foreground">
+                  {item.title}
+                </p>
+              </div>
+              {item.link && (
+                <div>
+                  <PreviewLabel>Lien</PreviewLabel>
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block break-all text-sm text-(--studio-accent) hover:underline"
+                  >
+                    {item.link}
+                  </a>
+                </div>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <PreviewLabel>Rôle</PreviewLabel>
+                  <p className="mt-1 text-sm text-foreground">
+                    {item.role || "—"}
+                  </p>
+                </div>
+                <div>
+                  <PreviewLabel>Résultat / impact</PreviewLabel>
+                  <p className="mt-1 text-sm text-foreground">
+                    {item.result || "—"}
+                  </p>
+                </div>
+              </div>
+              {item.categories.length > 0 && (
+                <div>
+                  <PreviewLabel>Catégories</PreviewLabel>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {item.categories.map((category, i) => (
+                      <Badge key={i} variant="outline">
+                        {category}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {item.thumbnail && (
+                <div>
+                  <PreviewLabel>Vignette</PreviewLabel>
+                  <img
+                    src={item.thumbnail}
+                    alt=""
+                    className="mt-2 aspect-[4/3] w-full border border-border object-cover"
+                  />
+                </div>
+              )}
+              {item.images.length > 0 && (
+                <div>
+                  <PreviewLabel>Galerie</PreviewLabel>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {item.images.map((image, i) => (
+                      <img
+                        key={i}
+                        src={image}
+                        alt=""
+                        className="aspect-video w-full border border-border object-cover"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {item.details && (
+                <div>
+                  <PreviewLabel>Détails</PreviewLabel>
+                  <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {item.details}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         />
       </div>
     </SectionEditor>
@@ -1066,7 +1114,11 @@ export function PortfolioEditor({ portfolio }: { portfolio: Doc<"portfolio"> | n
 // Blog (bonus — pas dans Ezfolio, conservé)
 // ---------------------------------------------------------------------------
 
-export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
+export function BlogEditor({
+  blog,
+}: {
+  blog: Doc<"blog"> | null | undefined;
+}) {
   const updateBlog = useAction(api.translate.updateBlog);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(blog, {
@@ -1105,98 +1157,114 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
         <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Notes de travail et réflexions." />
       </div>
 
-      <div className="mt-6 space-y-4">
-        {draft.value.posts.map((post, index) => (
-          <ItemCard
-            key={index}
-            title={`Article ${index + 1}`}
-            onRemove={() =>
-              draft.set((prev) => ({
-                ...prev,
-                posts: prev.posts.filter((_, n) => n !== index),
-              }))
-            }
-          >
-            <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
-              <TextField
-                label="Titre"
-                value={post.title}
-                onChange={(title) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    posts: prev.posts.map((i, n) =>
-                      n === index ? { ...i, title } : i,
-                    ),
-                  }))
-                }
+      <div className="mt-8 space-y-3">
+        <ManageList
+          items={draft.value.posts}
+          onItemsChange={(posts) => draft.set((prev) => ({ ...prev, posts }))}
+          emptyItem={() => ({
+            title: "",
+            date: "",
+            excerpt: "",
+            content: "",
+            imageUrl: "",
+          })}
+          addLabel="Ajouter un article"
+          itemLabel={(item, index) =>
+            item.title.trim() || `Article ${index + 1}`
+          }
+          summary={(item) => (
+            <div className="min-w-0">
+              <p className="font-medium text-foreground">
+                {item.title.trim() || "Sans titre"}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">
+                {item.date || "—"}
+              </p>
+            </div>
+          )}
+          form={(item, update) => (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
+                <TextField
+                  label="Titre"
+                  value={item.title}
+                  onChange={(title) => update({ title })}
+                />
+                <TextField
+                  label="Date"
+                  value={item.date}
+                  onChange={(date) => update({ date })}
+                  placeholder="12 juin 2026"
+                />
+              </div>
+              <ImageField
+                label="Image de couverture"
+                value={item.imageUrl}
+                onChange={(imageUrl) => update({ imageUrl })}
+                guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 675 px" }}
               />
-              <TextField
-                label="Date"
-                value={post.date}
-                onChange={(date) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    posts: prev.posts.map((i, n) =>
-                      n === index ? { ...i, date } : i,
-                    ),
-                  }))
-                }
-                placeholder="12 juin 2026"
+              <TextAreaField
+                label="Extrait"
+                value={item.excerpt}
+                onChange={(excerpt) => update({ excerpt })}
+                rows={2}
+              />
+              <TextAreaField
+                label="Contenu"
+                value={item.content}
+                onChange={(content) => update({ content })}
+                rows={8}
+                hint="Une ligne vide crée un nouveau paragraphe."
               />
             </div>
-            <ImageField
-              label="Image de couverture"
-              value={post.imageUrl}
-              onChange={(imageUrl) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  posts: prev.posts.map((i, n) =>
-                    n === index ? { ...i, imageUrl } : i,
-                  ),
-                }))
-              }
-              guide={{ ratio: "16:10", formats: "JPG, WebP", size: "~1200 × 675 px" }}
-            />
-            <TextAreaField
-              label="Extrait"
-              value={post.excerpt}
-              onChange={(excerpt) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  posts: prev.posts.map((i, n) =>
-                    n === index ? { ...i, excerpt } : i,
-                  ),
-                }))
-              }
-              rows={2}
-            />
-            <TextAreaField
-              label="Contenu"
-              value={post.content}
-              onChange={(content) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  posts: prev.posts.map((i, n) =>
-                    n === index ? { ...i, content } : i,
-                  ),
-                }))
-              }
-              rows={8}
-              hint="Une ligne vide crée un nouveau paragraphe."
-            />
-          </ItemCard>
-        ))}
-        <AddButton
-          label="Ajouter un article"
-          onClick={() =>
-            draft.set((prev) => ({
-              ...prev,
-              posts: [
-                ...prev.posts,
-                { title: "", date: "", excerpt: "", content: "", imageUrl: "" },
-              ],
-            }))
-          }
+          )}
+          preview={(item) => (
+            <div className="space-y-4">
+              <div>
+                <PreviewLabel>Article</PreviewLabel>
+                <p className="mt-1 font-medium text-foreground">
+                  {item.title}
+                </p>
+              </div>
+              {item.date && (
+                <div>
+                  <PreviewLabel>Date</PreviewLabel>
+                  <p className="mt-1 text-sm text-foreground">{item.date}</p>
+                </div>
+              )}
+              {item.imageUrl && (
+                <div>
+                  <PreviewLabel>Image de couverture</PreviewLabel>
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="mt-2 aspect-video w-full border border-border object-cover"
+                  />
+                </div>
+              )}
+              {item.excerpt && (
+                <div>
+                  <PreviewLabel>Extrait</PreviewLabel>
+                  <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {item.excerpt}
+                  </p>
+                </div>
+              )}
+              {item.content && (
+                <div>
+                  <PreviewLabel>Contenu</PreviewLabel>
+                  <div className="mt-1 space-y-3 text-sm leading-relaxed text-muted-foreground">
+                    {item.content
+                      .split(/\n{2,}/)
+                      .filter(Boolean)
+                      .map((paragraph, i) => (
+                        <p key={i}>{paragraph}</p>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         />
       </div>
     </SectionEditor>
