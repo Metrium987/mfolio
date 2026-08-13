@@ -175,5 +175,32 @@
     );
     background-size: 22px 22px;
   }
+
+  /* Typewriter caret — crisp on/off blink for the hero tagline. */
+  @keyframes mfolio-caret {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+  .typewriter-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.95em;
+    margin-left: 3px;
+    vertical-align: -0.08em;
+    background: currentColor;
+    animation: mfolio-caret 1.06s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .typewriter-caret {
+      animation: none;
+      opacity: 1;
+    }
+  }
 }
 

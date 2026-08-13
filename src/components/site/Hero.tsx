@@ -1,4 +1,3 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -18,17 +17,33 @@ export function Hero({
 }) {
   const { t, pick } = useSiteLang();
   const [taglineIndex, setTaglineIndex] = useState(0);
-  const reduce = useReducedMotion();
+  const [typedCount, setTypedCount] = useState(0);
   const taglines = about.taglines.filter(Boolean);
+  const currentTagline = taglines[taglineIndex] ?? "";
+  const currentText = pick(currentTagline, about.en?.taglines?.[taglineIndex]);
 
+  // Reset the typewriter whenever the active tagline changes.
   useEffect(() => {
-    if (taglines.length < 2) return;
-    const interval = setInterval(
-      () => setTaglineIndex((index) => (index + 1) % taglines.length),
-      3800,
-    );
-    return () => clearInterval(interval);
-  }, [taglines.length]);
+    setTypedCount(0);
+  }, [taglineIndex]);
+
+  // Type the tagline character by character, hold it, then advance to the
+  // next one (a slow, editorial rhythm — roughly 6 s per tagline).
+  useEffect(() => {
+    if (taglines.length === 0) return;
+    if (typedCount < currentText.length) {
+      const timeout = setTimeout(
+        () => setTypedCount((count) => count + 1),
+        45,
+      );
+      return () => clearTimeout(timeout);
+    }
+    if (taglines.length < 2) return; // single tagline: stop after typing
+    const timeout = setTimeout(() => {
+      setTaglineIndex((index) => (index + 1) % taglines.length);
+    }, 4600);
+    return () => clearTimeout(timeout);
+  }, [typedCount, currentText.length, taglines.length]);
 
   return (
     <Container id="top" className="relative pb-24 pt-16 sm:pt-20">
@@ -75,23 +90,8 @@ export function Hero({
           {taglines.length > 0 && (
             <Reveal delay={0.12}>
               <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent)">
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={taglineIndex}
-                    initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: reduce ? 0 : -8 }}
-                    transition={{
-                      duration: reduce ? 0.25 : 0.4,
-                      ease: "easeOut",
-                    }}
-                  >
-                    {pick(
-                      taglines[taglineIndex],
-                      about.en?.taglines?.[taglineIndex],
-                    )}
-                  </motion.p>
-                </AnimatePresence>
+                {currentText.slice(0, typedCount)}
+                <span aria-hidden className="typewriter-caret" />
               </div>
             </Reveal>
           )}
