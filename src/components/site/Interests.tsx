@@ -32,7 +32,7 @@ export function Interests({ interests }: { interests: Doc<"interests"> }) {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <div className="min-w-0">
-                    <h3 className="font-display text-xl font-light tracking-tight text-foreground md:text-2xl">
+                    <h3 className="font-display text-xl font-light tracking-tight text-foreground">
                       {pick(item.name, interests.en?.items?.[index]?.name)}
                     </h3>
                     {pick(

@@ -37,7 +37,7 @@ export function Services({ services }: { services: Doc<"services"> }) {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-display text-2xl font-light tracking-tight text-foreground md:text-3xl">
+                  <h3 className="font-display text-xl font-light tracking-tight text-foreground">
                     {pick(service.title, services.en?.items?.[index]?.title)}
                   </h3>
                   {pick(service.details, services.en?.items?.[index]?.details) && (

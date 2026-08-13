@@ -19,7 +19,7 @@ function LangSwitcher() {
   const { lang, setLang } = useSiteLang();
   return (
     <div
-      className="flex items-center rounded-full border border-border p-0.5 text-[11px] font-medium"
+      className="flex items-center rounded-full border border-border p-0.5 text-xs font-medium"
       aria-label="Language"
     >
       {LANGS.map((option) => (
@@ -118,7 +118,7 @@ export function SiteHeader({
             <a
               key={link.id}
               href={`#${link.id}`}
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
             </a>
@@ -140,7 +140,7 @@ export function SiteHeader({
           <ThemeToggle />
           <Link
             to="/dashboard"
-            className="hidden items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-foreground sm:inline-flex"
           >
             {t("header.admin")}
             <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -176,7 +176,7 @@ export function SiteHeader({
                   {email && (
                     <a
                       href={`mailto:${email}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:border-foreground"
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-foreground"
                     >
                       <Mail className="size-3.5" />
                       {email}
@@ -185,7 +185,7 @@ export function SiteHeader({
                   <Link
                     to="/dashboard"
                     onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:border-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-foreground"
                   >
                     {t("header.admin")}
                     <ArrowUpRight className="size-3.5" />

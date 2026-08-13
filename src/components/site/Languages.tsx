@@ -28,10 +28,10 @@ export function Languages({ languages }: { languages: Doc<"languages"> }) {
                 delay={Math.min(index * 0.04, 0.25)}
               >
                 <div className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1.5 border-b border-border py-5 transition-colors duration-300 hover:bg-card/30 md:py-6">
-                  <span className="font-display text-xl font-light tracking-tight text-foreground md:text-2xl">
+                  <span className="font-display text-xl font-light tracking-tight text-foreground">
                     {pick(item.name, languages.en?.items?.[index]?.name)}
                   </span>
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-300 group-hover:text-(--studio-accent)">
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-300 group-hover:text-(--studio-accent)">
                     {pick(item.level, languages.en?.items?.[index]?.level)}
                   </span>
                 </div>

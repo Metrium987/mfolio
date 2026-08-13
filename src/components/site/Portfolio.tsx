@@ -62,7 +62,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
               type="button"
               onClick={() => setActive(null)}
               className={cn(
-                "rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors",
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
                 active === null
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-card text-muted-foreground hover:border-foreground hover:text-foreground",
@@ -76,7 +76,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                 type="button"
                 onClick={() => setActive(category)}
                 className={cn(
-                  "rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors",
+                  "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
                   active === category
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:border-foreground hover:text-foreground",
@@ -121,7 +121,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                         </div>
                       )}
                       <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
-                        <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+                        <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
                           {project.categories
                             .map((category, catIndex) =>
                               pick(
@@ -134,7 +134,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                             .filter(Boolean)
                             .join(" · ") || t("portfolio.project")}
                         </p>
-                        <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
+                        <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
                           {pick(
                             project.title,
                             portfolio.en?.projects?.[index]?.title,
@@ -148,7 +148,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                             )}
                           </p>
                         )}
-                        <span className="mt-5 inline-flex items-center gap-1.5 border-t border-border/70 pt-4 text-[13px] font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
+                        <span className="mt-5 inline-flex items-center gap-1.5 border-t border-border/70 pt-4 text-sm font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
                           {t("portfolio.viewProject")}
                           <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </span>
@@ -187,7 +187,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
           {openProject && (
             <>
               <DialogHeader>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+                <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
                   {openProject.categories
                     .map((category, catIndex) =>
                       pick(
@@ -212,7 +212,7 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
                   href={openProject.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-fit items-center gap-1.5 border-t border-border/70 pt-4 text-[13px] font-medium text-foreground transition-colors hover:text-(--studio-accent)"
+                  className="inline-flex w-fit items-center gap-1.5 border-t border-border/70 pt-4 text-sm font-medium text-foreground transition-colors hover:text-(--studio-accent)"
                 >
                   <ExternalLink className="size-3.5" />
                   {t("portfolio.viewProject")}

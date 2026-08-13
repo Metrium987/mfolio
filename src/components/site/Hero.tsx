@@ -62,14 +62,14 @@ export function Hero({
           </Reveal>
 
           <Reveal delay={0.06}>
-            <h1 className="font-display text-5xl font-light leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl">
+            <h1 className="font-display text-5xl font-light leading-[1.05] tracking-tight text-foreground sm:text-6xl">
               {about.name}
             </h1>
           </Reveal>
 
           {taglines.length > 0 && (
             <Reveal delay={0.12}>
-              <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent) sm:text-3xl">
+              <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent)">
                 {reduce ? (
                   <p>
                     {pick(
@@ -174,7 +174,7 @@ export function Hero({
                   loading="eager"
                 />
               </figure>
-              <p className="mt-3 text-right text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="mt-3 text-right text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 {t("hero.portrait")}
               </p>
             </div>

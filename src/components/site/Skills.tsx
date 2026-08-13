@@ -28,7 +28,7 @@ export function Skills({
                     <span className="text-sm font-medium text-foreground">
                       {pick(skill.name, skills.en?.items?.[index]?.name)}
                     </span>
-                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       {skill.proficiency}%
                     </span>
                   </div>

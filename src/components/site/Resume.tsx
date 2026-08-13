@@ -16,10 +16,10 @@ function ExperienceEntry({
   return (
     <li className="relative border-l border-border pb-10 pl-6 last:pb-0">
       <span className="absolute -left-[5px] top-1.5 size-2 rounded-full border border-border bg-background" />
-      <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+      <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
         {period}
       </p>
-      <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
+      <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
         {position}
       </h3>
       <p className="mt-0.5 text-sm font-medium text-muted-foreground">{company}</p>
@@ -50,10 +50,10 @@ function EducationEntry({
   return (
     <li className="relative border-l border-border pb-10 pl-6 last:pb-0">
       <span className="absolute -left-[5px] top-1.5 size-2 rounded-full border border-border bg-background" />
-      <p className="text-[11px] uppercase tracking-[0.18em] text-(--studio-accent)">
+      <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
         {period}
       </p>
-      <h3 className="mt-2 font-display text-lg font-medium tracking-tight text-foreground">
+      <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
         {degree}
       </h3>
       <p className="mt-0.5 text-sm font-medium text-muted-foreground">

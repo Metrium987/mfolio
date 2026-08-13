@@ -71,7 +71,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                     <row.icon className="size-5" />
                   </div>
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       {row.label}
                     </p>
                     {row.href ? (
@@ -117,7 +117,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
               <p className="kicker mb-6">{t("contact.writeMe")}</p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="contact-name" className="text-[13px]">
+                  <Label htmlFor="contact-name" className="text-sm">
                     {t("contact.name")}
                   </Label>
                   <Input
@@ -130,7 +130,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contact-email" className="text-[13px]">
+                  <Label htmlFor="contact-email" className="text-sm">
                     {t("contact.email")}
                   </Label>
                   <Input
@@ -145,7 +145,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                 </div>
               </div>
               <div className="mt-5 space-y-2">
-                <Label htmlFor="contact-subject" className="text-[13px]">
+                <Label htmlFor="contact-subject" className="text-sm">
                   {t("contact.subject")}
                 </Label>
                 <Input
@@ -157,7 +157,7 @@ export function Contact({ about }: { about: Doc<"about"> }) {
                 />
               </div>
               <div className="mt-5 space-y-2">
-                <Label htmlFor="contact-message" className="text-[13px]">
+                <Label htmlFor="contact-message" className="text-sm">
                   {t("contact.message")}
                 </Label>
                 <Textarea

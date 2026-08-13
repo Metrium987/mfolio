@@ -44,10 +44,10 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                       </div>
                     )}
                     <div className="px-2 pb-2 pt-5">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                         {post.date}
                       </p>
-                      <h3 className="mt-2 font-display text-lg font-medium leading-snug tracking-tight text-foreground group-hover:underline group-hover:decoration-(--studio-accent) group-hover:underline-offset-4">
+                      <h3 className="mt-2 font-display text-xl font-medium leading-snug tracking-tight text-foreground group-hover:underline group-hover:decoration-(--studio-accent) group-hover:underline-offset-4">
                         {pick(post.title, blog.en?.posts?.[index]?.title)}
                       </h3>
                       {post.excerpt && (
@@ -55,7 +55,7 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                           {pick(post.excerpt, blog.en?.posts?.[index]?.excerpt)}
                         </p>
                       )}
-                      <span className="mt-4 inline-block text-[13px] font-medium text-(--studio-accent)">
+                      <span className="mt-4 inline-block text-sm font-medium text-(--studio-accent)">
                         {t("blog.readMore")}
                       </span>
                     </div>
@@ -86,7 +86,7 @@ export function Blog({ blog }: { blog: Doc<"blog"> }) {
                 />
               )}
               <DialogHeader>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {openPost.date}
                 </p>
                 <DialogTitle className="font-display text-2xl font-light tracking-tight">
