@@ -1112,7 +1112,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             <div>
               <p className="text-sm font-medium text-foreground">Compétences</p>
               <p className="text-xs text-muted-foreground">
-                Liste ou vignettes (niveau en barre)
+                Liste ou vignettes (niveau en points)
               </p>
             </div>
             <LayoutPicker

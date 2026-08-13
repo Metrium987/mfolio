@@ -1,28 +1,19 @@
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useSiteLang } from "@/lib/i18n";
+import { LevelDots } from "./LevelDots";
 import { Container, Reveal, SectionHeading } from "./Section";
 
-function Bar({ value }: { value: number }) {
-  const width = Math.min(Math.max(value, 0), 100);
-  return (
-    <div
-      className="mt-3 h-1 w-full overflow-hidden rounded-full bg-border"
-      aria-hidden="true"
-    >
-      <div
-        className="h-full rounded-full bg-(--studio-accent) transition-[width] duration-700 ease-out"
-        style={{ width: `${width}%` }}
-      />
-    </div>
-  );
+/** Map a 0–100 proficiency to the 1–5 dot scale (same visual as Languages). */
+function proficiencyToDots(proficiency: number): number {
+  return Math.max(1, Math.min(5, Math.round(proficiency / 20)));
 }
 
 /**
  * Skills (« Compétences ») with optional proficiency levels — the standard
- * French CV rubric. Two rendering styles:
- *  - "list"  : editorial rows with hairline separators and a proficiency bar
- *  - "cards" : grid of vignettes with a proficiency bar
- * When `showProficiency` is false, the bar is hidden.
+ * French CV rubric. Uses the same 5-dot indicator as the Languages section:
+ *  - "list"  : editorial rows with hairline separators (name left, dots right)
+ *  - "cards" : grid of vignettes (name + dots)
+ * When `showProficiency` is false, the dots are hidden.
  */
 export function Skills({
   skills,
@@ -59,7 +50,7 @@ export function Skills({
                   </h3>
                   {showProficiency && (
                     <div className="mt-auto pt-5">
-                      <Bar value={skill.proficiency} />
+                      <LevelDots level={proficiencyToDots(skill.proficiency)} />
                     </div>
                   )}
                 </article>
@@ -73,11 +64,13 @@ export function Skills({
                 key={skill.name}
                 delay={Math.min(index * 0.04, 0.25)}
               >
-                <div className="group border-b border-border py-5 transition-colors duration-300 hover:bg-card/30 md:py-6">
+                <div className="group flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-b border-border py-5 transition-colors duration-300 hover:bg-card/30 md:py-6">
                   <span className="font-display text-xl font-light tracking-tight text-foreground">
                     {pick(skill.name, skills.en?.items?.[index]?.name)}
                   </span>
-                  {showProficiency && <Bar value={skill.proficiency} />}
+                  {showProficiency && (
+                    <LevelDots level={proficiencyToDots(skill.proficiency)} />
+                  )}
                 </div>
               </Reveal>
             ))}

@@ -1,6 +1,6 @@
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useSiteLang } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { LevelDots } from "./LevelDots";
 import { Container, Reveal, SectionHeading } from "./Section";
 
 /**
@@ -18,22 +18,6 @@ function levelToDots(level: string): number {
   if (/(debutant|beginner|a2|notions|elementaire|basic|scolaire|elementary)/.test(s)) return 2;
   if (/a1/.test(s)) return 1;
   return 3;
-}
-
-function Dots({ level }: { level: number }) {
-  return (
-    <div className="flex items-center gap-1.5" aria-hidden="true">
-      {[1, 2, 3, 4, 5].map((dot) => (
-        <span
-          key={dot}
-          className={cn(
-            "h-1.5 w-5 transition-colors",
-            dot <= level ? "bg-(--studio-accent)" : "bg-border",
-          )}
-        />
-      ))}
-    </div>
-  );
 }
 
 /**
@@ -82,7 +66,7 @@ export function Languages({
                       </span>
                     )}
                     <div className="mt-auto pt-5">
-                      <Dots level={levelToDots(level ?? "")} />
+                      <LevelDots level={levelToDots(level ?? "")} />
                     </div>
                   </article>
                 </Reveal>
