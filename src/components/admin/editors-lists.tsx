@@ -1424,33 +1424,7 @@ export function InterestsEditor({
               }))
             }
           >
-            <div className="grid gap-4 sm:grid-cols-[1.2fr_1.6fr_1fr]">
-              <TextField
-                label="Intérêt"
-                value={item.name}
-                onChange={(name) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name } : i,
-                    ),
-                  }))
-                }
-                placeholder="Photographie"
-              />
-              <TextField
-                label="Détail (optionnel)"
-                value={item.details}
-                onChange={(details) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, details } : i,
-                    ),
-                  }))
-                }
-                placeholder="Façades et lumière naturelle"
-              />
+            <div className="grid gap-4 sm:grid-cols-[160px_1.2fr_1.6fr]">
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">Icône</p>
                 <Select
@@ -1487,6 +1461,32 @@ export function InterestsEditor({
                   </SelectContent>
                 </Select>
               </div>
+              <TextField
+                label="Intérêt"
+                value={item.name}
+                onChange={(name) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, name } : i,
+                    ),
+                  }))
+                }
+                placeholder="Photographie"
+              />
+              <TextField
+                label="Détail (optionnel)"
+                value={item.details}
+                onChange={(details) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, details } : i,
+                    ),
+                  }))
+                }
+                placeholder="Façades et lumière naturelle"
+              />
             </div>
           </ItemCard>
         ))}
