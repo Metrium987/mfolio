@@ -516,6 +516,7 @@ function IntegrationsCard({
   const [emailOtpEnabled, setEmailOtpEnabled] = useState(
     settings?.emailOtpEnabled !== false,
   );
+  const [demoMode, setDemoMode] = useState(settings?.demoMode === true);
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const deeplKeySet = integrations?.deeplKeySet ?? false;
@@ -529,12 +530,14 @@ function IntegrationsCard({
     setNotificationEmail(settings?.notificationEmail ?? "");
     setContactNotifications(settings?.contactNotifications !== false);
     setEmailOtpEnabled(settings?.emailOtpEnabled !== false);
+    setDemoMode(settings?.demoMode === true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [
     settings?.googleAnalyticsId,
     settings?.notificationEmail,
     settings?.contactNotifications,
     settings?.emailOtpEnabled,
+    settings?.demoMode,
   ]);
 
   const dirty =
@@ -542,6 +545,7 @@ function IntegrationsCard({
     notificationEmail !== (settings?.notificationEmail ?? "") ||
     contactNotifications !== (settings?.contactNotifications !== false) ||
     emailOtpEnabled !== (settings?.emailOtpEnabled !== false) ||
+    demoMode !== (settings?.demoMode === true) ||
     deeplApiKey.trim() !== "";
 
   /** Translate every section once and report the outcome. */
@@ -576,6 +580,7 @@ function IntegrationsCard({
         notificationEmail: notificationEmail.trim(),
         contactNotifications,
         emailOtpEnabled,
+        demoMode,
       });
       setDeeplApiKey("");
       if (newKey) {
@@ -681,6 +686,12 @@ function IntegrationsCard({
           }
           setEmailOtpEnabled(checked);
         }}
+      />
+      <ToggleField
+        label="Accès démo (compte générique)"
+        description="Ajoute le compte admin@admin.com / admin123 en plus du vôtre — idéal pour partager une version d'essai (communauté, démo). Désactivez-le après la démo : le compte générique sera supprimé automatiquement."
+        checked={demoMode}
+        onChange={setDemoMode}
       />
       <div className="flex flex-wrap items-center justify-end gap-3">
         {dirty && (

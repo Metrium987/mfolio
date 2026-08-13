@@ -4,6 +4,12 @@ Toutes les évolutions notables de Mfolio sont documentées ici.
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [Unreleased]
+
+### Ajouté
+
+- **Mode démo** (Paramètres → Intégrations) : recrée le compte générique `admin@admin.com` / `admin123` **en plus** du compte propriétaire, pour partager une version d'essai. Les identifiants démo s'affichent sur la page de connexion quand le mode est actif. Sécurisé par défaut : une fois désactivé, le compte générique n'est jamais recréé dès que des identifiants personnels existent.
+
 ## [1.0.0] — 2026-08-13
 
 Première publication publique. Mfolio est un portfolio & CV clé en main, conçu à l'origine sur Freebuff Web (ex-vly.ai) et entièrement portable.

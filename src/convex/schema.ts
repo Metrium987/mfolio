@@ -218,6 +218,11 @@ export const settingsValidator = v.object({
   // deployed elsewhere). Absent = enabled, for backward compatibility.
   contactNotifications: v.optional(v.boolean()),
   emailOtpEnabled: v.optional(v.boolean()),
+  // Demo mode: recreates the well-known default account (admin@admin.com /
+  // admin123) in ADDITION to the owner's personal account, for shared try-me
+  // instances. Off by default — while off, the generic account is never
+  // (re)created once the owner changed their credentials (security).
+  demoMode: v.optional(v.boolean()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),
