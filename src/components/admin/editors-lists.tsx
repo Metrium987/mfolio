@@ -2,6 +2,7 @@ import { useAction, useMutation } from "convex/react";
 import {
   ArrowDown,
   ArrowUp,
+  Eye,
   ImagePlus,
   Inbox,
   Loader2,
@@ -29,6 +30,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1691,6 +1699,8 @@ export function MessagesView({
   const deleteMessage = useMutation(api.siteMutations.deleteMessage);
   const markMessageReplied = useMutation(api.siteMutations.markMessageReplied);
 
+  const [previewId, setPreviewId] = useState<Id<"messages"> | null>(null);
+
   const remove = async (id: Doc<"messages">["_id"]) => {
     try {
       await deleteMessage({ id });
@@ -1709,6 +1719,10 @@ export function MessagesView({
       </div>
     );
   }
+
+  const previewMessage = previewId
+    ? messages.find((message) => message._id === previewId)
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -1732,66 +1746,141 @@ export function MessagesView({
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {messages.map((message) => (
-            <article
+            <div
               key={message._id}
-              className="border border-border bg-card p-5"
+              className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-md border border-border bg-card px-4 py-3"
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-foreground">{message.subject || "(sans objet)"}</p>
-                  <p className="mt-0.5 text-sm text-foreground/90">{message.name}</p>
-                  <a
-                    href={`mailto:${message.email}`}
-                    className="text-sm text-(--studio-accent) hover:underline"
-                  >
-                    {message.email}
-                  </a>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-medium text-foreground">
+                    {message.subject || "(sans objet)"}
+                  </p>
+                  {message.replied && (
+                    <Badge variant="outline">Répondu</Badge>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">
-                    {formatTimestamp(message.createdAt)}
-                  </span>
-                  <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                    <Switch
-                      checked={message.replied}
-                      onCheckedChange={(replied) =>
-                        void markMessageReplied({ id: message._id, replied })
-                      }
-                    />
-                    Répondu
-                  </label>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon-sm" title="Supprimer">
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Le message de {message.name} sera définitivement supprimé.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => void remove(message._id)}>
-                          Supprimer
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                <p className="truncate text-sm text-muted-foreground">
+                  {message.name} · {message.email}
+                </p>
               </div>
-              <p className="mt-4 whitespace-pre-line border-t border-border/60 pt-4 text-sm leading-relaxed text-muted-foreground">
-                {message.message}
-              </p>
-            </article>
+              <div className="flex shrink-0 items-center gap-0.5">
+                <span className="mr-2 text-xs text-muted-foreground">
+                  {formatTimestamp(message.createdAt)}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Voir le message"
+                  onClick={() => setPreviewId(message._id)}
+                >
+                  <Eye className="size-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Le message de {message.name} sera définitivement supprimé.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => void remove(message._id)}>
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           ))}
         </div>
       )}
+
+      {/* Preview modal — full message, sender and replied toggle */}
+      <Dialog
+        open={previewId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewId(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {previewMessage?.subject || "(sans objet)"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Message complet reçu via le formulaire de contact.
+            </DialogDescription>
+          </DialogHeader>
+          {previewMessage && (
+            <div className="space-y-4">
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <PreviewLabel>De</PreviewLabel>
+                  <p className="mt-1 font-medium text-foreground">
+                    {previewMessage.name}
+                  </p>
+                </div>
+                <div>
+                  <PreviewLabel>Email</PreviewLabel>
+                  <a
+                    href={`mailto:${previewMessage.email}`}
+                    className="mt-1 inline-block text-(--studio-accent) hover:underline"
+                  >
+                    {previewMessage.email}
+                  </a>
+                </div>
+              </div>
+              <div>
+                <PreviewLabel>Reçu le</PreviewLabel>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {formatTimestamp(previewMessage.createdAt)}
+                </p>
+              </div>
+              <div className="whitespace-pre-line border-t border-border/60 pt-4 text-sm leading-relaxed text-muted-foreground">
+                {previewMessage.message}
+              </div>
+            </div>
+          )}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={previewMessage?.replied ?? false}
+                onCheckedChange={(replied) => {
+                  if (previewMessage) {
+                    void markMessageReplied({
+                      id: previewMessage._id,
+                      replied,
+                    });
+                  }
+                }}
+              />
+              Répondu
+            </label>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setPreviewId(null)}
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
