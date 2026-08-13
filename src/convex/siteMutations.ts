@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, MutationCtx } from "./_generated/server";
+import { api } from "./_generated/api";
 import { getCurrentUser } from "./users";
 
 type SectionTable =
@@ -78,18 +79,44 @@ export const updateIntegrations = mutation({
     googleAnalyticsId: v.string(),
     deeplApiKey: v.optional(v.string()),
     clearDeeplKey: v.optional(v.boolean()),
+    resendApiKey: v.optional(v.string()),
+    clearResendKey: v.optional(v.boolean()),
+    notificationEmail: v.optional(v.string()),
   }),
-  handler: async (ctx, { googleAnalyticsId, deeplApiKey, clearDeeplKey }) => {
+  handler: async (
+    ctx,
+    {
+      googleAnalyticsId,
+      deeplApiKey,
+      clearDeeplKey,
+      resendApiKey,
+      clearResendKey,
+      notificationEmail,
+    },
+  ) => {
     await requireOwner(ctx);
     const settings = await ctx.db.query("settings").first();
     if (!settings) throw new Error("Settings not found");
-    const patch: { googleAnalyticsId: string; deeplApiKey?: string } = {
+    const patch: {
+      googleAnalyticsId: string;
+      deeplApiKey?: string;
+      resendApiKey?: string;
+      notificationEmail?: string;
+    } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
     };
     if (clearDeeplKey) {
       patch.deeplApiKey = "";
     } else if (deeplApiKey && deeplApiKey.trim() !== "") {
       patch.deeplApiKey = deeplApiKey.trim();
+    }
+    if (clearResendKey) {
+      patch.resendApiKey = "";
+    } else if (resendApiKey && resendApiKey.trim() !== "") {
+      patch.resendApiKey = resendApiKey.trim();
+    }
+    if (notificationEmail !== undefined) {
+      patch.notificationEmail = notificationEmail.trim();
     }
     await ctx.db.patch(settings._id, patch);
   },
@@ -130,6 +157,26 @@ export const addMessage = mutation({
       replied: false,
       createdAt: Date.now(),
     });
+
+    // Email the owner in the background when a Resend key is configured.
+    // The action runs unauthenticated, so the key + destination are passed
+    // here (mutations can read the DB directly).
+    const settings = await ctx.db.query("settings").first();
+    const about = await ctx.db.query("about").first();
+    const apiKey = settings?.resendApiKey?.trim();
+    const to = settings?.notificationEmail?.trim() || about?.email?.trim();
+    if (apiKey && to) {
+      await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
+        apiKey,
+        to,
+        fromName: about?.name?.trim() || "MFolio",
+        fromEmail: about?.email?.trim() || to,
+        name: name.trim(),
+        email: email.trim(),
+        subject: subject.trim(),
+        message: message.trim(),
+      });
+    }
   },
 });
 

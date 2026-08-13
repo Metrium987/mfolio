@@ -32,11 +32,13 @@ export const getSiteData = query({
       ctx.db.query("interests").first(),
     ]);
 
-    // The DeepL key is write-only: never send it to clients, even the owner
+    // The API keys are write-only: never send them to clients, even the owner
     // (the dashboard shows a masked "key set" state instead).
     return {
       site,
-      settings: settings ? { ...settings, deeplApiKey: "" } : null,
+      settings: settings
+        ? { ...settings, deeplApiKey: "", resendApiKey: "" }
+        : null,
       about,
       skills,
       services,
@@ -62,6 +64,8 @@ export const getIntegrations = query({
     return {
       googleAnalyticsId: settings?.googleAnalyticsId ?? "",
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
+      resendKeySet: Boolean(settings?.resendApiKey?.trim()),
+      notificationEmail: settings?.notificationEmail ?? "",
     };
   },
 });

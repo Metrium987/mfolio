@@ -483,20 +483,28 @@ function IntegrationsCard({
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState(
     settings?.googleAnalyticsId ?? "",
   );
-  // The DeepL key is write-only (never sent back to the browser): this field
-  // only ever holds what the owner just typed.
+  // API keys are write-only (never sent back to the browser): these fields
+  // only ever hold what the owner just typed.
   const [deeplApiKey, setDeeplApiKey] = useState("");
+  const [resendApiKey, setResendApiKey] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState(
+    settings?.notificationEmail ?? "",
+  );
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const deeplKeySet = integrations?.deeplKeySet ?? false;
+  const resendKeySet = integrations?.resendKeySet ?? false;
 
   useEffect(() => {
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
-  }, [settings?.googleAnalyticsId]);
+    setNotificationEmail(settings?.notificationEmail ?? "");
+  }, [settings?.googleAnalyticsId, settings?.notificationEmail]);
 
   const dirty =
     googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
-    deeplApiKey.trim() !== "";
+    notificationEmail !== (settings?.notificationEmail ?? "") ||
+    deeplApiKey.trim() !== "" ||
+    resendApiKey.trim() !== "";
 
   /** Translate every section once and report the outcome. */
   const translateAll = async () => {
@@ -527,8 +535,11 @@ function IntegrationsCard({
       await updateIntegrations({
         googleAnalyticsId: googleAnalyticsId.trim(),
         deeplApiKey: newKey,
+        resendApiKey: resendApiKey.trim(),
+        notificationEmail: notificationEmail.trim(),
       });
       setDeeplApiKey("");
+      setResendApiKey("");
       if (newKey) {
         // First time a key is set (or replaced): translate existing content
         // right away so the EN version is never left empty.
@@ -555,6 +566,23 @@ function IntegrationsCard({
       toast.success(
         "Clé DeepL supprimée — les traductions déjà générées sont conservées.",
       );
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la suppression de la clé");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeResendKey = async () => {
+    setSaving(true);
+    try {
+      await updateIntegrations({
+        googleAnalyticsId: googleAnalyticsId.trim(),
+        notificationEmail: notificationEmail.trim(),
+        clearResendKey: true,
+      });
+      toast.success("Clé Resend supprimée.");
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de la suppression de la clé");
@@ -606,6 +634,41 @@ function IntegrationsCard({
           </p>
         </div>
       </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-[13px] font-medium">Clé API Resend</label>
+            {resendKeySet && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Clé configurée
+              </span>
+            )}
+          </div>
+          <Input
+            type="password"
+            value={resendApiKey}
+            onChange={(event) => setResendApiKey(event.target.value)}
+            placeholder={
+              resendKeySet
+                ? "•••••••• (conserver la clé actuelle)"
+                : "re_xxxxxxxxxxxxxxxxxx"
+            }
+            className="bg-background"
+          />
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Envoi d'un email à chaque message du formulaire de contact. La clé
+            n'est jamais renvoyée au navigateur — laissez vide pour conserver.
+          </p>
+        </div>
+        <TextField
+          label="Email de notification"
+          value={notificationEmail}
+          onChange={setNotificationEmail}
+          placeholder="vous@exemple.com"
+          hint="Reçoit les messages du formulaire. Vide = votre email de contact."
+        />
+      </div>
       <div className="flex flex-wrap items-center justify-end gap-3">
         {dirty && (
           <span className="text-xs text-muted-foreground">
@@ -640,6 +703,18 @@ function IntegrationsCard({
               Retirer la clé
             </Button>
           </>
+        )}
+        {resendKeySet && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void removeResendKey()}
+            disabled={saving}
+            className="rounded-full text-muted-foreground"
+          >
+            Retirer la clé Resend
+          </Button>
         )}
         <Button
           onClick={() => void save()}

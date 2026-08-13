@@ -209,6 +209,10 @@ export const settingsValidator = v.object({
   themeColor: v.string(),
   googleAnalyticsId: v.string(),
   deeplApiKey: v.string(),
+  // Email notifications (Resend). Both write-only-ish and added later, so
+  // they stay optional on documents created before this feature shipped.
+  resendApiKey: v.optional(v.string()),
+  notificationEmail: v.optional(v.string()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),
