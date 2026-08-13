@@ -415,6 +415,17 @@ export const ensureSeed = mutation({
         visibilityInterests: true,
       });
     }
+    // The hero (en-tête) is the "À propos" section and is always first —
+    // drop a stale "about" id left in sectionOrder by an earlier version.
+    if (
+      settings &&
+      Array.isArray(settings.sectionOrder) &&
+      settings.sectionOrder.includes("about")
+    ) {
+      await ctx.db.patch(settings._id, {
+        sectionOrder: settings.sectionOrder.filter((id) => id !== "about"),
+      });
+    }
 
     if (
       site &&

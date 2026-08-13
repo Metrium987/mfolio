@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DEFAULT_SECTION_ORDER,
+  SECTION_IDS,
   SECTION_LABELS,
   type SectionId,
 } from "@/lib/sections";
@@ -44,7 +45,7 @@ const SWATCHES = [
 type VisibilityKey = Extract<keyof Doc<"settings">, `visibility${string}`>;
 
 const VISIBILITY_ITEMS: { key: VisibilityKey; label: string }[] = [
-  { key: "visibilityAbout", label: "Section « À propos »" },
+  { key: "visibilityAbout", label: "En-tête (nom, portrait, boutons)" },
   { key: "visibilitySkill", label: "Section « Compétences »" },
   { key: "visibilityEducation", label: "Section « Formation »" },
   { key: "visibilityExperience", label: "Section « Expérience »" },
@@ -832,11 +833,23 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
     visibilityInterests: true,
   });
 
+  // Sanitized display order — stale ids (e.g. "about" from an older save)
+  // are dropped so the list only ever shows real, reorderable sections.
+  const order = (
+    draft.value.sectionOrder?.length
+      ? draft.value.sectionOrder
+      : DEFAULT_SECTION_ORDER
+  ).filter((id): id is SectionId => SECTION_IDS.includes(id as SectionId));
+
   const save = async () => {
     setSaving(true);
     try {
       await updateSettings({
-        data: { ...draft.value, deeplApiKey: draft.value.deeplApiKey ?? "" },
+        data: {
+          ...draft.value,
+          sectionOrder: order,
+          deeplApiKey: draft.value.deeplApiKey ?? "",
+        },
       });
       draft.commit(draft.value);
       toast.success("Configuration enregistrée");
@@ -925,17 +938,16 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
       <div className="mt-6 space-y-2">
         <p className="text-[13px] font-medium">Ordre d'affichage des sections</p>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          L'ordre par défaut suit le standard français du CV : À propos →
-          Parcours → Compétences → Langues → Centres d'intérêt → Services →
-          Projets → Journal → Contact. Utilisez les flèches pour réorganiser.
+          L'en-tête (votre nom, votre portrait, vos boutons) est la section
+          «&nbsp;À propos&nbsp;» du site — elle est toujours affichée en
+          premier et ne peut pas être déplacée. Les sections ci-dessous suivent
+          par défaut l'ordre du CV français : Parcours → Compétences → Langues
+          → Centres d'intérêt → Services → Projets → Journal → Contact.
+          Utilisez les flèches pour réorganiser.
         </p>
         <div className="space-y-1.5">
-          {(
-            draft.value.sectionOrder?.length
-              ? draft.value.sectionOrder
-              : DEFAULT_SECTION_ORDER
-          ).map((id, index, order) => {
-            const label = SECTION_LABELS[id as SectionId] ?? id;
+          {order.map((id, index) => {
+            const label = SECTION_LABELS[id];
             const move = (dir: -1 | 1) => {
               const target = index + dir;
               if (target < 0 || target >= order.length) return;

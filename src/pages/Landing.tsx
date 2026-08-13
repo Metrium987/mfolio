@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
-import { About } from "@/components/site/About";
 import { Blog } from "@/components/site/Blog";
 import { SiteFooter, SiteHeader } from "@/components/site/Chrome";
 import { Contact } from "@/components/site/Contact";
@@ -16,6 +15,7 @@ import { Skills } from "@/components/site/Skills";
 import { useSiteLang, type UIStringKey } from "@/lib/i18n";
 import {
   DEFAULT_SECTION_ORDER,
+  SECTION_IDS,
   type SectionId,
 } from "@/lib/sections";
 import {
@@ -209,8 +209,6 @@ export default function Landing() {
     const settings = data?.settings;
     if (!settings) return false;
     switch (id) {
-      case "about":
-        return settings.visibilityAbout;
       case "resume":
         return settings.visibilityExperience || settings.visibilityEducation;
       case "skills":
@@ -231,7 +229,6 @@ export default function Landing() {
   };
 
   const NAV_KEYS: Record<SectionId, UIStringKey> = {
-    about: "nav.about",
     resume: "nav.resume",
     skills: "nav.skills",
     languages: "nav.languages",
@@ -249,6 +246,7 @@ export default function Landing() {
       : DEFAULT_SECTION_ORDER;
     return order
       .map((id) => id as SectionId)
+      .filter((id) => SECTION_IDS.includes(id))
       .filter((id) => sectionVisible(id))
       .map((id) => ({ label: t(NAV_KEYS[id]), id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -272,21 +270,21 @@ export default function Landing() {
   const siteName = data.site?.siteName ?? "Portfolio";
   const settings = data.settings;
 
-  // The hero is the masthead (French CV "en-tête") — always first. The
-  // remaining sections render in the order configured in Config → "Ordre
-  // d'affichage des sections", so the page matches the French CV standard
-  // (À propos → Parcours → Compétences → Langues → Centres d'intérêt →
-  // Services → Projets → Journal → Contact) or any custom arrangement.
-  const order = (settings?.sectionOrder?.length
-    ? settings.sectionOrder
-    : DEFAULT_SECTION_ORDER) as SectionId[];
+  // The hero is the masthead (French CV "en-tête") — it IS the "À propos"
+  // section of the page and is always first, so it is not part of the
+  // orderable list. The remaining sections render in the order configured in
+  // Config → "Ordre d'affichage des sections" (French CV standard:
+  // Parcours → Compétences → Langues → Centres d'intérêt → Services →
+  // Projets → Journal → Contact) or any custom arrangement. Stale ids (e.g.
+  // "about" from an older save) are filtered out defensively.
+  const order = (
+    (settings?.sectionOrder?.length
+      ? settings.sectionOrder
+      : DEFAULT_SECTION_ORDER) as SectionId[]
+  ).filter((id) => SECTION_IDS.includes(id));
 
   const renderSection = (id: SectionId) => {
     switch (id) {
-      case "about":
-        return settings?.visibilityAbout && data.about ? (
-          <About about={data.about} visibilityCv={settings.visibilityCv} />
-        ) : null;
       case "resume":
         return (settings?.visibilityExperience ||
           settings?.visibilityEducation) &&

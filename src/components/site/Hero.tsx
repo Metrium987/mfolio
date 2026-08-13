@@ -99,9 +99,17 @@ export function Hero({
 
           {about.description && (
             <Reveal delay={0.18}>
-              <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-                {pick(about.description, about.en?.description).split(/\n{2,}/)[0]}
-              </p>
+              {/* The hero is the "À propos" section of the portfolio — it
+                  carries the full description (all paragraphs), so there is
+                  no duplicate section below it. */}
+              <div className="mt-5 max-w-xl space-y-4 text-[15px] leading-relaxed text-muted-foreground">
+                {pick(about.description, about.en?.description)
+                  .split(/\n{2,}/)
+                  .filter(Boolean)
+                  .map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+              </div>
             </Reveal>
           )}
 

@@ -17,7 +17,6 @@ const STORAGE_KEY = "mfolio_lang";
  * owner's content; these UI strings ship with the app in both languages.
  */
 export const UI_STRINGS = {
-  "nav.about": { fr: "À propos", en: "About" },
   "nav.skills": { fr: "Compétences", en: "Skills" },
   "nav.services": { fr: "Services", en: "Services" },
   "nav.resume": { fr: "Parcours", en: "Resume" },
@@ -38,7 +37,6 @@ export const UI_STRINGS = {
   "hero.networks": { fr: "Réseaux & profils", en: "Networks & profiles" },
   "hero.portrait": { fr: "Fig. 01 — Portrait", en: "Fig. 01 — Portrait" },
   "hero.alt": { fr: "Portrait de", en: "Portrait of" },
-  "about.kicker": { fr: "À propos", en: "About" },
   "skills.kicker": { fr: "Compétences", en: "Skills" },
   "services.kicker": { fr: "Services", en: "Services" },
   "resume.kicker": { fr: "Parcours", en: "Resume" },
