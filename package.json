@@ -1,7 +1,20 @@
 {
   "name": "mfolio",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Mfolio — portfolio & CV clé en main avec tableau de bord administrateur complet (React + Convex).",
+  "license": "MIT",
+  "author": "Ludovic LOU",
+  "keywords": [
+    "portfolio",
+    "cv",
+    "react",
+    "convex",
+    "vite",
+    "tailwindcss",
+    "shadcn",
+    "cms"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",

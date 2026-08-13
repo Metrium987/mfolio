@@ -1,279 +1,171 @@
-# Mfolio — Portfolio & CV
+# Mfolio — Studio Portfolio & CV
 
-Portfolio moderne et professionnel, entièrement configurable depuis un tableau de bord :
-sections À propos (en-tête), Parcours, Compétences, Langues, Centres d'intérêt, Services,
-Projets, Journal et Contact — avec traduction automatique FR → EN (DeepL), mode sombre,
-SEO structuré et statistiques de visite.
+**A turnkey, self-hostable portfolio & CV web app with a full admin dashboard.** Everything — content, layout, SEO, statistics — is managed visually from the dashboard. No code required after setup.
 
-## Overview
+**🇫🇷 Version française : [README.fr.md](README.fr.md)**
 
-This project uses the following tech stack:
-- Vite
-- Typescript
-- React Router v7 (all imports from `react-router` instead of `react-router-dom`)
-- React 19 (for frontend components)
-- Tailwind v4 (for styling)
-- Shadcn UI (for UI components library)
-- Lucide Icons (for icons)
-- Convex (for backend & database)
-- Convex Auth (for authentication)
-- Framer Motion (for animations)
-- Three js (for 3d models)
+> **Origins:** Mfolio was originally built on **Freebuff Web** (formerly vly.ai), which provides the hosted environment, the Convex integration and a platform email relay. The app is fully portable: only **two optional email features** depend on the platform, and both can be switched off or re-pointed to your own provider. See [Deploying](#deploying).
 
-All relevant files live in the 'src' directory.
+---
 
-Use bun for the package manager.
+## Features
 
-## Setup
+- 🎨 **Studio theme** — gallery-clean, warm off-whites, thin framing, muted neutrals, editorial typography. Light/dark mode + configurable accent color.
+- 🗂️ **Full admin dashboard** — edit every section inline (À propos, Parcours, Compétences, Langues, Centres d'intérêt, Services, Portfolio, Journal), reorder items with ↑/↓, preview and delete from popups.
+- 🌍 **FR ↔ EN** — automatic translation via DeepL (optional key, free tier).
+- ✉️ **Contact form → inbox + email notification** — messages are stored in the dashboard inbox; an email notification (short notice, no message body) is sent to the owner.
+- 🔐 **Auth** — password login + email OTP recovery codes. Both channels are **toggleable** (portability).
+- 🛡️ **Anti-spam** — honeypot + per-visitor rate limit + input length caps.
+- 📊 **Statistics** — visitors (day/week/month), unique visitors, return rate, contact conversion, devices, top browsers, peak hours. Automatic 90-day purge (scheduled daily).
+- 🔎 **SEO** — meta tags, Open Graph/Twitter cards, canonical URLs, hreflang FR/EN, sitemap.xml, robots.txt, custom header/footer scripts.
+- 📱 **Fully responsive** — desktop sidebar dashboard, mobile navigation, mobile-first public pages.
+- 🧪 **Tested** — 20+ unit tests (levels, sections order, statistics), TypeScript strict, ESLint clean.
 
-This project is set up already and running on a cloud environment, as well as a convex development in the sandbox.
+## Tech stack
 
-## Environment Variables
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, React Router 7 |
+| Styling | Tailwind CSS v4, shadcn/ui, Framer Motion, Lucide icons |
+| Backend & DB | [Convex](https://convex.dev) (serverless backend + database), Convex Auth |
+| Quality | Vitest, ESLint, Prettier, TypeScript strict |
+| Package manager | [Bun](https://bun.sh) |
 
-The project is set up with project specific CONVEX_DEPLOYMENT and VITE_CONVEX_URL environment variables on the client side.
+## Prerequisites
 
-The convex server has a separate set of environment variables that are accessible by the convex backend.
+- **Bun ≥ 1.x** (recommended) or Node.js ≥ 20
+- **A free [Convex](https://convex.dev) account** — the app's backend and database
+- **Git**
+- *Optional:* a [DeepL](https://www.deepl.com) API key (FR→EN auto-translation), a Google Analytics ID
+- *Only if deploying outside Freebuff:* your own email provider (e.g. [Resend](https://resend.com)) — or disable the two email features in the dashboard (see [Email channels](#email-channels))
 
-Currently, these variables include auth-specific keys: JWKS, JWT_PRIVATE_KEY, and SITE_URL.
+## Quick start
 
+```bash
+# 1. Install dependencies
+bun install
 
-# Using Authentication (Important!)
+# 2. Create your Convex project (deploy + generate types)
+bunx convex dev
 
-You must follow these conventions when using authentication.
+# 3. Copy the env template and fill VITE_CONVEX_URL
+cp .env.example .env.local
 
-## Auth is already set up.
-
-All convex authentication functions are already set up. The auth currently uses email OTP and anonymous users, but can support more.
-
-The email OTP configuration is defined in `src/convex/auth/emailOtp.ts`. DO NOT MODIFY THIS FILE.
-
-Also, DO NOT MODIFY THESE AUTH FILES: `src/convex/auth.config.ts` and `src/convex/auth.ts`.
-
-## Using Convex Auth on the backend
-
-On the `src/convex/users.ts` file, you can use the `getCurrentUser` function to get the current user's data.
-
-## Using Convex Auth on the frontend
-
-The `/auth` page is already set up to use auth. Navigate to `/auth` for all log in / sign up sequences.
-
-You MUST use this hook to get user data. Never do this yourself without the hook:
-```typescript
-import { useAuth } from "@/hooks/use-auth";
-
-const { isLoading, isAuthenticated, user, signIn, signOut } = useAuth();
+# 4. Start the frontend (keep `bunx convex dev` running in another terminal)
+bun run dev
 ```
 
-## Protected Routes
+Open **http://localhost:5173** — sample content is seeded automatically on first load.
 
-The starter `/dashboard` route is protected with `RequireAuth`, which sends
-signed-out users to `/auth?returnTo=<current route>`. Extend that page for the
-product's authenticated experience, and reuse `RequireAuth` when adding another
-protected route.
+**First login:** sign in at `/auth` with the default admin account created on first visit:
 
-## Auth Page
+| | |
+|---|---|
+| Email | `admin@admin.com` |
+| Password | `admin123` |
 
-The auth page is defined in `src/pages/Auth.tsx`. Send sign-in and sign-up actions
-to `/auth`.
+> ⚠️ **Change these immediately** from **Paramètres → Sécurité du compte** (email + password). The login page shows a hint until you do.
 
-## Authorization
+## Environment variables
 
-You can perform authorization checks on the frontend and backend.
+| Variable | Where | Required |
+|---|---|---|
+| `VITE_CONVEX_URL` | `.env.local` (frontend) | ✅ |
+| `CONVEX_DEPLOYMENT` | `.env.local` (Convex CLI) | optional |
+| `CONVEX_SITE_URL` | `.env.local` (local auth redirect) | dev only |
+| `SITE_URL` | Convex dashboard → Settings → Env Variables | ✅ production |
+| `JWKS`, `JWT_PRIVATE_KEY` | Convex dashboard (auth keys, provisioned by Convex Auth) | ✅ |
 
-On the frontend, you can use the `useAuth` hook to get the current user's data and authentication state.
+**Not env vars:** the DeepL key and Google Analytics ID are entered in the app (**Config → Référencement**), and the notification email address in **Paramètres → Intégrations** — they are stored in the database, not in the repo.
 
-You should also be protecting queries, mutations, and actions at the base level, checking for authorization securely.
+See [.env.example](.env.example) for the full annotated template.
 
-## Adding a redirect after auth
+## Admin dashboard
 
-The `/auth` route in `src/main.tsx` redirects to `/dashboard` by default. If the
-product's main authenticated route is different, update `redirectAfterAuth` to
-that route. A validated same-origin `returnTo` query parameter takes priority so
-users can resume the protected page they originally requested. Never leave an
-authenticated product redirecting back to the public landing page.
+| Section | What you manage |
+|---|---|
+| **À propos** | Name, contact info, portrait/cover images, taglines, CV link, socials, description |
+| **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
+| **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
+| **Messages** | Inbox: preview messages in a popup, mark as replied, delete |
+| **Config** | Accent color, section visibility & order, display layouts, resume order, SEO, custom scripts, maintenance mode |
+| **Paramètres** | Site name/tagline/footer, logo & favicon, DeepL + GA + notification email, **email channel toggles**, account security (email/password) |
+| **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 
-## Complete authenticated products
+## Email channels
 
-When the requested product implies accounts, a workspace, a dashboard, or other
-signed-in functionality, the task is not complete with only a landing page and
-auth form. Build the main authenticated experience, protect its route, and verify
-that signing in reaches it.
+Two features send email, both through a single helper:
 
-# Frontend Conventions
+1. **Contact notifications** — when a visitor submits the form
+2. **Sign-in codes (OTP)** — the password-recovery code emails
 
-You will be using the Vite frontend with React 19, Tailwind v4, and Shadcn UI.
+On Freebuff Web, both use the **platform email relay** (`src/convex/emailRelay.ts`) — no SMTP, no key to configure.
 
-Generally, pages should be in the `src/pages` folder, and components should be in the `src/components` folder.
+**Deploying elsewhere, two options:**
 
-Shadcn primitives are located in the `src/components/ui` folder and should be used by default.
+- **Simplest:** in **Paramètres → Intégrations**, switch **“Notifications de contact”** and **“Connexion par code email (OTP)”** off. Password login and the in-app inbox keep working 100%. ✅
+- **Keep email:** edit `src/convex/emailRelay.ts` to call your own provider (e.g. Resend). Only **two call sites** exist: `src/convex/notify.ts` (notification) and `src/convex/auth/emailOtp.ts` (OTP codes).
 
-## Page routing
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.
 
-Your page component should go under the `src/pages` folder.
+## Deploying
 
-When adding a page, update the react router configuration in `src/main.tsx` to include the new route you just added.
+### On Freebuff Web
+Nothing to do — this is the platform Mfolio was built for. The environment, Convex deployment, and email relay are all provisioned automatically.
 
-## Shad CN conventions
+### Anywhere else (Vercel, Netlify, Cloudflare Pages, …)
+Mfolio is a standard Vite + Convex app:
 
-Follow these conventions when using Shad CN components, which you should use by default.
-- Remember to use "cursor-pointer" to make the element clickable
-- For title text, use the "tracking-tight font-bold" class to make the text more readable
-- Always make apps MOBILE RESPONSIVE. This is important
-- AVOID NESTED CARDS. Try and not to nest cards, borders, components, etc. Nested cards add clutter and make the app look messy.
-- AVOID SHADOWS. Avoid adding any shadows to components. stick with a thin border without the shadow.
-- Avoid skeletons; instead, use the loader2 component to show a spinning loading state when loading data.
+1. Clone, `bun install`, `bunx convex dev` (creates your Convex project).
+2. Set `SITE_URL`, `JWKS`, `JWT_PRIVATE_KEY` in the Convex dashboard (auth keys are provisioned by Convex Auth).
+3. Set `VITE_CONVEX_URL` in your host's env, build with `bun run build` (output: `dist/`).
+4. Decide your email strategy (see above). Optional: remove the Freebuff-specific bits (`vlyPlugin()` in `vite.config.ts`, the `@vly-ai/integrations` dependency, `src/lib/vly-integrations.ts`, `integrations.md`) — they are inert but no longer needed.
+5. First login with `admin@admin.com` / `admin123`, change the credentials, enter your DeepL key / GA ID.
 
+> 💡 **Keep your data:** all portfolio content lives in Convex. If you reuse the same Convex deployment, your content and settings follow automatically.
 
-## Landing Pages
-
-You must always create good-looking designer-level styles to your application. 
-- Make it well animated and fit a certain "theme", ie neo brutalist, retro, neumorphism, glass morphism, etc
-
-Use known images and emojis from online.
-
-If the user is logged in already, show the get started button to say "Dashboard" or "Profile" instead to take them there.
-
-## Responsiveness and formatting
-
-Make sure pages are wrapped in a container to prevent the width stretching out on wide screens. Always make sure they are centered aligned and not off-center.
-
-Always make sure that your designs are mobile responsive. Verify the formatting to ensure it has correct max and min widths as well as mobile responsiveness.
-
-- Always create sidebars for protected dashboard pages and navigate between pages
-- Always create navbars for landing pages
-- On these bars, the created logo should be clickable and redirect to the index page
-
-## Animating with Framer Motion
-
-You must add animations to components using Framer Motion. It is already installed and configured in the project.
-
-To use it, import the `motion` component from `framer-motion` and use it to wrap the component you want to animate.
-
-
-### Other Items to animate
-- Fade in and Fade Out
-- Slide in and Slide Out animations
-- Rendering animations
-- Button clicks and UI elements
-
-Animate for all components, including on landing page and app pages.
-
-## Three JS Graphics
-
-Your app comes with three js by default. You can use it to create 3D graphics for landing pages, games, etc.
-
-
-## Colors
-
-You can override colors in: `src/index.css`
-
-This uses the oklch color format for tailwind v4.
-
-Always use these color variable names.
-
-Make sure all ui components are set up to be mobile responsive and compatible with both light and dark mode.
-
-Set theme using `dark` or `light` variables at the parent className.
-
-## Styling and Theming
-
-When changing the theme, always change the underlying theme of the shad cn components app-wide under `src/components/ui` and the colors in the index.css file.
-
-Avoid hardcoding in colors unless necessary for a use case, and properly implement themes through the underlying shad cn ui components.
-
-When styling, ensure buttons and clickable items have pointer-click on them (don't by default).
-
-Always follow a set theme style and ensure it is tuned to the user's liking.
-
-## Toasts
-
-You should always use toasts to display results to the user, such as confirmations, results, errors, etc.
-
-Use the shad cn Sonner component as the toaster. For example:
+## Project structure
 
 ```
-import { toast } from "sonner"
-
-import { Button } from "@/components/ui/button"
-export function SonnerDemo() {
-  return (
-    <Button
-      variant="outline"
-      onClick={() =>
-        toast("Event has been created", {
-          description: "Sunday, December 03, 2023 at 9:00 AM",
-          action: {
-            label: "Undo",
-            onClick: () => console.log("Undo"),
-          },
-        })
-      }
-    >
-      Show Toast
-    </Button>
-  )
-}
+src/
+├── components/
+│   ├── admin/        # Dashboard editors (sections, lists, popups, fields)
+│   ├── site/         # Public site sections (Hero, Resume, Skills, Contact…)
+│   └── ui/           # shadcn/ui primitives
+├── convex/
+│   ├── auth/         # emailOtp provider (platform relay)
+│   ├── _generated/   # Auto-generated (do not edit)
+│   ├── schema.ts     # Database schema
+│   ├── site.ts       # Public queries (getSiteData, getStats…)
+│   ├── siteMutations.ts # Content CRUD + addMessage (contact form)
+│   ├── notify.ts     # Contact notification action
+│   ├── emailRelay.ts # ⚙️ Platform email relay — the file to replace off-Freebuff
+│   ├── seed.ts       # Sample content (seeded once)
+│   └── scheduler.ts  # Daily purge of old visitors
+├── lib/              # i18n, sections order, levels, stats helpers (+ tests)
+└── pages/            # Landing, Auth, Dashboard, NotFound
 ```
 
-Remember to import { toast } from "sonner". Usage: `toast("Event has been created.")`
+## Scripts
 
-## Dialogs
+| Command | Description |
+|---|---|
+| `bun run dev` | Start the Vite dev server |
+| `bun run build` | Typecheck + production build (`tsc -b && vite build`) |
+| `bun run preview` | Preview the production build |
+| `bun test` | Run unit tests (Vitest) |
+| `bun run lint` | ESLint |
+| `bun run format` | Prettier |
+| `bunx convex dev --once` | Push Convex functions + regenerate types |
 
-Always ensure your larger dialogs have a scroll in its content to ensure that its content fits the screen size. Make sure that the content is not cut off from the screen.
+## Contributing
 
-Ideally, instead of using a new page, use a Dialog instead. 
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-# Using the Convex backend
+## Security
 
-You will be implementing the convex backend. Follow your knowledge of convex and the documentation to implement the backend.
+Found a vulnerability or want to report one? See [SECURITY.md](SECURITY.md).
 
-## The Convex Schema
+## License
 
-You must correctly follow the convex schema implementation.
-
-The schema is defined in `src/convex/schema.ts`.
-
-Do not include the `_id` and `_creationTime` fields in your queries (it is included by default for each table).
-Do not index `_creationTime` as it is indexed for you. Never have duplicate indexes.
-
-
-## Convex Actions: Using CRUD operations
-
-When running anything that involves external connections, you must use a convex action with "use node" at the top of the file.
-
-You cannot have queries or mutations in the same file as a "use node" action file. Thus, you must use pre-built queries and mutations in other files.
-
-You can also use the pre-installed internal crud functions for the database:
-
-```ts
-// in convex/users.ts
-import { crud } from "convex-helpers/server/crud";
-import schema from "./schema.ts";
-
-export const { create, read, update, destroy } = crud(schema, "users");
-
-// in some file, in an action:
-const user = await ctx.runQuery(internal.users.read, { id: userId });
-
-await ctx.runMutation(internal.users.update, {
-  id: userId,
-  patch: {
-    status: "inactive",
-  },
-});
-```
-
-
-## Common Convex Mistakes To Avoid
-
-When using convex, make sure:
-- Document IDs are referenced as `_id` field, not `id`.
-- Document ID types are referenced as `Id<"TableName">`, not `string`.
-- Document object types are referenced as `Doc<"TableName">`.
-- Keep schemaValidation to false in the schema file.
-- You must correctly type your code so that it passes the type checker.
-- You must handle null / undefined cases of your convex queries for both frontend and backend, or else it will throw an error that your data could be null or undefined.
-- Always use the `@/folder` path, with `@/convex/folder/file.ts` syntax for importing convex files.
-- This includes importing generated files like `@/convex/_generated/server`, `@/convex/_generated/api`
-- Remember to import functions like useQuery, useMutation, useAction, etc. from `convex/react`
-- NEVER have return type validators.
+[MIT](LICENSE) © 2026 Ludovic LOU
