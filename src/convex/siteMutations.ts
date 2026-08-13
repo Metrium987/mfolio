@@ -83,7 +83,6 @@ export const updateIntegrations = mutation({
     notificationEmail: v.optional(v.string()),
     contactNotifications: v.optional(v.boolean()),
     emailOtpEnabled: v.optional(v.boolean()),
-    demoMode: v.optional(v.boolean()),
   }),
   handler: async (
     ctx,
@@ -94,7 +93,6 @@ export const updateIntegrations = mutation({
       notificationEmail,
       contactNotifications,
       emailOtpEnabled,
-      demoMode,
     },
   ) => {
     await requireOwner(ctx);
@@ -106,7 +104,6 @@ export const updateIntegrations = mutation({
       notificationEmail?: string;
       contactNotifications?: boolean;
       emailOtpEnabled?: boolean;
-      demoMode?: boolean;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
     };
@@ -124,16 +121,7 @@ export const updateIntegrations = mutation({
     if (emailOtpEnabled !== undefined) {
       patch.emailOtpEnabled = emailOtpEnabled;
     }
-    if (demoMode !== undefined) {
-      patch.demoMode = demoMode;
-    }
     await ctx.db.patch(settings._id, patch);
-    // Switching demo mode OFF revokes the well-known generic account (with a
-    // lockout guard inside removeDemoAccount). Turning it ON just flips the
-    // flag — the account is (re)created by ensureAdmin on the next /auth load.
-    if (demoMode === false) {
-      await ctx.scheduler.runAfter(0, api.ensureAdmin.removeDemoAccount);
-    }
   },
 });
 

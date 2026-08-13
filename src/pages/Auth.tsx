@@ -50,9 +50,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   // available. When off, only the password login is shown.
   const siteData = useQuery(api.site.getSiteData);
   const otpEnabled = siteData?.settings?.emailOtpEnabled !== false;
-  // Demo mode (Paramètres → Intégrations): the owner chose to share a try-me
-  // account, so the generic credentials are displayed on the login page.
-  const demoMode = siteData?.settings?.demoMode === true;
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
@@ -198,25 +195,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                         {option.label}
                       </button>
                     ))}
-                  </div>
-                )}
-
-                {demoMode && effectiveMode === "password" && (
-                  <div className="mt-5 rounded-md border border-dashed border-border bg-background px-4 py-3 text-left">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                      Compte de démonstration
-                    </p>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-foreground">
-                      Email :{" "}
-                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[12px]">
-                        admin@admin.com
-                      </code>
-                      <br />
-                      Mot de passe :{" "}
-                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[12px]">
-                        admin123
-                      </code>
-                    </p>
                   </div>
                 )}
               </CardHeader>

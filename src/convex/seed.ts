@@ -53,7 +53,6 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   visibilityInterests: true,
   contactNotifications: true,
   emailOtpEnabled: true,
-  demoMode: false,
   servicesLayout: "cards",
   interestsLayout: "cards",
   languagesLayout: "cards",
