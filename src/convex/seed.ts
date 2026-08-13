@@ -51,6 +51,7 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   visibilityInterests: true,
   servicesLayout: "cards",
   interestsLayout: "cards",
+  languagesLayout: "cards",
   resumeOrder: "experience-first",
 };
 
@@ -462,23 +463,27 @@ export const ensureSeed = mutation({
     }
     // Layout fields added later — default to the card/vignette rendering.
     if (settings) {
+      const validLayout = (v?: string): v is "list" | "cards" =>
+        v === "list" || v === "cards";
       const layoutPatch: {
         servicesLayout?: "list" | "cards";
         interestsLayout?: "list" | "cards";
+        languagesLayout?: "list" | "cards";
       } = {};
-      if (
-        settings.servicesLayout !== "list" &&
-        settings.servicesLayout !== "cards"
-      ) {
+      if (!validLayout(settings.servicesLayout)) {
         layoutPatch.servicesLayout = "cards";
       }
-      if (
-        settings.interestsLayout !== "list" &&
-        settings.interestsLayout !== "cards"
-      ) {
+      if (!validLayout(settings.interestsLayout)) {
         layoutPatch.interestsLayout = "cards";
       }
-      if (layoutPatch.servicesLayout || layoutPatch.interestsLayout) {
+      if (!validLayout(settings.languagesLayout)) {
+        layoutPatch.languagesLayout = "cards";
+      }
+      if (
+        layoutPatch.servicesLayout ||
+        layoutPatch.interestsLayout ||
+        layoutPatch.languagesLayout
+      ) {
         await ctx.db.patch(settings._id, layoutPatch);
       }
     }

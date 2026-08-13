@@ -218,9 +218,11 @@ export const settingsValidator = v.object({
   scriptFooter: v.string(),
   // Display order of the site sections — any permutation of SECTION_IDS.
   sectionOrder: v.array(v.string()),
-  // Rendering style for the Services / Interests sections.
+  // Rendering style for the Services / Interests / Languages sections.
+  // "list" = editorial rows, "cards" = grid of vignettes, "pills" = compact badges.
   servicesLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   interestsLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
+  languagesLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   // Order of the two Parcours sub-sections. The French CV norm puts
   // experience first, but juniors often prefer education first.
   resumeOrder: v.optional(

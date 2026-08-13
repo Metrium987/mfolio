@@ -303,7 +303,10 @@ export default function Landing() {
         ) : null;
       case "languages":
         return settings?.visibilityLanguages && data.languages ? (
-          <Languages languages={data.languages} />
+          <Languages
+            languages={data.languages}
+            layout={settings.languagesLayout ?? "cards"}
+          />
         ) : null;
       case "interests":
         return settings?.visibilityInterests && data.interests ? (
