@@ -1,0 +1,44 @@
+name: ✨ Demande de fonctionnalité
+description: Proposer une amélioration ou une nouvelle fonctionnalité pour Mfolio
+title: "[Idée] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de partager votre idée ! Une demande claire et motivée a bien plus de chances d'être retenue.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème / besoin
+      description: Quel problème cherchez-vous à résoudre, ou quel besoin exprimez-vous ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrivez la fonctionnalité telle que vous l'imaginez.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: Avez-vous essayé un contournement ?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Périmètre
+      options:
+        - label: Fonctionne sans ajout de dépendance lourde (idéalement)
+        - label: Reste compatible Freebuff + déploiement externe (portabilité)
+        - label: Ne casse pas l'affichage mobile (responsive)
+    validations:
+      required: false
