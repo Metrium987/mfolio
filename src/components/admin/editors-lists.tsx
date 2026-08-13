@@ -28,13 +28,19 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { formatTimestamp, SERVICE_ICON_NAMES } from "@/lib/site";
+import {
+  formatTimestamp,
+  SERVICE_ICON_GROUPS,
+  ServiceIcon,
+} from "@/lib/site";
 import { SectionEditor } from "./SectionEditor";
 import {
   Field,
@@ -425,11 +431,22 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_ICON_NAMES.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
+                  <SelectContent className="max-h-80">
+                    {SERVICE_ICON_GROUPS.map((group) => (
+                      <SelectGroup key={group.label}>
+                        <SelectLabel>{group.label}</SelectLabel>
+                        {group.icons.map((name) => (
+                          <SelectItem key={name} value={name}>
+                            <span className="flex items-center gap-2">
+                              <ServiceIcon
+                                name={name}
+                                className="size-4 text-(--studio-accent)"
+                              />
+                              {name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
