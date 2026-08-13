@@ -49,6 +49,8 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   visibilityBlog: true,
   visibilityLanguages: true,
   visibilityInterests: true,
+  servicesLayout: "cards",
+  interestsLayout: "cards",
 };
 
 const sampleAbout: Infer<typeof aboutValidator> = {
@@ -263,9 +265,9 @@ const sampleInterests: Infer<typeof interestsValidator> = {
   title: "Centres d'intérêt",
   description: "Ce qui nourrit ma pratique, en dehors des écrans.",
   items: [
-    { name: "Photographie", details: "Façades et lumière naturelle" },
-    { name: "Randonnée", details: "Sentiers du Rhône et des Alpes" },
-    { name: "Cuisine", details: "Pâtisserie et recettes de saison" },
+    { name: "Photographie", details: "Façades et lumière naturelle", icon: "Camera" },
+    { name: "Randonnée", details: "Sentiers du Rhône et des Alpes", icon: "Route" },
+    { name: "Cuisine", details: "Pâtisserie et recettes de saison", icon: "ChefHat" },
   ],
 };
 
@@ -424,6 +426,43 @@ export const ensureSeed = mutation({
     ) {
       await ctx.db.patch(settings._id, {
         sectionOrder: settings.sectionOrder.filter((id) => id !== "about"),
+      });
+    }
+    // Layout fields added later — default to the card/vignette rendering.
+    if (settings) {
+      const layoutPatch: {
+        servicesLayout?: "list" | "cards";
+        interestsLayout?: "list" | "cards";
+      } = {};
+      if (
+        settings.servicesLayout !== "list" &&
+        settings.servicesLayout !== "cards"
+      ) {
+        layoutPatch.servicesLayout = "cards";
+      }
+      if (
+        settings.interestsLayout !== "list" &&
+        settings.interestsLayout !== "cards"
+      ) {
+        layoutPatch.interestsLayout = "cards";
+      }
+      if (layoutPatch.servicesLayout || layoutPatch.interestsLayout) {
+        await ctx.db.patch(settings._id, layoutPatch);
+      }
+    }
+    // Interests gained an icon field later — backfill an empty string so the
+    // items still validate against the current schema when edited.
+    if (
+      interests &&
+      Array.isArray(interests.items) &&
+      interests.items.some((item) => typeof item.icon !== "string")
+    ) {
+      await ctx.db.patch(interests._id, {
+        items: interests.items.map((item) => ({
+          name: item.name,
+          details: item.details,
+          icon: typeof item.icon === "string" ? item.icon : "",
+        })),
       });
     }
 

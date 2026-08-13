@@ -77,6 +77,7 @@ export const languageItemValidator = v.object({
 export const interestItemValidator = v.object({
   name: v.string(),
   details: v.string(),
+  icon: v.string(),
 });
 
 // ---------------------------------------------------------------------------
@@ -207,6 +208,9 @@ export const settingsValidator = v.object({
   scriptFooter: v.string(),
   // Display order of the site sections — any permutation of SECTION_IDS.
   sectionOrder: v.array(v.string()),
+  // Rendering style for the Services / Interests sections.
+  servicesLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
+  interestsLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   visibilityAbout: v.boolean(),
   visibilitySkill: v.boolean(),
   visibilityEducation: v.boolean(),

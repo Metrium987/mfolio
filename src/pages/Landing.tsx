@@ -304,11 +304,17 @@ export default function Landing() {
         ) : null;
       case "interests":
         return settings?.visibilityInterests && data.interests ? (
-          <Interests interests={data.interests} />
+          <Interests
+            interests={data.interests}
+            layout={settings.interestsLayout ?? "cards"}
+          />
         ) : null;
       case "services":
         return settings?.visibilityService && data.services ? (
-          <Services services={data.services} />
+          <Services
+            services={data.services}
+            layout={settings.servicesLayout ?? "cards"}
+          />
         ) : null;
       case "portfolio":
         return settings?.visibilityProject && data.portfolio ? (

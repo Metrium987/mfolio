@@ -15,6 +15,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   DEFAULT_SECTION_ORDER,
   SECTION_IDS,
@@ -41,6 +42,35 @@ const SWATCHES = [
   "#C89B3C",
   "#2364AA",
 ];
+
+/** Two-choice segmented control for a section's rendering style. */
+function LayoutPicker({
+  value,
+  onChange,
+}: {
+  value: "list" | "cards";
+  onChange: (value: "list" | "cards") => void;
+}) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
+      {(["list", "cards"] as const).map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onChange(option)}
+          className={cn(
+            "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
+            value === option
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option === "list" ? "Liste" : "Cartes"}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 type VisibilityKey = Extract<keyof Doc<"settings">, `visibility${string}`>;
 
@@ -831,6 +861,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
     visibilityBlog: true,
     visibilityLanguages: true,
     visibilityInterests: true,
+    servicesLayout: "cards",
+    interestsLayout: "cards",
   });
 
   // Sanitized display order — stale ids (e.g. "about" from an older save)
@@ -848,6 +880,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
         data: {
           ...draft.value,
           sectionOrder: order,
+          servicesLayout: draft.value.servicesLayout ?? "cards",
+          interestsLayout: draft.value.interestsLayout ?? "cards",
           deeplApiKey: draft.value.deeplApiKey ?? "",
         },
       });
@@ -989,6 +1023,38 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <p className="text-[13px] font-medium">Style d'affichage des sections</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Services</p>
+              <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+            </div>
+            <LayoutPicker
+              value={draft.value.servicesLayout ?? "cards"}
+              onChange={(servicesLayout) =>
+                draft.set({ ...draft.value, servicesLayout })
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Centres d'intérêt
+              </p>
+              <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+            </div>
+            <LayoutPicker
+              value={draft.value.interestsLayout ?? "cards"}
+              onChange={(interestsLayout) =>
+                draft.set({ ...draft.value, interestsLayout })
+              }
+            />
+          </div>
         </div>
       </div>
 

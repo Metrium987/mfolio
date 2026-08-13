@@ -1164,7 +1164,17 @@ export function InterestsEditor({
   const save = async () => {
     setSaving(true);
     try {
-      await updateInterests({ data: draft.value });
+      // Normalize icons for items saved before the icon field existed.
+      await updateInterests({
+        data: {
+          ...draft.value,
+          items: draft.value.items.map((item) => ({
+            name: item.name,
+            details: item.details,
+            icon: item.icon ?? "",
+          })),
+        },
+      });
       draft.commit(draft.value);
       toast.success("Section « Centres d'intérêt » enregistrée");
     } catch (error) {
@@ -1203,7 +1213,7 @@ export function InterestsEditor({
               }))
             }
           >
-            <div className="grid gap-4 sm:grid-cols-[1fr_1.5fr]">
+            <div className="grid gap-4 sm:grid-cols-[1.2fr_1.6fr_1fr]">
               <TextField
                 label="Intérêt"
                 value={item.name}
@@ -1230,6 +1240,42 @@ export function InterestsEditor({
                 }
                 placeholder="Façades et lumière naturelle"
               />
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Icône</p>
+                <Select
+                  value={item.icon ?? ""}
+                  onValueChange={(icon) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i, n) =>
+                        n === index ? { ...i, icon } : i,
+                      ),
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    {SERVICE_ICON_GROUPS.map((group) => (
+                      <SelectGroup key={group.label}>
+                        <SelectLabel>{group.label}</SelectLabel>
+                        {group.icons.map((name) => (
+                          <SelectItem key={name} value={name}>
+                            <span className="flex items-center gap-2">
+                              <ServiceIcon
+                                name={name}
+                                className="size-4 text-(--studio-accent)"
+                              />
+                              {name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </ItemCard>
         ))}
@@ -1238,7 +1284,7 @@ export function InterestsEditor({
           onClick={() =>
             draft.set((prev) => ({
               ...prev,
-              items: [...prev.items, { name: "", details: "" }],
+              items: [...prev.items, { name: "", details: "", icon: "Sparkles" }],
             }))
           }
         />
