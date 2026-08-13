@@ -104,6 +104,7 @@ function CvField({
 }) {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const getUrl = useAction(api.files.getUrl);
+  const setCvUrl = useMutation(api.siteMutations.setCvUrl);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -120,8 +121,11 @@ function CvField({
       const { storageId } = (await result.json()) as { storageId: string };
       const url = await getUrl({ storageId: storageId as Id<"_storage"> });
       if (url) {
+        // Persist immediately (no separate save click) and mirror it into
+        // the section draft so the form and the site stay in sync.
+        await setCvUrl({ cvUrl: url });
         onChange(url);
-        toast.success("CV importé — pensez à enregistrer la section.");
+        toast.success("CV importé et enregistré — il est disponible sur le site.");
       } else {
         toast.error("Impossible de récupérer le fichier");
       }
@@ -131,6 +135,17 @@ function CvField({
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      await setCvUrl({ cvUrl: "" });
+      onChange("");
+      toast.success("CV retiré — le bouton de téléchargement est masqué sur le site.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors du retrait du CV");
     }
   };
 
@@ -173,7 +188,7 @@ function CvField({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => onChange("")}
+                onClick={() => void handleRemove()}
               >
                 Retirer
               </Button>

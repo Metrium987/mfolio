@@ -91,6 +91,21 @@ export const updateIntegrations = mutation({
   },
 });
 
+/**
+ * Instant CV save — the CV upload/removal in the admin persists immediately
+ * (no need to also press the section's save button). Keeps the same owner
+ * check as every other write.
+ */
+export const setCvUrl = mutation({
+  args: { cvUrl: v.string() },
+  handler: async (ctx, { cvUrl }) => {
+    await requireOwner(ctx);
+    const about = await ctx.db.query("about").first();
+    if (!about) throw new Error("About section not found");
+    await ctx.db.patch(about._id, { cvUrl });
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Contact form (public) + messages management (owner only)
 // ---------------------------------------------------------------------------
