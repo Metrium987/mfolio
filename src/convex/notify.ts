@@ -22,7 +22,7 @@ export const sendContactEmail = action({
     subject: v.string(),
     message: v.string(),
   }),
-  handler: async (ctx, { to, name, email, subject, message }) => {
+  handler: async (ctx, { to, name, email, subject }) => {
     const recipient = to.trim();
     if (!recipient) return; // no notification address — silently skip
 
@@ -38,16 +38,16 @@ export const sendContactEmail = action({
       // keep the brand fallback
     }
 
+    // Simple notification only — the full message stays in the dashboard's
+    // Messages section. The relay formats every email as a short sign-in style
+    // message, so keeping the payload brief keeps the rendering clean.
     const content = [
-      `Nouveau message reçu depuis le portfolio (${appName})`,
+      `Nouveau message reçu sur votre portfolio (${appName})`,
       "",
       `De : ${senderName}${senderEmail ? ` (${senderEmail})` : ""}`,
       `Sujet : ${senderSubject}`,
       "",
-      "Message :",
-      message.trim(),
-      "",
-      senderEmail ? `Répondez directement à ${senderEmail}.` : null,
+      "Connectez-vous au tableau de bord pour lire le message.",
     ]
       .filter((line): line is string => line !== null)
       .join("\n");
