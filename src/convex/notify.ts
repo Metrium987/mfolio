@@ -1,6 +1,7 @@
 "use node";
 
 import { v } from "convex/values";
+import { createTransport } from "nodemailer";
 import { action } from "./_generated/server";
 
 function escapeHtml(value: string): string {
@@ -13,33 +14,44 @@ function escapeHtml(value: string): string {
 }
 
 /**
- * Email the site owner when a visitor submits the contact form. Triggered in
- * the background by the `addMessage` mutation (which passes the owner's Resend
- * key + destination email as arguments, since this action runs unauthenticated
- * and therefore can't read the owner-only settings itself).
+ * Email the site owner when a visitor submits the contact form. Sends through
+ * the Gmail SMTP server using credentials from environment variables — never
+ * stored in the database, so the app password stays server-side only.
+ *
+ * Required env vars: SMTP_USER (Gmail address), SMTP_PASS (app password).
+ * Optional: SMTP_HOST (default smtp.gmail.com), SMTP_PORT (default 465).
  */
 export const sendContactEmail = action({
   args: v.object({
-    apiKey: v.string(),
     to: v.string(),
     fromName: v.string(),
-    fromEmail: v.string(),
     name: v.string(),
     email: v.string(),
     subject: v.string(),
     message: v.string(),
   }),
   handler: async (
-    ctx,
-    { apiKey, to, fromName, fromEmail, name, email, subject, message },
+    _ctx,
+    { to, fromName, name, email, subject, message },
   ) => {
-    if (!apiKey || !to) return;
+    const user = process.env.SMTP_USER?.trim();
+    const pass = process.env.SMTP_PASS?.trim();
+    if (!user || !pass || !to) return; // SMTP not configured — silently skip
 
-    const safeName = escapeHtml(name);
-    const safeEmail = escapeHtml(email);
-    const safeSubject = escapeHtml(subject || "Nouveau message");
-    const safeMessage = escapeHtml(message);
-    const senderName = escapeHtml(fromName || "MFolio");
+    const host = process.env.SMTP_HOST?.trim() || "smtp.gmail.com";
+    const port = Number(process.env.SMTP_PORT || 465);
+
+    const transporter = createTransport({
+      host,
+      port,
+      secure: port === 465, // implicit TLS on the standard Gmail port
+      auth: { user, pass },
+    });
+
+    const safeName = escapeHtml(name.trim());
+    const safeEmail = escapeHtml(email.trim());
+    const safeSubject = escapeHtml(subject.trim() || "Nouveau message");
+    const safeMessage = escapeHtml(message.trim());
 
     const subjectLine = subject.trim()
       ? `Nouveau message — ${subject.trim()}`
@@ -48,13 +60,13 @@ export const sendContactEmail = action({
     const text = [
       "Nouveau message reçu depuis le portfolio",
       "",
-      `De : ${name} (${email})`,
+      `De : ${name.trim()} (${email.trim()})`,
       subject.trim() ? `Sujet : ${subject.trim()}` : null,
       "",
       "Message :",
-      message,
+      message.trim(),
       "",
-      `Répondez directement à cet email pour répondre à ${name}.`,
+      `Répondez directement à cet email pour répondre à ${name.trim()}.`,
     ]
       .filter((line) => line !== null)
       .join("\n");
@@ -77,27 +89,15 @@ export const sendContactEmail = action({
   <p style="margin: 24px 0 0; font-size: 12px; color: #9a9a9a;">Répondez directement à cet email pour répondre à ${safeName}.</p>
 </div>`;
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from: `${senderName} <${fromEmail}>`,
-        to: [to],
-        reply_to: email.trim(),
-        subject: subjectLine,
-        text,
-        html,
-      }),
+    // Gmail only sends from the authenticated account, so the envelope
+    // address is SMTP_USER while the display name stays the portfolio owner.
+    await transporter.sendMail({
+      from: { name: fromName.trim() || "Portfolio", address: user },
+      to,
+      replyTo: email.trim(),
+      subject: subjectLine,
+      text,
+      html,
     });
-
-    if (!response.ok) {
-      const detail = await response.text();
-      throw new Error(
-        `Resend error ${response.status}: ${detail.slice(0, 300)}`,
-      );
-    }
   },
 });

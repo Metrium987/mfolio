@@ -79,20 +79,11 @@ export const updateIntegrations = mutation({
     googleAnalyticsId: v.string(),
     deeplApiKey: v.optional(v.string()),
     clearDeeplKey: v.optional(v.boolean()),
-    resendApiKey: v.optional(v.string()),
-    clearResendKey: v.optional(v.boolean()),
     notificationEmail: v.optional(v.string()),
   }),
   handler: async (
     ctx,
-    {
-      googleAnalyticsId,
-      deeplApiKey,
-      clearDeeplKey,
-      resendApiKey,
-      clearResendKey,
-      notificationEmail,
-    },
+    { googleAnalyticsId, deeplApiKey, clearDeeplKey, notificationEmail },
   ) => {
     await requireOwner(ctx);
     const settings = await ctx.db.query("settings").first();
@@ -100,7 +91,6 @@ export const updateIntegrations = mutation({
     const patch: {
       googleAnalyticsId: string;
       deeplApiKey?: string;
-      resendApiKey?: string;
       notificationEmail?: string;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
@@ -109,11 +99,6 @@ export const updateIntegrations = mutation({
       patch.deeplApiKey = "";
     } else if (deeplApiKey && deeplApiKey.trim() !== "") {
       patch.deeplApiKey = deeplApiKey.trim();
-    }
-    if (clearResendKey) {
-      patch.resendApiKey = "";
-    } else if (resendApiKey && resendApiKey.trim() !== "") {
-      patch.resendApiKey = resendApiKey.trim();
     }
     if (notificationEmail !== undefined) {
       patch.notificationEmail = notificationEmail.trim();
@@ -158,19 +143,16 @@ export const addMessage = mutation({
       createdAt: Date.now(),
     });
 
-    // Email the owner in the background when a Resend key is configured.
-    // The action runs unauthenticated, so the key + destination are passed
-    // here (mutations can read the DB directly).
+    // Email the owner in the background. SMTP credentials are read from env
+    // vars inside the action (it runs unauthenticated, so only the destination
+    // + content are passed here; mutations can read the DB directly).
     const settings = await ctx.db.query("settings").first();
     const about = await ctx.db.query("about").first();
-    const apiKey = settings?.resendApiKey?.trim();
     const to = settings?.notificationEmail?.trim() || about?.email?.trim();
-    if (apiKey && to) {
+    if (to) {
       await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
-        apiKey,
         to,
-        fromName: about?.name?.trim() || "MFolio",
-        fromEmail: about?.email?.trim() || to,
+        fromName: about?.name?.trim() || "Portfolio",
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
