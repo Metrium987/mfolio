@@ -456,6 +456,19 @@ export const ensureSeed = mutation({
     if (settings && typeof settings.notificationEmail !== "string") {
       await ctx.db.patch(settings._id, { notificationEmail: "" });
     }
+    // The Resend integration was removed — delete its leftover API key from the
+    // document. It is no longer in the schema, and Convex object validators
+    // reject unknown keys, so keeping it would break the Config editor's save.
+    if (settings) {
+      const legacy = settings as unknown as Record<string, unknown>;
+      if ("resendApiKey" in legacy) {
+        const { _id, _creationTime, resendApiKey: _remove, ...clean } = legacy;
+        void _id;
+        void _creationTime;
+        void _remove;
+        await ctx.db.replace(settings._id, clean as never);
+      }
+    }
     if (settings && !Array.isArray(settings.sectionOrder)) {
       await ctx.db.patch(settings._id, {
         sectionOrder: [...DEFAULT_SECTION_ORDER],

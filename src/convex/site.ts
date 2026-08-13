@@ -1,5 +1,25 @@
 import { query } from "./_generated/server";
 import { getCurrentUser } from "./users";
+import type { Doc } from "./_generated/dataModel";
+
+/**
+ * Strip legacy settings fields that are no longer in the schema (e.g. the
+ * removed Resend key). Convex `v.object()` validators reject unknown keys, so
+ * a stale field left in the document would make the Config editor's
+ * `updateSettings` save fail validation.
+ */
+function sanitizeSettings(settings: Doc<"settings"> | null): Doc<"settings"> | null {
+  if (!settings) return null;
+  const legacy = settings as unknown as Record<string, unknown>;
+  const { resendApiKey: _legacy, ...clean } = legacy;
+  void _legacy;
+  return {
+    ...clean,
+    deeplApiKey: "",
+    smtpUser: "",
+    smtpPass: "",
+  } as unknown as Doc<"settings">;
+}
 
 /**
  * All public portfolio content in one reactive query — the landing page
@@ -36,9 +56,7 @@ export const getSiteData = query({
     // (the dashboard shows a masked "key set" state instead).
     return {
       site,
-      settings: settings
-        ? { ...settings, deeplApiKey: "", smtpUser: "", smtpPass: "" }
-        : null,
+      settings: sanitizeSettings(settings),
       about,
       skills,
       services,
