@@ -1,6 +1,7 @@
 import { useMutation } from "convex/react";
-import { Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
-import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -21,14 +22,25 @@ export function Contact({ about }: { about: Doc<"about"> }) {
     subject: "",
     message: "",
   });
-  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reduceMotion = useReducedMotion();
   // Anti-spam: honeypot field — bots fill it, humans never see it. If it is
   // filled the backend silently drops the message.
   const [honeypot, setHoneypot] = useState("");
 
+  // Clear the "sent" state timer if the component unmounts.
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    },
+    [],
+  );
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSending(true);
+    if (status !== "idle") return;
+    setStatus("sending");
     try {
       await addMessage({
         ...form,
@@ -37,16 +49,17 @@ export function Contact({ about }: { about: Doc<"about"> }) {
       });
       setForm({ name: "", email: "", subject: "", message: "" });
       setHoneypot("");
-      toast.success(t("contact.success"));
+      setStatus("sent");
+      // Confirmation appears inside the button, then reverts to the idle label.
+      resetTimer.current = setTimeout(() => setStatus("idle"), 2500);
     } catch (error) {
       console.error(error);
+      setStatus("idle");
       toast.error(
         error instanceof Error && error.message.startsWith("Trop de messages")
           ? error.message
           : t("contact.error"),
       );
-    } finally {
-      setSending(false);
     }
   };
 
@@ -200,15 +213,48 @@ export function Contact({ about }: { about: Doc<"about"> }) {
               </div>
               <Button
                 type="submit"
-                disabled={sending}
-                className="mt-6 w-full rounded-full sm:w-auto"
+                disabled={status === "sending"}
+                className="mt-6 w-full min-w-[200px] rounded-full sm:w-auto"
               >
-                {sending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Send className="size-4" />
-                )}
-                {t("contact.send")}
+                <AnimatePresence mode="wait" initial={false}>
+                  {status === "sending" ? (
+                    <motion.span
+                      key="sending"
+                      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Loader2 className="size-4 animate-spin" />
+                      {t("contact.sending")}
+                    </motion.span>
+                  ) : status === "sent" ? (
+                    <motion.span
+                      key="sent"
+                      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Check className="size-4" />
+                      {t("contact.sent")}
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="idle"
+                      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Send className="size-4" />
+                      {t("contact.send")}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Button>
             </form>
           </Reveal>

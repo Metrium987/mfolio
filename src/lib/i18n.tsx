@@ -100,12 +100,10 @@ export const UI_STRINGS = {
     en: "Tell me about your project…",
   },
   "contact.send": { fr: "Envoyer le message", en: "Send message" },
+  "contact.sending": { fr: "Envoi…", en: "Sending…" },
+  "contact.sent": { fr: "Envoyé !", en: "Sent!" },
   "contact.phone": { fr: "Téléphone", en: "Phone" },
   "contact.location": { fr: "Localisation", en: "Location" },
-  "contact.success": {
-    fr: "Message envoyé — merci !",
-    en: "Message sent — thank you!",
-  },
   "contact.error": {
     fr: "L'envoi a échoué. Réessayez dans un instant.",
     en: "Sending failed. Please try again in a moment.",
