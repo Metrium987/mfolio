@@ -1,5 +1,7 @@
 import { useAction, useMutation } from "convex/react";
 import {
+  ArrowDown,
+  ArrowUp,
   ImagePlus,
   Inbox,
   Loader2,
@@ -377,6 +379,46 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                   </SelectContent>
                 </Select>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Monter"
+                disabled={index === 0}
+                className="shrink-0"
+                onClick={() =>
+                  draft.set((prev) => {
+                    const items = [...prev.items];
+                    [items[index - 1], items[index]] = [
+                      items[index],
+                      items[index - 1],
+                    ];
+                    return { ...prev, items };
+                  })
+                }
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Descendre"
+                disabled={index === draft.value.items.length - 1}
+                className="shrink-0"
+                onClick={() =>
+                  draft.set((prev) => {
+                    const items = [...prev.items];
+                    [items[index], items[index + 1]] = [
+                      items[index + 1],
+                      items[index],
+                    ];
+                    return { ...prev, items };
+                  })
+                }
+              >
+                <ArrowDown className="size-4" />
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
