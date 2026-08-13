@@ -1108,6 +1108,20 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               }
             />
           </div>
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Compétences</p>
+              <p className="text-xs text-muted-foreground">
+                Liste ou vignettes (niveau en barre)
+              </p>
+            </div>
+            <LayoutPicker
+              value={draft.value.skillsLayout ?? "cards"}
+              onChange={(skillsLayout) =>
+                draft.set({ ...draft.value, skillsLayout })
+              }
+            />
+          </div>
         </div>
       </div>
 

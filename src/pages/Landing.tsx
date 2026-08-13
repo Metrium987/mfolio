@@ -299,6 +299,7 @@ export default function Landing() {
           <Skills
             skills={data.skills}
             showProficiency={settings.visibilitySkillProficiency}
+            layout={settings.skillsLayout ?? "cards"}
           />
         ) : null;
       case "languages":

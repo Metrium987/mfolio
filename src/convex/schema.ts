@@ -223,6 +223,7 @@ export const settingsValidator = v.object({
   servicesLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   interestsLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   languagesLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
+  skillsLayout: v.optional(v.union(v.literal("list"), v.literal("cards"))),
   // Order of the two Parcours sub-sections. The French CV norm puts
   // experience first, but juniors often prefer education first.
   resumeOrder: v.optional(

@@ -38,6 +38,10 @@ export const UI_STRINGS = {
   "hero.portrait": { fr: "Fig. 01 — Portrait", en: "Fig. 01 — Portrait" },
   "hero.alt": { fr: "Portrait de", en: "Portrait of" },
   "skills.kicker": { fr: "Compétences", en: "Skills" },
+  "skills.none": {
+    fr: "Aucune compétence renseignée pour le moment.",
+    en: "No skills listed yet.",
+  },
   "services.kicker": { fr: "Services", en: "Services" },
   "resume.kicker": { fr: "Parcours", en: "Resume" },
   "resume.experience": { fr: "Expérience", en: "Experience" },

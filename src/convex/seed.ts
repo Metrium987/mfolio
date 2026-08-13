@@ -52,6 +52,7 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   servicesLayout: "cards",
   interestsLayout: "cards",
   languagesLayout: "cards",
+  skillsLayout: "cards",
   resumeOrder: "experience-first",
 };
 
@@ -469,6 +470,7 @@ export const ensureSeed = mutation({
         servicesLayout?: "list" | "cards";
         interestsLayout?: "list" | "cards";
         languagesLayout?: "list" | "cards";
+        skillsLayout?: "list" | "cards";
       } = {};
       if (!validLayout(settings.servicesLayout)) {
         layoutPatch.servicesLayout = "cards";
@@ -479,10 +481,14 @@ export const ensureSeed = mutation({
       if (!validLayout(settings.languagesLayout)) {
         layoutPatch.languagesLayout = "cards";
       }
+      if (!validLayout(settings.skillsLayout)) {
+        layoutPatch.skillsLayout = "cards";
+      }
       if (
         layoutPatch.servicesLayout ||
         layoutPatch.interestsLayout ||
-        layoutPatch.languagesLayout
+        layoutPatch.languagesLayout ||
+        layoutPatch.skillsLayout
       ) {
         await ctx.db.patch(settings._id, layoutPatch);
       }
