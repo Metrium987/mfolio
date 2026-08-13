@@ -17,8 +17,7 @@ export const emailOtp = Email({
   },
   async sendVerificationRequest({ identifier: email, token }, ctx?: any) {
     // Use the owner's site name when available so the email is branded with
-    // the portfolio's own name — never the platform project name
-    // ("Sign in to Vercel Supabase Portfolio").
+    // the portfolio's own name — never the platform project name.
     let appName = "Mfolio";
     try {
       const site = await ctx?.db?.query("site").first();

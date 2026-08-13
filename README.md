@@ -1,3 +1,10 @@
+# Mfolio — Portfolio & CV
+
+Portfolio moderne et professionnel, entièrement configurable depuis un tableau de bord :
+sections À propos (en-tête), Parcours, Compétences, Langues, Centres d'intérêt, Services,
+Projets, Journal et Contact — avec traduction automatique FR → EN (DeepL), mode sombre,
+SEO structuré et statistiques de visite.
+
 ## Overview
 
 This project uses the following tech stack:
