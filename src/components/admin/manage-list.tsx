@@ -31,9 +31,9 @@ export type ManageListUpdate<T> = (patch: Partial<T>) => void;
  * The edit modal edits a LOCAL working copy of the item: nothing is written
  * to the parent list until "Enregistrer" is pressed. "Annuler" (or closing
  * the modal) discards the changes — and "Ajouter" opens the modal without
- * creating an entry, so a new item only appears once it is saved. Nothing is
- * persisted to the database until the section's own "Enregistrer" button is
- * pressed.
+ * creating an entry, so a new item only appears once it is saved. After any
+ * commit (save or delete), onSaved is called so the parent can publish
+ * immediately — there is no second "Enregistrer" step for these sections.
  */
 export function ManageList<T extends object>({
   items,
@@ -44,6 +44,8 @@ export function ManageList<T extends object>({
   summary,
   form,
   preview,
+  onSaved,
+  saving = false,
 }: {
   items: T[];
   onItemsChange: (items: T[]) => void;
@@ -53,6 +55,9 @@ export function ManageList<T extends object>({
   summary: (item: T) => ReactNode;
   form: (item: T, update: ManageListUpdate<T>) => ReactNode;
   preview: (item: T) => ReactNode;
+  /** Called right after a save or delete commits — the parent publishes. */
+  onSaved?: (nextItems: T[]) => void;
+  saving?: boolean;
 }) {
   const [editing, setEditing] = useState<{
     index: number;
@@ -84,19 +89,19 @@ export function ManageList<T extends object>({
 
   const confirmSave = () => {
     if (!editing || !draftItem) return;
-    if (editing.isNew) {
-      onItemsChange([...items, draftItem]);
-    } else {
-      onItemsChange(
-        items.map((item, n) => (n === editing.index ? draftItem : item)),
-      );
-    }
+    const nextItems = editing.isNew
+      ? [...items, draftItem]
+      : items.map((item, n) => (n === editing.index ? draftItem : item));
+    onItemsChange(nextItems);
+    onSaved?.(nextItems);
     closeEdit();
   };
 
   const confirmDelete = () => {
     if (deletingIndex === null) return;
-    onItemsChange(items.filter((_, n) => n !== deletingIndex));
+    const nextItems = items.filter((_, n) => n !== deletingIndex);
+    onItemsChange(nextItems);
+    onSaved?.(nextItems);
     setDeletingIndex(null);
   };
 
@@ -214,7 +219,7 @@ export function ManageList<T extends object>({
             >
               Annuler
             </Button>
-            <Button type="button" onClick={confirmSave}>
+            <Button type="button" onClick={confirmSave} disabled={saving}>
               Enregistrer
             </Button>
           </DialogFooter>

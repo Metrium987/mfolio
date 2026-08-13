@@ -61,6 +61,7 @@ export function TextField({
   type = "text",
   hint,
   className,
+  onBlur,
 }: {
   label: string;
   value: string;
@@ -69,6 +70,7 @@ export function TextField({
   type?: string;
   hint?: string;
   className?: string;
+  onBlur?: () => void;
 }) {
   return (
     <Field label={label} hint={hint} className={className}>
@@ -76,6 +78,7 @@ export function TextField({
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         className="bg-background"
       />

@@ -562,19 +562,28 @@ export function ResumeEditor({
     educations: [],
   });
 
-  const save = async () => {
+  // Keep a ref to the latest draft so blur / popup saves always publish the
+  // most recent values (no stale closure), even while a save is in flight.
+  const valueRef = useRef(draft.value);
+  valueRef.current = draft.value;
+
+  const persist = async (data: typeof draft.value, silent = false) => {
     setSaving(true);
     try {
-      await updateResume({ data: draft.value });
-      draft.commit(draft.value);
-      toast.success("Section « Parcours » enregistrée");
+      await updateResume({ data });
+      draft.commit(data);
+      if (!silent) toast.success("Section « Parcours » enregistrée");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (!silent) toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
+  // Kept for the SectionEditor contract; with showSave={false} it is only
+  // reachable programmatically.
+  const save = () => void persist(valueRef.current);
 
   return (
     <SectionEditor
@@ -583,13 +592,14 @@ export function ResumeEditor({
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
+      showSave={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Parcours" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Mon expérience et ma formation." />
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} onBlur={() => void persist(valueRef.current, true)} placeholder="Parcours" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} onBlur={() => void persist(valueRef.current, true)} placeholder="Mon expérience et ma formation." />
       </div>
 
       <div className="mt-8 space-y-10">
@@ -609,6 +619,10 @@ export function ResumeEditor({
               details: "",
               achievements: [],
             })}
+            saving={saving}
+            onSaved={(experiences) =>
+              void persist({ ...valueRef.current, experiences })
+            }
             addLabel="Ajouter une expérience"
             itemLabel={(item, index) =>
               item.position.trim() || `Expérience ${index + 1}`
@@ -768,6 +782,10 @@ export function ResumeEditor({
               department: "",
               thesis: "",
             })}
+            saving={saving}
+            onSaved={(educations) =>
+              void persist({ ...valueRef.current, educations })
+            }
             addLabel="Ajouter une formation"
             itemLabel={(item, index) =>
               item.degree.trim() || `Formation ${index + 1}`
@@ -895,29 +913,38 @@ export function PortfolioEditor({
     projects: [],
   });
 
-  const save = async () => {
+  // Keep a ref to the latest draft so blur / popup saves always publish the
+  // most recent values (no stale closure), even while a save is in flight.
+  const valueRef = useRef(draft.value);
+  valueRef.current = draft.value;
+
+  // role/result are normalized for projects saved before those fields existed.
+  const persist = async (data: typeof draft.value, silent = false) => {
     setSaving(true);
     try {
-      // Normalize role/result for projects saved before those fields existed.
       await updatePortfolio({
         data: {
-          ...draft.value,
-          projects: draft.value.projects.map((project) => ({
+          ...data,
+          projects: data.projects.map((project) => ({
             ...project,
             role: project.role ?? "",
             result: project.result ?? "",
           })),
         },
       });
-      draft.commit(draft.value);
-      toast.success("Section « Projets » enregistrée");
+      draft.commit(data);
+      if (!silent) toast.success("Section « Projets » enregistrée");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (!silent) toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
+  // Kept for the SectionEditor contract; with showSave={false} it is only
+  // reachable programmatically.
+  const save = () => void persist(valueRef.current);
 
   return (
     <SectionEditor
@@ -926,13 +953,14 @@ export function PortfolioEditor({
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
+      showSave={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Portfolio" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Une sélection de projets récents." />
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} onBlur={() => void persist(valueRef.current, true)} placeholder="Portfolio" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} onBlur={() => void persist(valueRef.current, true)} placeholder="Une sélection de projets récents." />
       </div>
 
       <div className="mt-8 space-y-3">
@@ -950,11 +978,14 @@ export function PortfolioEditor({
             images: [],
             role: "",
             result: "",
-          })}
-          addLabel="Ajouter un projet"
-          itemLabel={(item, index) =>
-            item.title.trim() || `Projet ${index + 1}`
-          }
+          })}            saving={saving}
+            onSaved={(projects) =>
+              void persist({ ...valueRef.current, projects })
+            }
+            addLabel="Ajouter un projet"
+            itemLabel={(item, index) =>
+              item.title.trim() || `Projet ${index + 1}`
+            }
           summary={(item) => (
             <div className="min-w-0">
               <p className="font-medium text-foreground">
@@ -1127,19 +1158,28 @@ export function BlogEditor({
     posts: [],
   });
 
-  const save = async () => {
+  // Keep a ref to the latest draft so blur / popup saves always publish the
+  // most recent values (no stale closure), even while a save is in flight.
+  const valueRef = useRef(draft.value);
+  valueRef.current = draft.value;
+
+  const persist = async (data: typeof draft.value, silent = false) => {
     setSaving(true);
     try {
-      await updateBlog({ data: draft.value });
-      draft.commit(draft.value);
-      toast.success("Section « Journal » enregistrée");
+      await updateBlog({ data });
+      draft.commit(data);
+      if (!silent) toast.success("Section « Journal » enregistrée");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (!silent) toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
+  // Kept for the SectionEditor contract; with showSave={false} it is only
+  // reachable programmatically.
+  const save = () => void persist(valueRef.current);
 
   return (
     <SectionEditor
@@ -1148,13 +1188,14 @@ export function BlogEditor({
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
+      showSave={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Journal" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Notes de travail et réflexions." />
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} onBlur={() => void persist(valueRef.current, true)} placeholder="Journal" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} onBlur={() => void persist(valueRef.current, true)} placeholder="Notes de travail et réflexions." />
       </div>
 
       <div className="mt-8 space-y-3">
@@ -1167,11 +1208,12 @@ export function BlogEditor({
             excerpt: "",
             content: "",
             imageUrl: "",
-          })}
-          addLabel="Ajouter un article"
-          itemLabel={(item, index) =>
-            item.title.trim() || `Article ${index + 1}`
-          }
+          })}            saving={saving}
+            onSaved={(posts) => void persist({ ...valueRef.current, posts })}
+            addLabel="Ajouter un article"
+            itemLabel={(item, index) =>
+              item.title.trim() || `Article ${index + 1}`
+            }
           summary={(item) => (
             <div className="min-w-0">
               <p className="font-medium text-foreground">

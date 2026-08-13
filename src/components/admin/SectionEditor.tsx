@@ -13,6 +13,7 @@ export function SectionEditor({
   dirty,
   children,
   showVisibility = true,
+  showSave = true,
 }: {
   title: string;
   description: string;
@@ -23,6 +24,8 @@ export function SectionEditor({
   dirty: boolean;
   children: ReactNode;
   showVisibility?: boolean;
+  /** Hide the bottom "Enregistrer" bar — sections that publish automatically. */
+  showSave?: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -48,25 +51,27 @@ export function SectionEditor({
 
       <div className="border border-border bg-card p-5 sm:p-6">{children}</div>
 
-      <div className="sticky bottom-4 z-10 flex items-center justify-end gap-3">
-        {dirty && (
-          <span className="text-xs text-muted-foreground">
-            Modifications non enregistrées
-          </span>
-        )}
-        <Button
-          onClick={onSave}
-          disabled={saving || !dirty}
-          className="rounded-full"
-        >
-          {saving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
+      {showSave && (
+        <div className="sticky bottom-4 z-10 flex items-center justify-end gap-3">
+          {dirty && (
+            <span className="text-xs text-muted-foreground">
+              Modifications non enregistrées
+            </span>
           )}
-          {saving ? "Enregistrement…" : "Enregistrer"}
-        </Button>
-      </div>
+          <Button
+            onClick={onSave}
+            disabled={saving || !dirty}
+            className="rounded-full"
+          >
+            {saving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
