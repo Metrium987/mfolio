@@ -114,11 +114,11 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
           title={pick(resume.title, resume.en?.title)}
           description={pick(resume.description, resume.en?.description)}
         />
-        <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
+        <div className="space-y-16 lg:space-y-20">
           <Reveal>
             <p className="kicker mb-8">{t("resume.experience")}</p>
             {resume.experiences.length > 0 ? (
-              <ul>
+              <ul className="max-w-3xl">
                 {resume.experiences.map((experience, index) => (
                   <ExperienceEntry
                     key={`${experience.position}-${experience.period}`}
@@ -158,10 +158,10 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
               </p>
             )}
           </Reveal>
-          <Reveal delay={0.12}>
+          <Reveal delay={0.1}>
             <p className="kicker mb-8">{t("resume.education")}</p>
             {resume.educations.length > 0 ? (
-              <ul>
+              <ul className="max-w-3xl">
                 {resume.educations.map((education, index) => (
                   <EducationEntry
                     key={`${education.degree}-${education.period}`}
