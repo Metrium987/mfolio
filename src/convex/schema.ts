@@ -209,8 +209,12 @@ export const settingsValidator = v.object({
   themeColor: v.string(),
   googleAnalyticsId: v.string(),
   deeplApiKey: v.string(),
-  // Destination of the contact-form notification email. SMTP credentials live
-  // in environment variables (see notify.ts), never in the database.
+  // Gmail SMTP credentials for contact-form notifications. Write-only: the
+  // client only sends replacements and the password is never returned to the
+  // browser. Optional so documents created earlier still validate.
+  smtpUser: v.optional(v.string()),
+  smtpPass: v.optional(v.string()),
+  // Destination of the contact-form notification email.
   notificationEmail: v.optional(v.string()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),

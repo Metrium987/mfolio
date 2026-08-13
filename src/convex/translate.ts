@@ -278,14 +278,27 @@ export const updateSite = action({
 export const updateSettings = action({
   args: { data: settingsValidator },
   handler: async (ctx, { data }) => {
-    // The client only ever sees a sanitized deeplApiKey (""), so preserve the
-    // stored key here — keys are managed exclusively via updateIntegrations.
+    // The client only ever sees sanitized secrets (""), so preserve the stored
+    // values here — keys are managed exclusively via updateIntegrations.
     const raw = await ctx.runQuery(api.site.getSettingsForBackend);
     const deeplApiKey =
       data.deeplApiKey.trim() === "" && raw?.deeplApiKey
         ? raw.deeplApiKey
         : data.deeplApiKey;
-    await translateAndPersist(ctx, "settings", { ...data, deeplApiKey });
+    const smtpUser =
+      (data.smtpUser ?? "").trim() === "" && raw?.smtpUser
+        ? raw.smtpUser
+        : (data.smtpUser ?? "");
+    const smtpPass =
+      (data.smtpPass ?? "").trim() === "" && raw?.smtpPass
+        ? raw.smtpPass
+        : (data.smtpPass ?? "");
+    await translateAndPersist(ctx, "settings", {
+      ...data,
+      deeplApiKey,
+      smtpUser,
+      smtpPass,
+    });
   },
 });
 

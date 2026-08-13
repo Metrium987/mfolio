@@ -27,6 +27,8 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   themeColor: "#A85B32",
   googleAnalyticsId: "",
   deeplApiKey: "",
+  smtpUser: "",
+  smtpPass: "",
   notificationEmail: "",
   maintenanceMode: false,
   metaTitle: "Camille Roussel — Designer produit & développeuse",
@@ -444,6 +446,12 @@ export const ensureSeed = mutation({
     // would discard owner customizations.
     if (settings && typeof settings.deeplApiKey !== "string") {
       await ctx.db.patch(settings._id, { deeplApiKey: "" });
+    }
+    if (settings && typeof settings.smtpUser !== "string") {
+      await ctx.db.patch(settings._id, { smtpUser: "" });
+    }
+    if (settings && typeof settings.smtpPass !== "string") {
+      await ctx.db.patch(settings._id, { smtpPass: "" });
     }
     if (settings && typeof settings.notificationEmail !== "string") {
       await ctx.db.patch(settings._id, { notificationEmail: "" });

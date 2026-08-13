@@ -18,13 +18,17 @@ function escapeHtml(value: string): string {
  * the Gmail SMTP server using credentials from environment variables — never
  * stored in the database, so the app password stays server-side only.
  *
- * Required env vars: SMTP_USER (Gmail address), SMTP_PASS (app password).
- * Optional: SMTP_HOST (default smtp.gmail.com), SMTP_PORT (default 465).
+ * Credentials come from the owner's dashboard settings (smtpUser / smtpPass,
+ * passed in by the `addMessage` mutation) with the SMTP_USER / SMTP_PASS
+ * environment variables as a fallback. Optional: SMTP_HOST (default
+ * smtp.gmail.com), SMTP_PORT (default 465).
  */
 export const sendContactEmail = action({
   args: v.object({
     to: v.string(),
     fromName: v.string(),
+    smtpUser: v.optional(v.string()),
+    smtpPass: v.optional(v.string()),
     name: v.string(),
     email: v.string(),
     subject: v.string(),
@@ -32,10 +36,10 @@ export const sendContactEmail = action({
   }),
   handler: async (
     _ctx,
-    { to, fromName, name, email, subject, message },
+    { to, fromName, smtpUser, smtpPass, name, email, subject, message },
   ) => {
-    const user = process.env.SMTP_USER?.trim();
-    const pass = process.env.SMTP_PASS?.trim();
+    const user = (smtpUser?.trim() || process.env.SMTP_USER?.trim() || "").trim();
+    const pass = (smtpPass?.trim() || process.env.SMTP_PASS?.trim() || "").trim();
     if (!user || !pass || !to) return; // SMTP not configured — silently skip
 
     const host = process.env.SMTP_HOST?.trim() || "smtp.gmail.com";

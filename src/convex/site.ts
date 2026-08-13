@@ -36,7 +36,9 @@ export const getSiteData = query({
     // (the dashboard shows a masked "key set" state instead).
     return {
       site,
-      settings: settings ? { ...settings, deeplApiKey: "" } : null,
+      settings: settings
+        ? { ...settings, deeplApiKey: "", smtpUser: "", smtpPass: "" }
+        : null,
       about,
       skills,
       services,
@@ -62,6 +64,9 @@ export const getIntegrations = query({
     return {
       googleAnalyticsId: settings?.googleAnalyticsId ?? "",
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
+      smtpConfigured: Boolean(
+        settings?.smtpUser?.trim() && settings?.smtpPass?.trim(),
+      ),
       notificationEmail: settings?.notificationEmail ?? "",
     };
   },
