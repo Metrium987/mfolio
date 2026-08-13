@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 export type ManageListUpdate<T> = (patch: Partial<T>) => void;
@@ -32,8 +32,10 @@ export type ManageListUpdate<T> = (patch: Partial<T>) => void;
  * to the parent list until "Enregistrer" is pressed. "Annuler" (or closing
  * the modal) discards the changes — and "Ajouter" opens the modal without
  * creating an entry, so a new item only appears once it is saved. After any
- * commit (save or delete), onSaved is called so the parent can publish
- * immediately — there is no second "Enregistrer" step for these sections.
+ * commit (save, delete or reorder), onSaved is called so the parent can
+ * publish immediately — there is no second "Enregistrer" step for these
+ * sections. ↑ / ↓ arrows reorder an entry one position at a time; the first
+ * and last rows have their arrow disabled.
  */
 export function ManageList<T extends object>({
   items,
@@ -105,6 +107,18 @@ export function ManageList<T extends object>({
     setDeletingIndex(null);
   };
 
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const nextItems = [...items];
+    [nextItems[index], nextItems[target]] = [
+      nextItems[target],
+      nextItems[index],
+    ];
+    onItemsChange(nextItems);
+    onSaved?.(nextItems);
+  };
+
   const previewItem = previewIndex !== null ? items[previewIndex] : undefined;
   const deletingItem =
     deletingIndex !== null ? items[deletingIndex] : undefined;
@@ -123,6 +137,26 @@ export function ManageList<T extends object>({
           >
             <div className="min-w-0 flex-1">{summary(item)}</div>
             <div className="flex shrink-0 items-center gap-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Monter"
+                disabled={index === 0}
+                onClick={() => move(index, -1)}
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Descendre"
+                disabled={index === items.length - 1}
+                onClick={() => move(index, 1)}
+              >
+                <ArrowDown className="size-4" />
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
