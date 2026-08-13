@@ -23,7 +23,7 @@ export const UI_STRINGS = {
   "nav.portfolio": { fr: "Projets", en: "Projects" },
   "nav.blog": { fr: "Journal", en: "Journal" },
   "nav.languages": { fr: "Langues", en: "Languages" },
-  "nav.interests": { fr: "Centres d'intérêt", en: "Interests" },
+  "nav.interests": { fr: "Cnt d'intérêt", en: "Interests" },
   "nav.contact": { fr: "Contact", en: "Contact" },
   "header.admin": { fr: "Admin", en: "Admin" },
   "header.menu": { fr: "Menu", en: "Menu" },
