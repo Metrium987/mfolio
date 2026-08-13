@@ -140,6 +140,35 @@ export function ToggleField({
   );
 }
 
+/**
+ * Grouped block inside a section editor: kicker title + optional description,
+ * then the fields. Gives long forms (À propos, Config, Paramètres) a clear
+ * visual structure instead of one dense run of fields.
+ */
+export function FieldGroup({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="kicker">{title}</p>
+        {description && (
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Image guidance — recommended ratio / formats / size, visible in the admin
 // ---------------------------------------------------------------------------

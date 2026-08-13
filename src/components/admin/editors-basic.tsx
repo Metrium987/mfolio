@@ -25,6 +25,7 @@ import {
 import { SectionEditor } from "./SectionEditor";
 import {
   Field,
+  FieldGroup,
   ImageField,
   TextAreaField,
   TextField,
@@ -408,61 +409,81 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
       saving={saving}
       dirty={draft.dirty}
     >
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Nom" value={draft.value.name} onChange={(name) => draft.set({ ...draft.value, name })} placeholder="Camille Roussel" />
-        <TextField label="Email" type="email" value={draft.value.email} onChange={(email) => draft.set({ ...draft.value, email })} placeholder="vous@exemple.fr" />
-        <TextField label="Téléphone" value={draft.value.phone} onChange={(phone) => draft.set({ ...draft.value, phone })} placeholder="+33 6 12 34 56 78" />
-        <TextField label="Adresse / ville" value={draft.value.address} onChange={(address) => draft.set({ ...draft.value, address })} placeholder="Lyon, France" />
-      </div>
+      <div className="space-y-8">
+        <FieldGroup
+          title="Coordonnées"
+          description="Votre identité et vos moyens de contact."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <TextField label="Nom" value={draft.value.name} onChange={(name) => draft.set({ ...draft.value, name })} placeholder="Camille Roussel" />
+            <TextField label="Email" type="email" value={draft.value.email} onChange={(email) => draft.set({ ...draft.value, email })} placeholder="vous@exemple.fr" />
+            <TextField label="Téléphone" value={draft.value.phone} onChange={(phone) => draft.set({ ...draft.value, phone })} placeholder="+33 6 12 34 56 78" />
+            <TextField label="Adresse / ville" value={draft.value.address} onChange={(address) => draft.set({ ...draft.value, address })} placeholder="Lyon, France" />
+          </div>
+        </FieldGroup>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <ImageField
-          label="Portrait (avatar)"
-          value={draft.value.avatar}
-          onChange={(avatar) => draft.set({ ...draft.value, avatar })}
-          guide={{ ratio: "4:5", formats: "JPG, WebP, PNG", size: "~1000 × 1250 px" }}
-        />
-        <ImageField
-          label="Image de couverture"
-          value={draft.value.cover}
-          onChange={(cover) => draft.set({ ...draft.value, cover })}
-          hint="Bannière en haut du site."
-          guide={{ ratio: "21:9", formats: "JPG, WebP", size: "~1600 × 700 px" }}
-        />
-      </div>
+        <FieldGroup
+          title="Images"
+          description="Portrait et couverture — la première impression du site."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <ImageField
+              label="Portrait (avatar)"
+              value={draft.value.avatar}
+              onChange={(avatar) => draft.set({ ...draft.value, avatar })}
+              guide={{ ratio: "4:5", formats: "JPG, WebP, PNG", size: "~1000 × 1250 px" }}
+            />
+            <ImageField
+              label="Image de couverture"
+              value={draft.value.cover}
+              onChange={(cover) => draft.set({ ...draft.value, cover })}
+              hint="Bannière en haut du site."
+              guide={{ ratio: "21:9", formats: "JPG, WebP", size: "~1600 × 700 px" }}
+            />
+          </div>
+        </FieldGroup>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <CvField
-          value={draft.value.cvUrl}
-          onChange={(cvUrl) => draft.set({ ...draft.value, cvUrl })}
-        />
-        <StringListEditor
-          label="Slogans (accueil)"
-          value={draft.value.taglines}
-          onChange={(taglines) => draft.set({ ...draft.value, taglines })}
-          placeholder="Designer produit & développeuse"
-          hint="Slogans courts — ils défilent en « machine à écrire » sur l'accueil. Idéalement une ligne (moins de 60 caractères)."
-        />
-      </div>
+        <FieldGroup
+          title="Accueil"
+          description="Slogans et CV affichés dans l'en-tête."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <CvField
+              value={draft.value.cvUrl}
+              onChange={(cvUrl) => draft.set({ ...draft.value, cvUrl })}
+            />
+            <StringListEditor
+              label="Slogans (accueil)"
+              value={draft.value.taglines}
+              onChange={(taglines) => draft.set({ ...draft.value, taglines })}
+              placeholder="Designer produit & développeuse"
+              hint="Slogans courts — ils défilent en « machine à écrire » sur l'accueil. Idéalement une ligne (moins de 60 caractères)."
+            />
+          </div>
+        </FieldGroup>
 
-      <div className="mt-6">
-        <TextAreaField
-          label="Description"
-          value={draft.value.description}
-          onChange={(description) => draft.set({ ...draft.value, description })}
-          rows={8}
-          placeholder="Séparez les paragraphes par une ligne vide."
-          hint="Une ligne vide crée un nouveau paragraphe."
-        />
-      </div>
+        <FieldGroup
+          title="Présentation"
+          description="La description détaillée affichée sous votre nom — une ligne vide crée un nouveau paragraphe."
+        >
+          <TextAreaField
+            label="Description"
+            value={draft.value.description}
+            onChange={(description) => draft.set({ ...draft.value, description })}
+            rows={8}
+            placeholder="Séparez les paragraphes par une ligne vide."
+          />
+        </FieldGroup>
 
-      <div className="mt-6">
-        <Field label="Réseaux sociaux">
+        <FieldGroup
+          title="Réseaux sociaux"
+          description="Les liens affichés dans l'en-tête du site."
+        >
           <SocialLinksEditor
             value={draft.value.socials}
             onChange={(socials) => draft.set({ ...draft.value, socials })}
           />
-        </Field>
+        </FieldGroup>
       </div>
     </SectionEditor>
   );
@@ -839,45 +860,55 @@ export function SiteEditor({
       saving={saving}
       dirty={draft.dirty}
     >
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Nom du site" value={draft.value.siteName} onChange={(siteName) => draft.set({ ...draft.value, siteName })} placeholder="Camille Roussel" />
-        <TextField label="Slogan" value={draft.value.tagline} onChange={(tagline) => draft.set({ ...draft.value, tagline })} placeholder="Designer produit & développeuse" />
-        <TextAreaField
-          label="Texte de pied de page"
-          value={draft.value.footerText}
-          onChange={(footerText) => draft.set({ ...draft.value, footerText })}
-          rows={3}
-          className="sm:col-span-2"
-        />
-        <ImageField
-          label="Logo"
-          value={draft.value.logoUrl}
-          onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })}
-          hint="Affiché dans l'en-tête du site et le tableau de bord."
-          guide={{
-            ratio: "libre (carré idéal)",
-            formats: "PNG transparent ou SVG",
-            size: "~500 × 500 px ou plus",
-          }}
-        />
-        <ImageField
-          label="Favicon"
-          value={draft.value.faviconUrl}
-          onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })}
-          hint="L'icône de l'onglet du navigateur."
-          guide={{
-            ratio: "carré",
-            formats: "ICO, PNG ou SVG",
-            size: "64 × 64 px min — 512 × 512 idéal",
-          }}
-        />
-      </div>
+      <div className="space-y-8">
+        <FieldGroup
+          title="Identité du site"
+          description="Nom, slogan et texte de pied de page."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <TextField label="Nom du site" value={draft.value.siteName} onChange={(siteName) => draft.set({ ...draft.value, siteName })} placeholder="Camille Roussel" />
+            <TextField label="Slogan" value={draft.value.tagline} onChange={(tagline) => draft.set({ ...draft.value, tagline })} placeholder="Designer produit & développeuse" />
+            <TextAreaField
+              label="Texte de pied de page"
+              value={draft.value.footerText}
+              onChange={(footerText) => draft.set({ ...draft.value, footerText })}
+              rows={3}
+              className="sm:col-span-2"
+            />
+          </div>
+        </FieldGroup>
 
-      <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
+        <FieldGroup
+          title="Logo & favicon"
+          description="L'identité visuelle dans l'onglet et l'en-tête du navigateur."
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <ImageField
+              label="Logo"
+              value={draft.value.logoUrl}
+              onChange={(logoUrl) => draft.set({ ...draft.value, logoUrl })}
+              hint="Affiché dans l'en-tête du site et le tableau de bord."
+              guide={{
+                ratio: "libre (carré idéal)",
+                formats: "PNG transparent ou SVG",
+                size: "~500 × 500 px ou plus",
+              }}
+            />
+            <ImageField
+              label="Favicon"
+              value={draft.value.faviconUrl}
+              onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })}
+              hint="L'icône de l'onglet du navigateur."
+              guide={{
+                ratio: "carré",
+                formats: "ICO, PNG ou SVG",
+                size: "64 × 64 px min — 512 × 512 idéal",
+              }}
+            />
+          </div>
+        </FieldGroup>
+
         <IntegrationsCard settings={settings} />
-      </div>
-
-      <div className="mt-8 space-y-4 border-t border-border/70 pt-6">
         <SecurityCard />
       </div>
     </SectionEditor>
@@ -963,241 +994,248 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
       saving={saving}
       dirty={draft.dirty}
     >
-      <div className="space-y-2">
-        <p className="text-[13px] font-medium">Couleur de thème</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="color"
-            value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
-            onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-            className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
-            title="Choisir une couleur"
+      <div className="space-y-8">
+        <FieldGroup
+          title="Apparence"
+          description="La couleur d'accent du site et le mode maintenance."
+        >
+          <div className="space-y-2">
+            <p className="text-[13px] font-medium">Couleur de thème</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="color"
+                value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
+                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
+                title="Choisir une couleur"
+              />
+              <Input
+                value={draft.value.themeColor}
+                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                placeholder="#A85B32"
+                className="w-32 bg-background font-mono text-xs"
+              />
+              <div className="flex flex-wrap gap-2">
+                {SWATCHES.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    onClick={() => draft.set({ ...draft.value, themeColor: color })}
+                    className="size-7 rounded-full border border-border transition-transform hover:scale-110"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Appliquée aux boutons, liens et accents du site.
+            </p>
+          </div>
+          <ToggleField
+            label="Mode maintenance"
+            description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
+            checked={draft.value.maintenanceMode}
+            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
           />
-          <Input
-            value={draft.value.themeColor}
-            onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-            placeholder="#A85B32"
-            className="w-32 bg-background font-mono text-xs"
-          />
-          <div className="flex flex-wrap gap-2">
-            {SWATCHES.map((color) => (
-              <button
-                key={color}
-                type="button"
-                title={color}
-                onClick={() => draft.set({ ...draft.value, themeColor: color })}
-                className="size-7 rounded-full border border-border transition-transform hover:scale-110"
-                style={{ backgroundColor: color }}
+          <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+            Les clés API (Google Analytics, DeepL) se configurent dans le menu
+            «&nbsp;Paramètres&nbsp;» → section Intégrations.
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Visibilité des sections"
+          description="Affichez ou masquez chaque partie du portfolio."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            {VISIBILITY_ITEMS.map((item) => (
+              <ToggleField
+                key={item.key}
+                label={item.label}
+                checked={draft.value[item.key]}
+                onChange={(checked) =>
+                  draft.set({ ...draft.value, [item.key]: checked })
+                }
               />
             ))}
           </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Appliquée aux boutons, liens et accents du site.
-        </p>
-      </div>
+        </FieldGroup>
 
-      <div className="mt-6 space-y-4">
-        <ToggleField
-          label="Mode maintenance"
-          description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
-          checked={draft.value.maintenanceMode}
-          onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
-        />
-        <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-          Les clés API (Google Analytics, DeepL) se configurent dans le menu
-          «&nbsp;Paramètres&nbsp;» → section Intégrations.
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-2">
-        <p className="text-[13px] font-medium">Visibilité des sections</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {VISIBILITY_ITEMS.map((item) => (
-            <ToggleField
-              key={item.key}
-              label={item.label}
-              checked={draft.value[item.key]}
-              onChange={(checked) =>
-                draft.set({ ...draft.value, [item.key]: checked })
-              }
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-2">
-        <p className="text-[13px] font-medium">Ordre d'affichage des sections</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          L'en-tête (votre nom, votre portrait, vos boutons) est la section
-          «&nbsp;À propos&nbsp;» du site — elle est toujours affichée en
-          premier et ne peut pas être déplacée. Les sections ci-dessous suivent
-          par défaut l'ordre du CV français : Parcours → Compétences → Langues
-          → Centres d'intérêt → Services → Projets → Journal → Contact.
-          Utilisez les flèches pour réorganiser.
-        </p>
-        <div className="space-y-1.5">
-          {order.map((id, index) => {
-            const label = SECTION_LABELS[id];
-            const move = (dir: -1 | 1) => {
-              const target = index + dir;
-              if (target < 0 || target >= order.length) return;
-              const next = [...order];
-              [next[index], next[target]] = [next[target], next[index]];
-              draft.set({ ...draft.value, sectionOrder: next });
-            };
-            return (
-              <div
-                key={id}
-                className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
-              >
-                <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {label}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  title="Monter"
-                  disabled={index === 0}
-                  onClick={() => move(-1)}
+        <FieldGroup
+          title="Ordre d'affichage des sections"
+          description="L'en-tête (votre nom, votre portrait, vos boutons) est la section « À propos » du site — elle est toujours affichée en premier et ne peut pas être déplacée. Les sections ci-dessous suivent par défaut l'ordre du CV français : Parcours → Compétences → Langues → Centres d'intérêt → Services → Projets → Journal → Contact. Utilisez les flèches pour réorganiser."
+        >
+          <div className="space-y-1.5">
+            {order.map((id, index) => {
+              const label = SECTION_LABELS[id];
+              const move = (dir: -1 | 1) => {
+                const target = index + dir;
+                if (target < 0 || target >= order.length) return;
+                const next = [...order];
+                [next[index], next[target]] = [next[target], next[index]];
+                draft.set({ ...draft.value, sectionOrder: next });
+              };
+              return (
+                <div
+                  key={id}
+                  className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
                 >
-                  <ArrowUp className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  title="Descendre"
-                  disabled={index === order.length - 1}
-                  onClick={() => move(1)}
-                >
-                  <ArrowDown className="size-4" />
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <p className="text-[13px] font-medium">Style d'affichage des sections</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Services</p>
-              <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
-            </div>
-            <LayoutPicker
-              value={draft.value.servicesLayout ?? "cards"}
-              onChange={(servicesLayout) =>
-                draft.set({ ...draft.value, servicesLayout })
-              }
-            />
+                  <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                    {label}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Monter"
+                    disabled={index === 0}
+                    onClick={() => move(-1)}
+                  >
+                    <ArrowUp className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Descendre"
+                    disabled={index === order.length - 1}
+                    onClick={() => move(1)}
+                  >
+                    <ArrowDown className="size-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Style d'affichage des sections"
+          description="Liste ou grille de cartes pour les sections concernées."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Services</p>
+                <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+              </div>
+              <LayoutPicker
+                value={draft.value.servicesLayout ?? "cards"}
+                onChange={(servicesLayout) =>
+                  draft.set({ ...draft.value, servicesLayout })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Centres d'intérêt
+                </p>
+                <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+              </div>
+              <LayoutPicker
+                value={draft.value.interestsLayout ?? "cards"}
+                onChange={(interestsLayout) =>
+                  draft.set({ ...draft.value, interestsLayout })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Langues</p>
+                <p className="text-xs text-muted-foreground">
+                  Liste ou vignettes (niveau en points)
+                </p>
+              </div>
+              <LayoutPicker
+                value={draft.value.languagesLayout ?? "cards"}
+                onChange={(languagesLayout) =>
+                  draft.set({ ...draft.value, languagesLayout })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Compétences</p>
+                <p className="text-xs text-muted-foreground">
+                  Liste ou vignettes (niveau en points)
+                </p>
+              </div>
+              <LayoutPicker
+                value={draft.value.skillsLayout ?? "cards"}
+                onChange={(skillsLayout) =>
+                  draft.set({ ...draft.value, skillsLayout })
+                }
+              />
+            </div>
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Section Parcours — ordre interne"
+          description="La norme française place l'expérience d'abord ; les profils juniors préfèrent souvent la formation en premier. Choisissez ce qui vous valorise le plus."
+        >
           <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Centres d'intérêt
+                Formation / Expérience
               </p>
-              <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
-            </div>
-            <LayoutPicker
-              value={draft.value.interestsLayout ?? "cards"}
-              onChange={(interestsLayout) =>
-                draft.set({ ...draft.value, interestsLayout })
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Langues</p>
               <p className="text-xs text-muted-foreground">
-                Liste ou vignettes (niveau en points)
+                Ordre des deux blocs de la section Parcours
               </p>
             </div>
-            <LayoutPicker
-              value={draft.value.languagesLayout ?? "cards"}
-              onChange={(languagesLayout) =>
-                draft.set({ ...draft.value, languagesLayout })
+            <ResumeOrderPicker
+              value={draft.value.resumeOrder ?? "experience-first"}
+              onChange={(resumeOrder) =>
+                draft.set({ ...draft.value, resumeOrder })
               }
             />
           </div>
-          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Compétences</p>
-              <p className="text-xs text-muted-foreground">
-                Liste ou vignettes (niveau en points)
-              </p>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Référencement (SEO)"
+          description="Titre, description et image de partage affichés par les moteurs de recherche et les réseaux sociaux."
+        >
+          <div className="space-y-4">
+            <TextField label="Titre de la page" value={draft.value.metaTitle} onChange={(metaTitle) => draft.set({ ...draft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
+            <TextAreaField label="Description" value={draft.value.metaDescription} onChange={(metaDescription) => draft.set({ ...draft.value, metaDescription })} rows={3} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Auteur" value={draft.value.metaAuthor} onChange={(metaAuthor) => draft.set({ ...draft.value, metaAuthor })} placeholder="Camille Roussel" />
+              <ImageField
+                label="Image de partage"
+                value={draft.value.metaImage}
+                onChange={(metaImage) => draft.set({ ...draft.value, metaImage })}
+                guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
+              />
             </div>
-            <LayoutPicker
-              value={draft.value.skillsLayout ?? "cards"}
-              onChange={(skillsLayout) =>
-                draft.set({ ...draft.value, skillsLayout })
-              }
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Scripts personnalisés"
+          description="Code HTML/JS injecté tel quel sur le site public."
+        >
+          <div className="space-y-4">
+            <TextAreaField
+              label="Script d'en-tête (dans <head>)"
+              value={draft.value.scriptHeader}
+              onChange={(scriptHeader) => draft.set({ ...draft.value, scriptHeader })}
+              rows={4}
+              hint="HTML/JS injecté tel quel sur le site public."
+            />
+            <TextAreaField
+              label="Script de pied de page"
+              value={draft.value.scriptFooter}
+              onChange={(scriptFooter) => draft.set({ ...draft.value, scriptFooter })}
+              rows={4}
             />
           </div>
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <p className="text-[13px] font-medium">Section Parcours — ordre interne</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          La norme française place l'expérience d'abord ; les profils juniors
-          préfèrent souvent la formation en premier. Choisissez ce qui vous
-          valorise le plus.
-        </p>
-        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-foreground">
-              Formation / Expérience
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Ordre des deux blocs de la section Parcours
-            </p>
-          </div>
-          <ResumeOrderPicker
-            value={draft.value.resumeOrder ?? "experience-first"}
-            onChange={(resumeOrder) =>
-              draft.set({ ...draft.value, resumeOrder })
-            }
-          />
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-4">
-        <p className="text-[13px] font-medium">Référencement (SEO)</p>
-        <TextField label="Titre de la page" value={draft.value.metaTitle} onChange={(metaTitle) => draft.set({ ...draft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
-        <TextAreaField label="Description" value={draft.value.metaDescription} onChange={(metaDescription) => draft.set({ ...draft.value, metaDescription })} rows={3} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextField label="Auteur" value={draft.value.metaAuthor} onChange={(metaAuthor) => draft.set({ ...draft.value, metaAuthor })} placeholder="Camille Roussel" />
-          <ImageField
-            label="Image de partage"
-            value={draft.value.metaImage}
-            onChange={(metaImage) => draft.set({ ...draft.value, metaImage })}
-            guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
-          />
-        </div>
-      </div>
-
-      <div className="mt-6 space-y-4">
-        <p className="text-[13px] font-medium">Scripts personnalisés</p>
-        <TextAreaField
-          label="Script d'en-tête (dans <head>)"
-          value={draft.value.scriptHeader}
-          onChange={(scriptHeader) => draft.set({ ...draft.value, scriptHeader })}
-          rows={4}
-          hint="HTML/JS injecté tel quel sur le site public."
-        />
-        <TextAreaField
-          label="Script de pied de page"
-          value={draft.value.scriptFooter}
-          onChange={(scriptFooter) => draft.set({ ...draft.value, scriptFooter })}
-          rows={4}
-        />
+        </FieldGroup>
       </div>
     </SectionEditor>
   );
