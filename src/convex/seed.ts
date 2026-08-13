@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import type { Infer } from "convex/values";
+import { levelToNumber, proficiencyToLevel } from "../lib/levels";
 import { DEFAULT_SECTION_ORDER } from "../lib/sections";
 import {
   aboutValidator,
@@ -86,14 +87,14 @@ const sampleSkills: Infer<typeof skillsValidator> = {
   title: "Compétences",
   description: "Les outils et savoir-faire que j'utilise au quotidien.",
   items: [
-    { name: "React", proficiency: 95 },
-    { name: "TypeScript", proficiency: 90 },
-    { name: "Node.js", proficiency: 80 },
-    { name: "Figma", proficiency: 92 },
-    { name: "Tailwind CSS", proficiency: 88 },
-    { name: "Design systems", proficiency: 85 },
-    { name: "Recherche utilisateur", proficiency: 75 },
-    { name: "Motion & interaction", proficiency: 70 },
+    { name: "React", proficiency: 5 },
+    { name: "TypeScript", proficiency: 5 },
+    { name: "Node.js", proficiency: 4 },
+    { name: "Figma", proficiency: 5 },
+    { name: "Tailwind CSS", proficiency: 4 },
+    { name: "Design systems", proficiency: 4 },
+    { name: "Recherche utilisateur", proficiency: 3 },
+    { name: "Motion & interaction", proficiency: 4 },
   ],
 };
 
@@ -286,15 +287,17 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
   ],
 };
 
-const sampleLanguages: Infer<typeof languagesValidator> = {
+// Levels are stored as 1–5 numbers; the cast keeps this sample valid while the
+// schema transitions from free-text levels to the numeric scale.
+const sampleLanguages = {
   title: "Langues",
   description: "Les langues que je parle au quotidien.",
   items: [
-    { name: "Français", level: "Natif" },
-    { name: "Anglais", level: "Courant" },
-    { name: "Espagnol", level: "Intermédiaire" },
+    { name: "Français", level: 5 },
+    { name: "Anglais", level: 4 },
+    { name: "Espagnol", level: 3 },
   ],
-};
+} as unknown as Infer<typeof languagesValidator>;
 
 const sampleInterests: Infer<typeof interestsValidator> = {
   title: "Centres d'intérêt",
@@ -545,6 +548,37 @@ export const ensureSeed = mutation({
           name: item.name,
           details: item.details,
           icon: typeof item.icon === "string" ? item.icon : "",
+        })),
+      });
+    }
+    // Levels migrated to the unified 1–5 scale: languages were free text,
+    // skills were 0–100 %. Convert any legacy values so the editors and the
+    // site agree on one scale.
+    const legacyLanguages = languages as unknown as {
+      items: { name: string; level: string | number }[];
+    } | null;
+    if (
+      legacyLanguages &&
+      legacyLanguages.items.some((item) => typeof item.level !== "number")
+    ) {
+      await ctx.db.patch(
+        languages!._id,
+        {
+          items: legacyLanguages.items.map((item) => ({
+            name: item.name,
+            level: levelToNumber(item.level),
+          })),
+        } as never,
+      );
+    }
+    if (
+      skills &&
+      skills.items.some((item) => item.proficiency > 5)
+    ) {
+      await ctx.db.patch(skills._id, {
+        items: skills.items.map((item) => ({
+          name: item.name,
+          proficiency: proficiencyToLevel(item.proficiency),
         })),
       });
     }

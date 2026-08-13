@@ -1,12 +1,8 @@
 import type { Doc } from "@/convex/_generated/dataModel";
+import { proficiencyToLevel } from "@/lib/levels";
 import { useSiteLang } from "@/lib/i18n";
 import { LevelDots } from "./LevelDots";
 import { Container, Reveal, SectionHeading } from "./Section";
-
-/** Map a 0–100 proficiency to the 1–5 dot scale (same visual as Languages). */
-function proficiencyToDots(proficiency: number): number {
-  return Math.max(1, Math.min(5, Math.round(proficiency / 20)));
-}
 
 /**
  * Skills (« Compétences ») with optional proficiency levels — the standard
@@ -50,7 +46,7 @@ export function Skills({
                   </h3>
                   {showProficiency && (
                     <div className="mt-auto pt-5">
-                      <LevelDots level={proficiencyToDots(skill.proficiency)} />
+                      <LevelDots level={proficiencyToLevel(skill.proficiency)} />
                     </div>
                   )}
                 </article>
@@ -69,7 +65,7 @@ export function Skills({
                     {pick(skill.name, skills.en?.items?.[index]?.name)}
                   </span>
                   {showProficiency && (
-                    <LevelDots level={proficiencyToDots(skill.proficiency)} />
+                    <LevelDots level={proficiencyToLevel(skill.proficiency)} />
                   )}
                 </div>
               </Reveal>

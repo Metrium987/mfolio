@@ -76,7 +76,9 @@ export const postValidator = v.object({
 
 export const languageItemValidator = v.object({
   name: v.string(),
-  level: v.string(),
+  // Unified 1–5 proficiency scale (see src/lib/levels.ts) — the admin editor
+  // offers a dropdown and stores the number; the site renders 5 bars from it.
+  level: v.number(),
 });
 
 export const interestItemValidator = v.object({

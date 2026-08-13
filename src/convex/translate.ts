@@ -3,6 +3,7 @@
 import { v } from "convex/values";
 import { action, type ActionCtx } from "./_generated/server";
 import { api } from "./_generated/api";
+import { levelLabel, levelToNumber } from "../lib/levels";
 import {
   aboutValidator,
   blogValidator,
@@ -232,7 +233,16 @@ async function translateOne(
   );
   if (paths.length === 0) return {};
 
-  const source = paths.map((path) => String(getAt(data, path) ?? ""));
+  const source = paths.map((path) => {
+    const raw = getAt(data, path);
+    // Languages levels are stored as 1–5 numbers — translate the canonical
+    // label ("Avancé") instead of the raw digit, so the English mirror shows
+    // a readable level text that the site still maps back to the same dots.
+    if (section === "languages" && path[path.length - 1] === "level") {
+      return levelLabel(levelToNumber(raw as string | number));
+    }
+    return String(raw ?? "");
+  });
   const translated = await translateStrings(apiKey, source);
 
   const en: Record<string, unknown> = {};

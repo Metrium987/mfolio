@@ -1,24 +1,8 @@
 import type { Doc } from "@/convex/_generated/dataModel";
+import { displayLevel, levelToNumber } from "@/lib/levels";
 import { useSiteLang } from "@/lib/i18n";
 import { LevelDots } from "./LevelDots";
 import { Container, Reveal, SectionHeading } from "./Section";
-
-/**
- * Map a free-text proficiency level to a 1–5 scale for the dots indicator.
- * Recognizes the usual French / English / CECRL labels; defaults to 3.
- */
-function levelToDots(level: string): number {
-  const s = level
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (/(natif|native|maternelle|mother|bilingue|bilingual|c2)/.test(s)) return 5;
-  if (/(courant|fluent|avance|advanced|c1|professionnel|professional|full)/.test(s)) return 4;
-  if (/(intermediaire|intermediate|b2|operationnel|conversationnel|operational)/.test(s)) return 3;
-  if (/(debutant|beginner|a2|notions|elementaire|basic|scolaire|elementary)/.test(s)) return 2;
-  if (/a1/.test(s)) return 1;
-  return 3;
-}
 
 /**
  * Languages spoken with proficiency levels — the standard French CV rubric
@@ -33,7 +17,7 @@ export function Languages({
   languages: Doc<"languages">;
   layout?: "list" | "cards";
 }) {
-  const { t, pick } = useSiteLang();
+  const { t, pick, lang } = useSiteLang();
 
   return (
     <Container id="languages" className="py-24 md:py-32">
@@ -49,7 +33,12 @@ export function Languages({
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {languages.items.map((item, index) => {
               const name = pick(item.name, languages.en?.items?.[index]?.name);
-              const level = pick(item.level, languages.en?.items?.[index]?.level);
+              // Level is stored as a 1–5 number (FR) or translated text (EN) —
+              // same language rule as `pick`, but the types differ.
+              const level =
+                lang === "en" && languages.en?.items?.[index]?.level
+                  ? languages.en.items[index].level
+                  : item.level;
               return (
                 <Reveal
                   key={`${item.name}-${index}`}
@@ -60,13 +49,13 @@ export function Languages({
                     <h3 className="font-display text-xl font-light tracking-tight text-foreground">
                       {name}
                     </h3>
-                    {level && (
+                    {level !== undefined && level !== "" && (
                       <span className="mt-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                        {level}
+                        {displayLevel(level)}
                       </span>
                     )}
                     <div className="mt-auto pt-5">
-                      <LevelDots level={levelToDots(level ?? "")} />
+                      <LevelDots level={levelToNumber(level ?? "")} />
                     </div>
                   </article>
                 </Reveal>
@@ -85,7 +74,11 @@ export function Languages({
                     {pick(item.name, languages.en?.items?.[index]?.name)}
                   </span>
                   <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-300 group-hover:text-(--studio-accent)">
-                    {pick(item.level, languages.en?.items?.[index]?.level)}
+                    {displayLevel(
+                      lang === "en" && languages.en?.items?.[index]?.level
+                        ? languages.en.items[index].level
+                        : item.level,
+                    )}
                   </span>
                 </div>
               </Reveal>

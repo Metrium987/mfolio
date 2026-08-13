@@ -7,10 +7,15 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import {
+  LEVEL_OPTIONS,
+  levelToNumber,
+  proficiencyToLevel,
+} from "@/lib/levels";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
   formatTimestamp,
@@ -275,7 +279,22 @@ function ImagesEditor({
 export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefined }) {
   const updateSkills = useAction(api.translate.updateSkills);
   const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(skills, {
+
+  // Normalize legacy 0–100 % proficiencies to the unified 1–5 scale on load.
+  const normalized = useMemo(
+    () =>
+      skills
+        ? {
+            ...skills,
+            items: skills.items.map((item) => ({
+              ...item,
+              proficiency: proficiencyToLevel(item.proficiency),
+            })),
+          }
+        : undefined,
+    [skills],
+  );
+  const draft = useSectionDraft(normalized, {
     title: "",
     description: "",
     items: [],
@@ -298,7 +317,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
   return (
     <SectionEditor
       title="Compétences"
-      description="La liste des compétences avec leur niveau (0-100 %)."
+      description="La liste des compétences avec leur niveau — 5 niveaux (menu déroulant)."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
@@ -314,7 +333,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
       <div className="mt-6 space-y-3">
         {draft.value.items.map((item, index) => (
           <div key={index} className="rounded-md border border-border bg-background p-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Input
                 value={item.name}
                 onChange={(event) =>
@@ -328,9 +347,35 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                 placeholder="Nom de la compétence"
                 className="min-w-0 max-w-xs flex-1 bg-background"
               />
-              <span className="w-10 shrink-0 text-right font-mono text-sm text-muted-foreground">
-                {item.proficiency}%
-              </span>
+              <div className="min-w-44 flex-1">
+                <Select
+                  value={String(item.proficiency)}
+                  onValueChange={(value) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i, n) =>
+                        n === index
+                          ? { ...i, proficiency: Number(value) }
+                          : i,
+                      ),
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEVEL_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={String(option.value)}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
@@ -347,21 +392,6 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                 <Trash2 className="size-4" />
               </Button>
             </div>
-            <Slider
-              value={[item.proficiency]}
-              min={0}
-              max={100}
-              step={1}
-              onValueChange={([proficiency]) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  items: prev.items.map((i, n) =>
-                    n === index ? { ...i, proficiency } : i,
-                  ),
-                }))
-              }
-              className="mt-4"
-            />
           </div>
         ))}
         <AddButton
@@ -369,7 +399,7 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
           onClick={() =>
             draft.set((prev) => ({
               ...prev,
-              items: [...prev.items, { name: "", proficiency: 60 }],
+              items: [...prev.items, { name: "", proficiency: 3 }],
             }))
           }
         />
@@ -1177,6 +1207,16 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
 // Languages — spoken languages with proficiency level (French CV rubric)
 // ---------------------------------------------------------------------------
 
+/** Draft shape for the Languages editor — levels are stored as 1–5 numbers. */
+type LanguagesDraftDoc = {
+  _id: unknown;
+  _creationTime: unknown;
+  en?: unknown;
+  title: string;
+  description: string;
+  items: { name: string; level: number }[];
+};
+
 export function LanguagesEditor({
   languages,
 }: {
@@ -1184,7 +1224,27 @@ export function LanguagesEditor({
 }) {
   const updateLanguages = useAction(api.translate.updateLanguages);
   const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(languages, {
+
+  // Normalize legacy free-text levels to the unified 1–5 scale on load.
+  const normalized = useMemo<LanguagesDraftDoc | undefined>(() => {
+    if (!languages) return undefined;
+    const doc = languages as unknown as {
+      title: string;
+      description: string;
+      items: { name: string; level: string | number }[];
+    };
+    return {
+      _id: undefined,
+      _creationTime: undefined,
+      title: doc.title,
+      description: doc.description,
+      items: doc.items.map((item) => ({
+        name: item.name,
+        level: levelToNumber(item.level),
+      })),
+    };
+  }, [languages]);
+  const draft = useSectionDraft<LanguagesDraftDoc>(normalized, {
     title: "",
     description: "",
     items: [],
@@ -1193,7 +1253,11 @@ export function LanguagesEditor({
   const save = async () => {
     setSaving(true);
     try {
-      await updateLanguages({ data: draft.value });
+      await updateLanguages({
+        data: draft.value as unknown as Parameters<
+          typeof updateLanguages
+        >[0]["data"],
+      });
       draft.commit(draft.value);
       toast.success("Section « Langues » enregistrée");
     } catch (error) {
@@ -1207,7 +1271,7 @@ export function LanguagesEditor({
   return (
     <SectionEditor
       title="Langues"
-      description="Les langues parlées avec leur niveau — rubrique standard du CV français (Natif, Courant, Intermédiaire…)."
+      description="Les langues parlées avec leur niveau — 5 niveaux (menu déroulant)."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
@@ -1246,19 +1310,34 @@ export function LanguagesEditor({
                 }
                 placeholder="Français"
               />
-              <TextField
-                label="Niveau"
-                value={item.level}
-                onChange={(level) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, level } : i,
-                    ),
-                  }))
-                }
-                placeholder="Natif, Courant, Intermédiaire…"
-              />
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Niveau</p>
+                <Select
+                  value={String(item.level)}
+                  onValueChange={(level) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i, n) =>
+                        n === index ? { ...i, level: Number(level) } : i,
+                      ),
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEVEL_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={String(option.value)}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </ItemCard>
         ))}
@@ -1267,7 +1346,7 @@ export function LanguagesEditor({
           onClick={() =>
             draft.set((prev) => ({
               ...prev,
-              items: [...prev.items, { name: "", level: "" }],
+              items: [...prev.items, { name: "", level: 3 }],
             }))
           }
         />
