@@ -165,4 +165,41 @@
     text-transform: uppercase;
     color: var(--studio-accent);
   }
+
+  /* Kinetic marquee — the editorial "signature" element of award-winning
+     portfolios: a slowly scrolling band of services/skills in large display
+     type. Two copies are laid side by side and the track is translated by
+     exactly one copy (-50%) for a seamless loop. */
+  @keyframes mfolio-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: mfolio-marquee 32s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* Subtle gallery dot-grid texture (adds depth without clutter). */
+  .dot-grid {
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--foreground) 11%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
 }

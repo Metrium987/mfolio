@@ -37,6 +37,11 @@ export function Hero({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[540px] bg-[radial-gradient(70%_120%_at_50%_0%,color-mix(in_oklab,var(--studio-accent)_10%,transparent),transparent_72%)]"
       />
+      {/* Faint dot-grid texture fading downward — gallery depth. */}
+      <div
+        aria-hidden
+        className="dot-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
+      />
       {about.cover && (
         <Reveal className="mb-14">
           <div className="relative">
