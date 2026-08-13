@@ -40,7 +40,7 @@
     "@zumer/snapdom": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "convex": "^1.43.0",
+    "convex": "^1.44.0",
     "framer-motion": "^12.23.25",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.555.0",

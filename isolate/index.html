@@ -6,12 +6,47 @@
   <link rel="icon" type="image/svg+xml" href="/mfolio.svg" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mfolio — Portfolio &amp; CV</title>
-  <script type="module" crossorigin src="/assets/index-Df01K_nL.js"></script>
+
+  <!--
+    Static SEO / social-sharing fallback. The app syncs these tags at runtime
+    (title, description, og:*, twitter:*, canonical, hreflang) from the admin
+    settings — but LinkedIn / Facebook / WhatsApp / Slack scrapers do NOT run
+    JavaScript, so they only read this static markup.
+
+    ⚠️ APRÈS PUBLICATION : remplacez https://votre-domaine.fr par votre vrai
+    domaine dans ce fichier, public/robots.txt et public/sitemap.xml.
+  -->
+  <meta name="description" content="Portfolio & CV — découvrez mon parcours, mes projets et mes services." />
+  <meta name="theme-color" content="#f4f1ea" />
+  <meta property="og:site_name" content="Mfolio" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Mfolio — Portfolio & CV" />
+  <meta property="og:description" content="Portfolio & CV — découvrez mon parcours, mes projets et mes services." />
+  <meta property="og:url" content="https://votre-domaine.fr/" />
+  <meta property="og:image" content="https://votre-domaine.fr/mfolio.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mfolio — Portfolio & CV" />
+  <meta name="twitter:description" content="Portfolio & CV — découvrez mon parcours, mes projets et mes services." />
+  <meta name="twitter:image" content="https://votre-domaine.fr/mfolio.svg" />
+  <link rel="canonical" href="https://votre-domaine.fr/" />
+  <link rel="alternate" hreflang="fr" href="https://votre-domaine.fr/" />
+  <link rel="alternate" hreflang="en" href="https://votre-domaine.fr/" />
+  <link rel="alternate" hreflang="x-default" href="https://votre-domaine.fr/" />
+
+  <!-- Fonts — loaded via <link> (parallel, not CSS @import) with only the
+       weights actually used: Zodiak 300/400/500, Switzer 400/500/600. -->
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://api.fontshare.com/v2/css?f[]=zodiak@300,400,500&f[]=switzer@400,500,600&display=swap"
+  />
+
+  <title>Mfolio</title>
+  <script type="module" crossorigin src="/assets/index-BDofqka3.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/react-vendor-twUPT20K.js">
   <link rel="modulepreload" crossorigin href="/assets/framer-motion-CgqmJIOs.js">
-  <link rel="modulepreload" crossorigin href="/assets/radix-ui-BamFYsu3.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-D594FA40.css">
+  <link rel="modulepreload" crossorigin href="/assets/radix-ui-DZAf7kEX.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-BYMw1Ox0.css">
 </head>
 
 
