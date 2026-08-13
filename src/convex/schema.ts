@@ -69,6 +69,16 @@ export const postValidator = v.object({
   imageUrl: v.string(),
 });
 
+export const languageItemValidator = v.object({
+  name: v.string(),
+  level: v.string(),
+});
+
+export const interestItemValidator = v.object({
+  name: v.string(),
+  details: v.string(),
+});
+
 // ---------------------------------------------------------------------------
 // English variants (auto-generated via DeepL — stored per section)
 // ---------------------------------------------------------------------------
@@ -147,6 +157,28 @@ export const blogEnValidator = v.object({
   ),
 });
 
+export const languagesEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(
+    v.object({
+      name: v.string(),
+      level: v.string(),
+    }),
+  ),
+});
+
+export const interestsEnValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(
+    v.object({
+      name: v.string(),
+      details: v.string(),
+    }),
+  ),
+});
+
 // ---------------------------------------------------------------------------
 // Document validators (single document per section, like Ezfolio)
 // ---------------------------------------------------------------------------
@@ -173,6 +205,8 @@ export const settingsValidator = v.object({
   metaImage: v.string(),
   scriptHeader: v.string(),
   scriptFooter: v.string(),
+  // Display order of the site sections — any permutation of SECTION_IDS.
+  sectionOrder: v.array(v.string()),
   visibilityAbout: v.boolean(),
   visibilitySkill: v.boolean(),
   visibilityEducation: v.boolean(),
@@ -184,6 +218,8 @@ export const settingsValidator = v.object({
   visibilityCv: v.boolean(),
   visibilitySkillProficiency: v.boolean(),
   visibilityBlog: v.boolean(),
+  visibilityLanguages: v.boolean(),
+  visibilityInterests: v.boolean(),
   en: v.optional(settingsEnValidator),
 });
 
@@ -238,6 +274,22 @@ export const blogValidator = v.object({
   en: v.optional(blogEnValidator),
 });
 
+/** Languages spoken, with proficiency levels (standard French CV rubric). */
+export const languagesValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(languageItemValidator),
+  en: v.optional(languagesEnValidator),
+});
+
+/** Hobbies / centers of interest (standard French CV rubric). */
+export const interestsValidator = v.object({
+  title: v.string(),
+  description: v.string(),
+  items: v.array(interestItemValidator),
+  en: v.optional(interestsEnValidator),
+});
+
 export const messageValidator = v.object({
   name: v.string(),
   email: v.string(),
@@ -281,6 +333,8 @@ const schema = defineSchema(
     resume: defineTable(resumeValidator),
     portfolio: defineTable(portfolioValidator),
     blog: defineTable(blogValidator),
+    languages: defineTable(languagesValidator),
+    interests: defineTable(interestsValidator),
     messages: defineTable(messageValidator),
     visitors: defineTable(visitorValidator),
   },

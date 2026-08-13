@@ -7,11 +7,17 @@ import { Blog } from "@/components/site/Blog";
 import { SiteFooter, SiteHeader } from "@/components/site/Chrome";
 import { Contact } from "@/components/site/Contact";
 import { Hero } from "@/components/site/Hero";
+import { Interests } from "@/components/site/Interests";
+import { Languages } from "@/components/site/Languages";
 import { Portfolio } from "@/components/site/Portfolio";
 import { Resume } from "@/components/site/Resume";
 import { Services } from "@/components/site/Services";
 import { Skills } from "@/components/site/Skills";
-import { useSiteLang } from "@/lib/i18n";
+import { useSiteLang, type UIStringKey } from "@/lib/i18n";
+import {
+  DEFAULT_SECTION_ORDER,
+  type SectionId,
+} from "@/lib/sections";
 import {
   APP_NAME,
   applyFavicon,
@@ -197,19 +203,55 @@ export default function Landing() {
     void track();
   }, [trackVisit]);
 
+  // Section visibility per id — the nav and the page both follow the same
+  // rules so an order change in Config is reflected everywhere at once.
+  const sectionVisible = (id: SectionId): boolean => {
+    const settings = data?.settings;
+    if (!settings) return false;
+    switch (id) {
+      case "about":
+        return settings.visibilityAbout;
+      case "resume":
+        return settings.visibilityExperience || settings.visibilityEducation;
+      case "skills":
+        return settings.visibilitySkill;
+      case "languages":
+        return settings.visibilityLanguages;
+      case "interests":
+        return settings.visibilityInterests;
+      case "services":
+        return settings.visibilityService;
+      case "portfolio":
+        return settings.visibilityProject;
+      case "blog":
+        return settings.visibilityBlog;
+      case "contact":
+        return settings.visibilityContact;
+    }
+  };
+
+  const NAV_KEYS: Record<SectionId, UIStringKey> = {
+    about: "nav.about",
+    resume: "nav.resume",
+    skills: "nav.skills",
+    languages: "nav.languages",
+    interests: "nav.interests",
+    services: "nav.services",
+    portfolio: "nav.portfolio",
+    blog: "nav.blog",
+    contact: "nav.contact",
+  };
+
   const nav = useMemo(() => {
     if (!data) return [];
-    const settings = data.settings;
-    const links: { label: string; id: string }[] = [];
-    if (settings?.visibilityAbout) links.push({ label: t("nav.about"), id: "about" });
-    if (settings?.visibilitySkill) links.push({ label: t("nav.skills"), id: "skills" });
-    if (settings?.visibilityService) links.push({ label: t("nav.services"), id: "services" });
-    if (settings?.visibilityExperience || settings?.visibilityEducation)
-      links.push({ label: t("nav.resume"), id: "resume" });
-    if (settings?.visibilityProject) links.push({ label: t("nav.portfolio"), id: "portfolio" });
-    if (settings?.visibilityBlog) links.push({ label: t("nav.blog"), id: "blog" });
-    if (settings?.visibilityContact) links.push({ label: t("nav.contact"), id: "contact" });
-    return links;
+    const order = data.settings?.sectionOrder?.length
+      ? data.settings.sectionOrder
+      : DEFAULT_SECTION_ORDER;
+    return order
+      .map((id) => id as SectionId)
+      .filter((id) => sectionVisible(id))
+      .map((id) => ({ label: t(NAV_KEYS[id]), id }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, t]);
 
   if (!data) {
@@ -230,6 +272,61 @@ export default function Landing() {
   const siteName = data.site?.siteName ?? "Portfolio";
   const settings = data.settings;
 
+  // The hero is the masthead (French CV "en-tête") — always first. The
+  // remaining sections render in the order configured in Config → "Ordre
+  // d'affichage des sections", so the page matches the French CV standard
+  // (À propos → Parcours → Compétences → Langues → Centres d'intérêt →
+  // Services → Projets → Journal → Contact) or any custom arrangement.
+  const order = (settings?.sectionOrder?.length
+    ? settings.sectionOrder
+    : DEFAULT_SECTION_ORDER) as SectionId[];
+
+  const renderSection = (id: SectionId) => {
+    switch (id) {
+      case "about":
+        return settings?.visibilityAbout && data.about ? (
+          <About about={data.about} visibilityCv={settings.visibilityCv} />
+        ) : null;
+      case "resume":
+        return (settings?.visibilityExperience ||
+          settings?.visibilityEducation) &&
+          data.resume ? (
+          <Resume resume={data.resume} />
+        ) : null;
+      case "skills":
+        return settings?.visibilitySkill && data.skills ? (
+          <Skills
+            skills={data.skills}
+            showProficiency={settings.visibilitySkillProficiency}
+          />
+        ) : null;
+      case "languages":
+        return settings?.visibilityLanguages && data.languages ? (
+          <Languages languages={data.languages} />
+        ) : null;
+      case "interests":
+        return settings?.visibilityInterests && data.interests ? (
+          <Interests interests={data.interests} />
+        ) : null;
+      case "services":
+        return settings?.visibilityService && data.services ? (
+          <Services services={data.services} />
+        ) : null;
+      case "portfolio":
+        return settings?.visibilityProject && data.portfolio ? (
+          <Portfolio portfolio={data.portfolio} />
+        ) : null;
+      case "blog":
+        return settings?.visibilityBlog && data.blog ? (
+          <Blog blog={data.blog} />
+        ) : null;
+      case "contact":
+        return settings?.visibilityContact && data.about ? (
+          <Contact about={data.about} />
+        ) : null;
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <SiteHeader
@@ -245,25 +342,9 @@ export default function Landing() {
           visibilityCv={settings.visibilityCv}
         />
       )}
-      {settings?.visibilityAbout && data.about && (
-        <About about={data.about} visibilityCv={settings.visibilityCv} />
-      )}
-      {settings?.visibilitySkill && data.skills && (
-        <Skills
-          skills={data.skills}
-          showProficiency={settings.visibilitySkillProficiency}
-        />
-      )}
-      {settings?.visibilityService && data.services && (
-        <Services services={data.services} />
-      )}
-      {(settings?.visibilityExperience || settings?.visibilityEducation) &&
-        data.resume && <Resume resume={data.resume} />}
-      {settings?.visibilityProject && data.portfolio && (
-        <Portfolio portfolio={data.portfolio} />
-      )}
-      {settings?.visibilityBlog && data.blog && <Blog blog={data.blog} />}
-      {settings?.visibilityContact && data.about && <Contact about={data.about} />}
+      {order.map((id) => (
+        <div key={id}>{renderSection(id)}</div>
+      ))}
       {settings?.visibilityFooter && (
         <SiteFooter site={data.site} socials={data.about?.socials} />
       )}

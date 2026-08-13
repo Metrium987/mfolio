@@ -8,17 +8,29 @@ import { getCurrentUser } from "./users";
 export const getSiteData = query({
   args: {},
   handler: async (ctx) => {
-    const [site, settings, about, skills, services, resume, portfolio, blog] =
-      await Promise.all([
-        ctx.db.query("site").first(),
-        ctx.db.query("settings").first(),
-        ctx.db.query("about").first(),
-        ctx.db.query("skills").first(),
-        ctx.db.query("services").first(),
-        ctx.db.query("resume").first(),
-        ctx.db.query("portfolio").first(),
-        ctx.db.query("blog").first(),
-      ]);
+    const [
+      site,
+      settings,
+      about,
+      skills,
+      services,
+      resume,
+      portfolio,
+      blog,
+      languages,
+      interests,
+    ] = await Promise.all([
+      ctx.db.query("site").first(),
+      ctx.db.query("settings").first(),
+      ctx.db.query("about").first(),
+      ctx.db.query("skills").first(),
+      ctx.db.query("services").first(),
+      ctx.db.query("resume").first(),
+      ctx.db.query("portfolio").first(),
+      ctx.db.query("blog").first(),
+      ctx.db.query("languages").first(),
+      ctx.db.query("interests").first(),
+    ]);
 
     // The DeepL key is write-only: never send it to clients, even the owner
     // (the dashboard shows a masked "key set" state instead).
@@ -31,6 +43,8 @@ export const getSiteData = query({
       resume,
       portfolio,
       blog,
+      languages,
+      interests,
     };
   },
 });

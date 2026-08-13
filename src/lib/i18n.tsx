@@ -23,6 +23,8 @@ export const UI_STRINGS = {
   "nav.resume": { fr: "Parcours", en: "Resume" },
   "nav.portfolio": { fr: "Projets", en: "Projects" },
   "nav.blog": { fr: "Journal", en: "Journal" },
+  "nav.languages": { fr: "Langues", en: "Languages" },
+  "nav.interests": { fr: "Centres d'intérêt", en: "Interests" },
   "nav.contact": { fr: "Contact", en: "Contact" },
   "header.admin": { fr: "Admin", en: "Admin" },
   "header.menu": { fr: "Menu", en: "Menu" },
@@ -49,6 +51,16 @@ export const UI_STRINGS = {
   "resume.noEducation": {
     fr: "Aucune formation renseignée.",
     en: "No education listed yet.",
+  },
+  "languages.kicker": { fr: "Langues", en: "Languages" },
+  "languages.none": {
+    fr: "Aucune langue renseignée pour le moment.",
+    en: "No languages listed yet.",
+  },
+  "interests.kicker": { fr: "Centres d'intérêt", en: "Interests" },
+  "interests.none": {
+    fr: "Aucun centre d'intérêt renseigné pour le moment.",
+    en: "No interests listed yet.",
   },
   "portfolio.kicker": { fr: "Portfolio", en: "Portfolio" },
   "portfolio.all": { fr: "Tous", en: "All" },

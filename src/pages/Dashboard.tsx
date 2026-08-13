@@ -8,6 +8,7 @@ import {
   Home,
   Inbox,
   Info,
+  Languages,
   Layers,
   LogOut,
   Mail,
@@ -15,6 +16,7 @@ import {
   PenTool,
   Settings,
   SlidersHorizontal,
+  Sparkles,
   TrendingUp,
   Users,
   Wrench,
@@ -25,6 +27,8 @@ import { api } from "@/convex/_generated/api";
 import { AboutEditor, ConfigEditor, SiteEditor } from "@/components/admin/editors-basic";
 import {
   BlogEditor,
+  InterestsEditor,
+  LanguagesEditor,
   MessagesView,
   PortfolioEditor,
   ResumeEditor,
@@ -50,6 +54,8 @@ const NAV: NavItem[] = [
   { id: "config", label: "Config", icon: SlidersHorizontal, group: "Portfolio" },
   { id: "about", label: "À propos", icon: Info, group: "Portfolio" },
   { id: "skills", label: "Compétences", icon: TrendingUp, group: "Portfolio" },
+  { id: "languages", label: "Langues", icon: Languages, group: "Portfolio" },
+  { id: "interests", label: "Centres d'intérêt", icon: Sparkles, group: "Portfolio" },
   { id: "services", label: "Services", icon: Layers, group: "Portfolio" },
   { id: "resume", label: "Parcours", icon: Briefcase, group: "Portfolio" },
   { id: "portfolio", label: "Projets", icon: FolderOpen, group: "Portfolio" },
@@ -253,6 +259,8 @@ export default function Dashboard() {
       data.resume,
       data.portfolio,
       data.blog,
+      data.languages,
+      data.interests,
     ];
     const fullyTranslated = contentSections.every((section) => section && section.en);
     if (fullyTranslated) return;
@@ -324,6 +332,10 @@ export default function Dashboard() {
         return <AboutEditor about={data.about} />;
       case "skills":
         return <SkillsEditor skills={data.skills} />;
+      case "languages":
+        return <LanguagesEditor languages={data.languages} />;
+      case "interests":
+        return <InterestsEditor interests={data.interests} />;
       case "services":
         return <ServicesEditor services={data.services} />;
       case "resume":

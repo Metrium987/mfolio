@@ -10,7 +10,9 @@ type SectionTable =
   | "services"
   | "resume"
   | "portfolio"
-  | "blog";
+  | "blog"
+  | "languages"
+  | "interests";
 
 const SECTION_NAMES = [
   "site",
@@ -21,6 +23,8 @@ const SECTION_NAMES = [
   "resume",
   "portfolio",
   "blog",
+  "languages",
+  "interests",
 ] as const;
 
 /**

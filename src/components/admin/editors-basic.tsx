@@ -1,11 +1,25 @@
 import { useAction, useMutation, useQuery } from "convex/react";
-import { FileText, Languages, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  FileText,
+  Languages,
+  Loader2,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DEFAULT_SECTION_ORDER,
+  SECTION_LABELS,
+  type SectionId,
+} from "@/lib/sections";
 import { SectionEditor } from "./SectionEditor";
 import {
   Field,
@@ -41,6 +55,8 @@ const VISIBILITY_ITEMS: { key: VisibilityKey; label: string }[] = [
   { key: "visibilityCv", label: "Bouton « Télécharger le CV »" },
   { key: "visibilitySkillProficiency", label: "Niveaux des compétences" },
   { key: "visibilityBlog", label: "Section « Journal »" },
+  { key: "visibilityLanguages", label: "Section « Langues »" },
+  { key: "visibilityInterests", label: "Section « Centres d'intérêt »" },
 ];
 
 function StringListEditor({
@@ -800,6 +816,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
     metaImage: "",
     scriptHeader: "",
     scriptFooter: "",
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
     visibilityAbout: true,
     visibilitySkill: true,
     visibilityEducation: true,
@@ -811,6 +828,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
     visibilityCv: true,
     visibilitySkillProficiency: true,
     visibilityBlog: true,
+    visibilityLanguages: true,
+    visibilityInterests: true,
   });
 
   const save = async () => {
@@ -900,6 +919,64 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               }
             />
           ))}
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-2">
+        <p className="text-[13px] font-medium">Ordre d'affichage des sections</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          L'ordre par défaut suit le standard français du CV : À propos →
+          Parcours → Compétences → Langues → Centres d'intérêt → Services →
+          Projets → Journal → Contact. Utilisez les flèches pour réorganiser.
+        </p>
+        <div className="space-y-1.5">
+          {(
+            draft.value.sectionOrder?.length
+              ? draft.value.sectionOrder
+              : DEFAULT_SECTION_ORDER
+          ).map((id, index, order) => {
+            const label = SECTION_LABELS[id as SectionId] ?? id;
+            const move = (dir: -1 | 1) => {
+              const target = index + dir;
+              if (target < 0 || target >= order.length) return;
+              const next = [...order];
+              [next[index], next[target]] = [next[target], next[index]];
+              draft.set({ ...draft.value, sectionOrder: next });
+            };
+            return (
+              <div
+                key={id}
+                className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
+              >
+                <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                  {label}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Monter"
+                  disabled={index === 0}
+                  onClick={() => move(-1)}
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Descendre"
+                  disabled={index === order.length - 1}
+                  onClick={() => move(1)}
+                >
+                  <ArrowDown className="size-4" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
 

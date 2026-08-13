@@ -6,6 +6,8 @@ import { api } from "./_generated/api";
 import {
   aboutValidator,
   blogValidator,
+  interestsValidator,
+  languagesValidator,
   portfolioValidator,
   resumeValidator,
   servicesValidator,
@@ -22,7 +24,9 @@ export type SectionName =
   | "services"
   | "resume"
   | "portfolio"
-  | "blog";
+  | "blog"
+  | "languages"
+  | "interests";
 
 export const CONTENT_SECTIONS = [
   "site",
@@ -33,6 +37,8 @@ export const CONTENT_SECTIONS = [
   "resume",
   "portfolio",
   "blog",
+  "languages",
+  "interests",
 ] as const;
 
 /**
@@ -72,6 +78,18 @@ const SECTION_PATHS: Record<SectionName, string[][]> = {
     ["posts", "*", "title"],
     ["posts", "*", "excerpt"],
     ["posts", "*", "content"],
+  ],
+  languages: [
+    ["title"],
+    ["description"],
+    ["items", "*", "name"],
+    ["items", "*", "level"],
+  ],
+  interests: [
+    ["title"],
+    ["description"],
+    ["items", "*", "name"],
+    ["items", "*", "details"],
   ],
 };
 
@@ -305,6 +323,20 @@ export const updateBlog = action({
   args: { data: blogValidator },
   handler: async (ctx, { data }) => {
     await translateAndPersist(ctx, "blog", data);
+  },
+});
+
+export const updateLanguages = action({
+  args: { data: languagesValidator },
+  handler: async (ctx, { data }) => {
+    await translateAndPersist(ctx, "languages", data);
+  },
+});
+
+export const updateInterests = action({
+  args: { data: interestsValidator },
+  handler: async (ctx, { data }) => {
+    await translateAndPersist(ctx, "interests", data);
   },
 });
 

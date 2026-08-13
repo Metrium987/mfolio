@@ -1042,6 +1042,212 @@ export function BlogEditor({ blog }: { blog: Doc<"blog"> | null | undefined }) {
 }
 
 // ---------------------------------------------------------------------------
+// Languages — spoken languages with proficiency level (French CV rubric)
+// ---------------------------------------------------------------------------
+
+export function LanguagesEditor({
+  languages,
+}: {
+  languages: Doc<"languages"> | null | undefined;
+}) {
+  const updateLanguages = useAction(api.translate.updateLanguages);
+  const [saving, setSaving] = useState(false);
+  const draft = useSectionDraft(languages, {
+    title: "",
+    description: "",
+    items: [],
+  });
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateLanguages({ data: draft.value });
+      draft.commit(draft.value);
+      toast.success("Section « Langues » enregistrée");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SectionEditor
+      title="Langues"
+      description="Les langues parlées avec leur niveau — rubrique standard du CV français (Natif, Courant, Intermédiaire…)."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      onSave={save}
+      saving={saving}
+      dirty={draft.dirty}
+    >
+      <div className="grid gap-5 sm:grid-cols-2">
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Langues" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Les langues que je parle au quotidien." />
+      </div>
+
+      <div className="mt-6 space-y-3">
+        {draft.value.items.map((item, index) => (
+          <ItemCard
+            key={index}
+            title={`Langue ${index + 1}`}
+            onRemove={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: prev.items.filter((_, n) => n !== index),
+              }))
+            }
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                label="Langue"
+                value={item.name}
+                onChange={(name) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, name } : i,
+                    ),
+                  }))
+                }
+                placeholder="Français"
+              />
+              <TextField
+                label="Niveau"
+                value={item.level}
+                onChange={(level) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, level } : i,
+                    ),
+                  }))
+                }
+                placeholder="Natif, Courant, Intermédiaire…"
+              />
+            </div>
+          </ItemCard>
+        ))}
+        <AddButton
+          label="Ajouter une langue"
+          onClick={() =>
+            draft.set((prev) => ({
+              ...prev,
+              items: [...prev.items, { name: "", level: "" }],
+            }))
+          }
+        />
+      </div>
+    </SectionEditor>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Interests — hobbies / centers of interest (French CV rubric)
+// ---------------------------------------------------------------------------
+
+export function InterestsEditor({
+  interests,
+}: {
+  interests: Doc<"interests"> | null | undefined;
+}) {
+  const updateInterests = useAction(api.translate.updateInterests);
+  const [saving, setSaving] = useState(false);
+  const draft = useSectionDraft(interests, {
+    title: "",
+    description: "",
+    items: [],
+  });
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateInterests({ data: draft.value });
+      draft.commit(draft.value);
+      toast.success("Section « Centres d'intérêt » enregistrée");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SectionEditor
+      title="Centres d'intérêt"
+      description="Vos passions et activités — rubrique standard du CV français, avec un détail optionnel par élément."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      onSave={save}
+      saving={saving}
+      dirty={draft.dirty}
+    >
+      <div className="grid gap-5 sm:grid-cols-2">
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Centres d'intérêt" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Ce qui nourrit ma pratique, en dehors des écrans." />
+      </div>
+
+      <div className="mt-6 space-y-3">
+        {draft.value.items.map((item, index) => (
+          <ItemCard
+            key={index}
+            title={`Intérêt ${index + 1}`}
+            onRemove={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: prev.items.filter((_, n) => n !== index),
+              }))
+            }
+          >
+            <div className="grid gap-4 sm:grid-cols-[1fr_1.5fr]">
+              <TextField
+                label="Intérêt"
+                value={item.name}
+                onChange={(name) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, name } : i,
+                    ),
+                  }))
+                }
+                placeholder="Photographie"
+              />
+              <TextField
+                label="Détail (optionnel)"
+                value={item.details}
+                onChange={(details) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.map((i, n) =>
+                      n === index ? { ...i, details } : i,
+                    ),
+                  }))
+                }
+                placeholder="Façades et lumière naturelle"
+              />
+            </div>
+          </ItemCard>
+        ))}
+        <AddButton
+          label="Ajouter un centre d'intérêt"
+          onClick={() =>
+            draft.set((prev) => ({
+              ...prev,
+              items: [...prev.items, { name: "", details: "" }],
+            }))
+          }
+        />
+      </div>
+    </SectionEditor>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Messages — with subject and "replied" status (Ezfolio "Message")
 // ---------------------------------------------------------------------------
 

@@ -1,8 +1,11 @@
 import { mutation } from "./_generated/server";
 import type { Infer } from "convex/values";
+import { DEFAULT_SECTION_ORDER } from "../lib/sections";
 import {
   aboutValidator,
   blogValidator,
+  interestsValidator,
+  languagesValidator,
   portfolioValidator,
   resumeValidator,
   servicesValidator,
@@ -32,6 +35,7 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   metaImage: "",
   scriptHeader: "",
   scriptFooter: "",
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   visibilityAbout: true,
   visibilitySkill: true,
   visibilityEducation: true,
@@ -43,6 +47,8 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   visibilityCv: true,
   visibilitySkillProficiency: true,
   visibilityBlog: true,
+  visibilityLanguages: true,
+  visibilityInterests: true,
 };
 
 const sampleAbout: Infer<typeof aboutValidator> = {
@@ -243,6 +249,26 @@ const samplePortfolio: Infer<typeof portfolioValidator> = {
   ],
 };
 
+const sampleLanguages: Infer<typeof languagesValidator> = {
+  title: "Langues",
+  description: "Les langues que je parle au quotidien.",
+  items: [
+    { name: "Français", level: "Natif" },
+    { name: "Anglais", level: "Courant" },
+    { name: "Espagnol", level: "Intermédiaire" },
+  ],
+};
+
+const sampleInterests: Infer<typeof interestsValidator> = {
+  title: "Centres d'intérêt",
+  description: "Ce qui nourrit ma pratique, en dehors des écrans.",
+  items: [
+    { name: "Photographie", details: "Façades et lumière naturelle" },
+    { name: "Randonnée", details: "Sentiers du Rhône et des Alpes" },
+    { name: "Cuisine", details: "Pâtisserie et recettes de saison" },
+  ],
+};
+
 const sampleBlog: Infer<typeof blogValidator> = {
   title: "Journal",
   description: "Notes de travail, réflexions et retours d'expérience.",
@@ -337,17 +363,29 @@ const sampleVisitors = Array.from({ length: 22 }, (_, index) => ({
 export const ensureSeed = mutation({
   args: {},
   handler: async (ctx) => {
-    const [site, settings, about, skills, services, resume, portfolio, blog] =
-      await Promise.all([
-        ctx.db.query("site").first(),
-        ctx.db.query("settings").first(),
-        ctx.db.query("about").first(),
-        ctx.db.query("skills").first(),
-        ctx.db.query("services").first(),
-        ctx.db.query("resume").first(),
-        ctx.db.query("portfolio").first(),
-        ctx.db.query("blog").first(),
-      ]);
+    const [
+      site,
+      settings,
+      about,
+      skills,
+      services,
+      resume,
+      portfolio,
+      blog,
+      languages,
+      interests,
+    ] = await Promise.all([
+      ctx.db.query("site").first(),
+      ctx.db.query("settings").first(),
+      ctx.db.query("about").first(),
+      ctx.db.query("skills").first(),
+      ctx.db.query("services").first(),
+      ctx.db.query("resume").first(),
+      ctx.db.query("portfolio").first(),
+      ctx.db.query("blog").first(),
+      ctx.db.query("languages").first(),
+      ctx.db.query("interests").first(),
+    ]);
 
     // A complete seed has one document per content table, and the settings
     // document must carry the current schema's visibility config. Stale docs
@@ -364,10 +402,18 @@ export const ensureSeed = mutation({
     const aboutCurrent = about && Array.isArray(about.socials);
 
     // Fields added after an earlier seed run may be missing from an existing
-    // settings doc (e.g. deeplApiKey). Patch just that field instead of
-    // wiping the whole database, which would discard owner customizations.
+    // settings doc (e.g. deeplApiKey, sectionOrder, new visibility flags).
+    // Patch just those fields instead of wiping the whole database, which
+    // would discard owner customizations.
     if (settings && typeof settings.deeplApiKey !== "string") {
       await ctx.db.patch(settings._id, { deeplApiKey: "" });
+    }
+    if (settings && !Array.isArray(settings.sectionOrder)) {
+      await ctx.db.patch(settings._id, {
+        sectionOrder: [...DEFAULT_SECTION_ORDER],
+        visibilityLanguages: true,
+        visibilityInterests: true,
+      });
     }
 
     if (
@@ -380,6 +426,10 @@ export const ensureSeed = mutation({
       portfolio &&
       blog
     ) {
+      // The core site is complete — additive migration only: insert the new
+      // rubric tables if missing, never touch existing owner content.
+      if (!languages) await ctx.db.insert("languages", sampleLanguages);
+      if (!interests) await ctx.db.insert("interests", sampleInterests);
       return;
     }
 
@@ -392,6 +442,8 @@ export const ensureSeed = mutation({
       "resume",
       "portfolio",
       "blog",
+      "languages",
+      "interests",
       "messages",
       "visitors",
     ] as const;
@@ -410,6 +462,8 @@ export const ensureSeed = mutation({
     await ctx.db.insert("resume", sampleResume);
     await ctx.db.insert("portfolio", samplePortfolio);
     await ctx.db.insert("blog", sampleBlog);
+    await ctx.db.insert("languages", sampleLanguages);
+    await ctx.db.insert("interests", sampleInterests);
     for (const message of sampleMessages) {
       await ctx.db.insert("messages", message);
     }
