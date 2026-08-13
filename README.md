@@ -4,6 +4,8 @@
 
 **🇫🇷 Version française : [README.fr.md](README.fr.md)**
 
+[![CI](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml)
+
 > **Origins:** Mfolio was originally built on **Freebuff Web** (formerly vly.ai), which provides the hosted environment, the Convex integration and a platform email relay. The app is fully portable: only **two optional email features** depend on the platform, and both can be switched off or re-pointed to your own provider. See [Deploying](#deploying).
 
 ---
