@@ -8,7 +8,6 @@ import { Contact } from "@/components/site/Contact";
 import { Hero } from "@/components/site/Hero";
 import { Interests } from "@/components/site/Interests";
 import { Languages } from "@/components/site/Languages";
-import { Marquee } from "@/components/site/Marquee";
 import { Portfolio } from "@/components/site/Portfolio";
 import { Resume } from "@/components/site/Resume";
 import { Services } from "@/components/site/Services";
@@ -253,25 +252,6 @@ export default function Landing() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, t]);
 
-  // Keywords for the kinetic marquee band: services first, then skills,
-  // then the hero taglines as a last resort — always in the active language.
-  const marqueeItems = useMemo(() => {
-    const services = data?.services?.items
-      .map((item, index) =>
-        pick(item.title, data.services?.en?.items?.[index]?.title),
-      )
-      .filter(Boolean);
-    if (services && services.length > 0) return services;
-    const skills = data?.skills?.items
-      .map((item, index) =>
-        pick(item.name, data.skills?.en?.items?.[index]?.name),
-      )
-      .filter(Boolean);
-    if (skills && skills.length > 0) return skills;
-    return (data?.about?.taglines ?? []).filter(Boolean);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, pick]);
-
   if (!data) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
@@ -366,7 +346,6 @@ export default function Landing() {
           visibilityCv={settings.visibilityCv}
         />
       )}
-      <Marquee items={marqueeItems} />
       {order.map((id) => (
         <div key={id}>{renderSection(id)}</div>
       ))}
