@@ -1470,45 +1470,22 @@ export function LanguagesEditor({
 
       <div className="mt-6 space-y-3">
         {draft.value.items.map((item, index) => (
-          <ItemCard
-            key={index}
-            onRemove={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: prev.items.filter((_, n) => n !== index),
-              }))
-            }
-            onMoveUp={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, -1),
-              }))
-            }
-            onMoveDown={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, 1),
-              }))
-            }
-            canMoveUp={index > 0}
-            canMoveDown={index < draft.value.items.length - 1}
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                label="Langue"
+          <div key={index} className="rounded-md border border-border bg-background p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Input
                 value={item.name}
-                onChange={(name) =>
+                onChange={(event) =>
                   draft.set((prev) => ({
                     ...prev,
                     items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name } : i,
+                      n === index ? { ...i, name: event.target.value } : i,
                     ),
                   }))
                 }
                 placeholder="Français"
+                className="min-w-0 max-w-xs flex-1 bg-background"
               />
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Niveau</p>
+              <div className="min-w-44 flex-1">
                 <Select
                   value={String(item.level)}
                   onValueChange={(level) =>
@@ -1535,8 +1512,55 @@ export function LanguagesEditor({
                   </SelectContent>
                 </Select>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Monter"
+                disabled={index === 0}
+                className="shrink-0"
+                onClick={() =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: moveItem(prev.items, index, -1),
+                  }))
+                }
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Descendre"
+                disabled={index === draft.value.items.length - 1}
+                className="shrink-0"
+                onClick={() =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: moveItem(prev.items, index, 1),
+                  }))
+                }
+              >
+                <ArrowDown className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                title="Supprimer"
+                className="shrink-0"
+                onClick={() =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    items: prev.items.filter((_, n) => n !== index),
+                  }))
+                }
+              >
+                <Trash2 className="size-4" />
+              </Button>
             </div>
-          </ItemCard>
+          </div>
         ))}
         <AddButton
           label="Ajouter une langue"
