@@ -213,6 +213,11 @@ export const settingsValidator = v.object({
   deeplApiKey: v.string(),
   // Destination of the contact-form notification email.
   notificationEmail: v.optional(v.string()),
+  // Email channels the owner can toggle off (portability: the built-in email
+  // relay is platform-specific, so these can be switched off when the app is
+  // deployed elsewhere). Absent = enabled, for backward compatibility.
+  contactNotifications: v.optional(v.boolean()),
+  emailOtpEnabled: v.optional(v.boolean()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),

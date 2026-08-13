@@ -81,10 +81,19 @@ export const updateIntegrations = mutation({
     deeplApiKey: v.optional(v.string()),
     clearDeeplKey: v.optional(v.boolean()),
     notificationEmail: v.optional(v.string()),
+    contactNotifications: v.optional(v.boolean()),
+    emailOtpEnabled: v.optional(v.boolean()),
   }),
   handler: async (
     ctx,
-    { googleAnalyticsId, deeplApiKey, clearDeeplKey, notificationEmail },
+    {
+      googleAnalyticsId,
+      deeplApiKey,
+      clearDeeplKey,
+      notificationEmail,
+      contactNotifications,
+      emailOtpEnabled,
+    },
   ) => {
     await requireOwner(ctx);
     const settings = await ctx.db.query("settings").first();
@@ -93,6 +102,8 @@ export const updateIntegrations = mutation({
       googleAnalyticsId: string;
       deeplApiKey?: string;
       notificationEmail?: string;
+      contactNotifications?: boolean;
+      emailOtpEnabled?: boolean;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
     };
@@ -103,6 +114,12 @@ export const updateIntegrations = mutation({
     }
     if (notificationEmail !== undefined) {
       patch.notificationEmail = notificationEmail.trim();
+    }
+    if (contactNotifications !== undefined) {
+      patch.contactNotifications = contactNotifications;
+    }
+    if (emailOtpEnabled !== undefined) {
+      patch.emailOtpEnabled = emailOtpEnabled;
     }
     await ctx.db.patch(settings._id, patch);
   },
@@ -179,10 +196,12 @@ export const addMessage = mutation({
     // destination is read from the settings doc (notificationEmail, falling
     // back to the contact email) and passed to the action, which runs
     // unauthenticated and therefore can't read the owner-only tables itself.
+    // The owner can switch the email off entirely (contactNotifications=false)
+    // for portability — the message is still stored in the inbox.
     const settings = await ctx.db.query("settings").first();
     const about = await ctx.db.query("about").first();
     const to = settings?.notificationEmail?.trim() || about?.email?.trim();
-    if (to) {
+    if (settings?.contactNotifications !== false && to) {
       await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
         to,
         name: name.trim(),

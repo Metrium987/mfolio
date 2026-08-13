@@ -1,4 +1,4 @@
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,12 +45,20 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const ensureAdmin = useAction(api.ensureAdmin.ensureAdmin);
   const navigate = useNavigate();
+  // Public setting: the owner can disable the email-code login (OTP) so the
+  // app works on any platform even when the built-in email relay is not
+  // available. When off, only the password login is shown.
+  const siteData = useQuery(api.site.getSiteData);
+  const otpEnabled = siteData?.settings?.emailOtpEnabled !== false;
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
   const [mode, setMode] = useState<"password" | "otp">("password");
+  // When OTP is disabled, the email-code login is hidden entirely — only the
+  // password login remains.
+  const effectiveMode = otpEnabled ? mode : "password";
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -156,40 +164,42 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   Connexion
                 </CardTitle>
                 <CardDescription>
-                  {mode === "password"
+                  {effectiveMode === "password"
                     ? "Connectez-vous avec votre email et votre mot de passe."
                     : "Entrez votre adresse email pour recevoir un code de connexion."}
                 </CardDescription>
 
-                <div className="mt-5 grid grid-cols-2 gap-1 rounded-full border border-border bg-muted p-1">
-                  {(
-                    [
-                      { id: "password", label: "Mot de passe" },
-                      { id: "otp", label: "Code par email" },
-                    ] as const
-                  ).map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => {
-                        setMode(option.id);
-                        setError(null);
-                      }}
-                      aria-pressed={mode === option.id}
-                      className={cn(
-                        "rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors",
-                        mode === option.id
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                {otpEnabled && (
+                  <div className="mt-5 grid grid-cols-2 gap-1 rounded-full border border-border bg-muted p-1">
+                    {(
+                      [
+                        { id: "password", label: "Mot de passe" },
+                        { id: "otp", label: "Code par email" },
+                      ] as const
+                    ).map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => {
+                          setMode(option.id);
+                          setError(null);
+                        }}
+                        aria-pressed={effectiveMode === option.id}
+                        className={cn(
+                          "rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors",
+                          effectiveMode === option.id
+                            ? "bg-foreground text-background"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </CardHeader>
 
-              {mode === "password" ? (
+              {effectiveMode === "password" ? (
                 <form onSubmit={handlePasswordSubmit}>
                   <CardContent>
                     <div className="space-y-3">

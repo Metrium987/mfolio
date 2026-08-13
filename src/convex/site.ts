@@ -101,6 +101,8 @@ export const getIntegrations = query({
       googleAnalyticsId: settings?.googleAnalyticsId ?? "",
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
       notificationEmail: settings?.notificationEmail ?? "",
+      contactNotifications: settings?.contactNotifications !== false,
+      emailOtpEnabled: settings?.emailOtpEnabled !== false,
     };
   },
 });
