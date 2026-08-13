@@ -1,14 +1,14 @@
-# Notification email — constat et canal fiable (Freebuff Web)
+# Notification email — canal fiable et implémentation retenue (Freebuff Web)
 
 > **Date :** août 2026 · **Contexte :** rachat de vly.ai par Freebuff
-> Ce document consigne une information cruciale vérifiée par des tests réels, pour ne pas avoir à la redécouvrir.
+> Ce document consigne une information cruciale **vérifiée par des tests réels**, pour ne pas avoir à la redécouvrir — et pour aider d'autres projets Freebuff Web.
 
 ## TL;DR
 
 - La clé `VLY_INTEGRATION_KEY` (`sk_…`) + la passerelle `integrations.vly.ai` **ne fonctionnent plus** (401 « Invalid token »). C'est un reliquat de l'ancienne plateforme vly.ai, encore injecté par Freebuff Web mais **rejeté** par la passerelle.
 - Le **seul canal email qui fonctionne** sur Freebuff Web est le relais de la plateforme : `https://auth.freebuff.app/send_otp`, avec la clé `x-api-key` fournie par le template.
-- Il est utilisé par les **codes de connexion** (`src/convex/auth/emailOtp.ts`) — preuve qu'il délivre réellement les emails.
-- ⚠️ Il formate l'email comme un **email de code de connexion** (objet « Sign in to … », corps « Enter this code on the sign-in page … »). On ne contrôle pas l'objet ni le corps : seul le contenu du champ `otp` passe dans le corps.
+- **Implémentation retenue :** la notification de contact est un **simple avis** (sans le texte du message) envoyé via ce relais. Le message complet reste dans le tableau de bord.
+- ⚠️ Le relais formate l'email comme un email de code (objet « Sign in to … ») : on ne contrôle ni l'objet ni le template. Parfait pour les codes, acceptable pour une notification courte.
 
 ## Les faits vérifiés (tests réels)
 
@@ -36,55 +36,62 @@ x-api-key: fb_email_2crN1hqIArZP2bEfvjp5Qik4
 ```json
 {
   "to": "destinataire@exemple.com",
-  "appName": "Nom affiché dans l'objet",
+  "appName": "Nom affiché dans l'objet de l'email",
   "otp": "contenu placé dans le corps de l'email"
 }
 ```
 
 **Réponse succès :**
 ```json
-{ "message": "Email sent", "data": { "id": "caccca5c-7312-4020-ae98-33872442df51" } }
+{ "message": "Email sent", "data": { "id": "…" } }
 ```
 
-**Erreur connue (domaines de test) :** envoyer vers `example.com` renvoie une erreur 422 de Resend (« Please use our testing email address »). Les adresses réelles (gmail.com, etc.) fonctionnent.
+**Erreur connue :** envoyer vers `example.com` renvoie une erreur 422 de Resend (« Please use our testing email address »). Les adresses réelles (gmail.com, etc.) fonctionnent.
 
-## À quoi ressemble l'email reçu (test réel du 13/08/2026)
+## Rendu de l'email (testé)
 
-Envoyé vers `ludovic.lou@gmail.com` avec `appName = "Mfolio — Essai notification"` et `otp = "ESSAI-TEST-123 (message de test via script, à ignorer)"` :
+- **Avec `appName` = « Mfolio — Essai notification » et un code :** objet `Sign in to Mfolio — Essai notification`, corps « Enter this code on the sign-in page. … This code expires in 1 hour. »
+- **Avec un très long contenu (~2 400 caractères) dans `otp` :** le texte est passé **intégralement** (pas de troncature constatée), accents et sauts de ligne conservés. Mais l'affichage est brut — c'est ce qui a motivé la décision de **ne pas** envoyer le message complet par email.
 
-- **Objet :** `Sign in to Mfolio — Essai notification`
-- **Corps :**
-  > Enter this code on the sign-in page.
-  >
-  > ESSAI-TEST-123 (message de test via script, à ignorer)
-  >
-  > This code expires in 1 hour.
-  > If you didn't request it, you can safely ignore this email.
+## Implémentation retenue (dans ce projet)
 
-**Conséquence :** le relais est parfait pour les codes de connexion, mais **inadapté tel quel pour une notification de contact professionnelle** — le message y apparaîtrait comme un « code de connexion » avec « expires in 1 hour ».
+| Fichier | Rôle |
+|---|---|
+| `src/convex/emailRelay.ts` | **Helper partagé** : un seul endroit qui appelle le relais (`sendViaEmailRelay({ to, appName, otp })`). Backend uniquement, la clé n'est jamais exposée au client. |
+| `src/convex/notify.ts` | Action `sendContactEmail` : **notification courte** (avis + nom + email + sujet), **sans le texte du message**. |
+| `src/convex/auth/emailOtp.ts` | Codes de connexion : envoi **direct** via le relais (plus de tentative morte vers la passerelle). |
+| `src/convex/siteMutations.ts` | `addMessage` enregistre le message complet en base puis planifie l'action de notification. |
 
-## Où c'est utilisé dans le projet
+**Contenu de l'email de notification (tel que reçu) :**
+```
+Nouveau message reçu sur votre portfolio (Ludovic LOU)
+De : Test Message Long (visiteur-long@example.com)
+Sujet : Test message tres long
+Connectez-vous au tableau de bord pour lire le message.
+```
 
-- `src/convex/auth/emailOtp.ts` — envoi des codes de connexion : tente d'abord la passerelle `vly.email.send` (échoue en silence, 401), puis bascule sur le relais `auth.freebuff.app/send_otp`. C'est pour ça que la connexion fonctionne malgré la clé morte.
-- `src/convex/notify.ts` — notification de contact : utilise uniquement `vly.email.send` → **échoue actuellement** avec « Invalid token ».
+## Ce qui a été supprimé (nettoyage)
 
-## Options pour la notification de contact
+- `src/lib/vly-integrations.ts` (module mort de la passerelle vly.ai).
+- Dépendances `axios` et `@vly-ai/integrations` (package.json + lockfile).
+- `import '@vly-ai/integrations'` dans `src/main.tsx` (import d'effet de bord du template — aurait cassé le build).
+- `test-relay.ts` (script de test jetable).
 
-1. **Re-brancher `notify.ts` sur le relais `auth.freebuff.app/send_otp`** (même appel que les codes) :
-   - ✅ fonctionne dès maintenant, zéro configuration, clé déjà dans le repo ;
-   - ⚠️ l'email reçu sera formaté comme un email de code (« Sign in to … », « expires in 1 hour ») — acceptable en dépannage, pas idéal pour un portfolio pro.
-2. **Attendre que Freebuff corrige la provision de `VLY_INTEGRATION_KEY`** (point support plateforme, non réparable depuis le code) : dès que la clé est valide, `notify.ts` actuel fonctionnera sans modification.
-3. **Service tiers (Resend/SendGrid…) avec sa propre clé** : rendu propre, mais nécessite une clé API personnelle et un domaine vérifié.
+## Tester soi-même
+
+Le parcours complet se teste sans toucher au code :
+
+```bash
+bunx convex run siteMutations:addMessage '{"name":"Test","email":"visiteur@example.com","subject":"Sujet","message":"Contenu"}' 
+```
+
+Vérifier ensuite : le message apparaît dans **Portfolio → Messages** du tableau de bord, et l'email de notification arrive sur l'**« Email de notification »** (ou l'email de contact à défaut) défini dans les réglages.
 
 ## Sécurité
 
-- La clé `x-api-key` du relais est **hardcodée dans le template** (`src/convex/auth/emailOtp.ts`). Elle ne doit **jamais** être exposée côté client : tous les appels doivent passer par du code backend (Convex actions / `"use node"`).
-- La clé `VLY_INTEGRATION_KEY` ne doit pas non plus sortir du backend (elle est lue via `process.env`).
+- La clé `x-api-key` du relais est **hardcodée dans le template**. Elle ne doit **jamais** être exposée côté client : tous les appels passent par du code backend (Convex actions / `"use node"`).
+- `VLY_INTEGRATION_KEY` ne doit pas non plus sortir du backend (lue via `process.env`).
 
-## Script de test
+## Si la passerelle vly.ai revient en vie
 
-Un script autonome `test-relay.ts` (racine du projet) permet de re-tester le relais à tout moment :
-```bash
-bun run test-relay.ts
-```
-(à supprimer une fois la décision prise, si besoin)
+Si Freebuff corrige un jour la provision de `VLY_INTEGRATION_KEY`, le relais restera le canal le plus simple et sans clé à gérer. Pour repartir sur la passerelle officielle, il faudrait réinstaller `@vly-ai/integrations` et adapter `emailRelay.ts` — rien d'autre.
