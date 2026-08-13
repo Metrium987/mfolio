@@ -6,27 +6,61 @@ function ExperienceEntry({
   position,
   company,
   period,
+  location,
+  contractType,
   details,
+  achievements,
 }: {
   position: string;
   company: string;
   period: string;
+  location: string;
+  contractType: string;
   details: string;
+  achievements: string[];
 }) {
+  // Every rubric is optional: only filled parts are rendered and joined with
+  // a thin separator — no orphan "·", no empty rows when a field is left
+  // blank (e.g. no contract type, no location).
+  const meta = [company, location, contractType]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" · ");
+  const bullets = achievements.filter((achievement) => achievement.trim());
+
   return (
     <li className="relative border-l border-border pb-10 pl-6 last:pb-0">
       <span className="absolute -left-[5px] top-1.5 size-2 rounded-full border border-border bg-background" />
-      <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
-        {period}
-      </p>
-      <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
-        {position}
-      </h3>
-      <p className="mt-0.5 text-sm font-medium text-muted-foreground">{company}</p>
-      {details && (
+      {period.trim() && (
+        <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
+          {period}
+        </p>
+      )}
+      {position.trim() && (
+        <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
+          {position}
+        </h3>
+      )}
+      {meta && (
+        <p className="mt-0.5 text-sm font-medium text-muted-foreground">{meta}</p>
+      )}
+      {details.trim() && (
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground/90">
           {details}
         </p>
+      )}
+      {bullets.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {bullets.map((achievement, index) => (
+            <li
+              key={`${achievement}-${index}`}
+              className="flex gap-2.5 text-sm leading-relaxed text-muted-foreground/90"
+            >
+              <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-(--studio-accent)" />
+              <span>{achievement}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </li>
   );
@@ -94,9 +128,26 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
                     )}
                     company={experience.company}
                     period={experience.period}
+                    location={pick(
+                      experience.location ?? "",
+                      resume.en?.experiences?.[index]?.location,
+                    )}
+                    contractType={pick(
+                      experience.contractType ?? "",
+                      resume.en?.experiences?.[index]?.contractType,
+                    )}
                     details={pick(
                       experience.details,
                       resume.en?.experiences?.[index]?.details,
+                    )}
+                    achievements={(experience.achievements ?? []).map(
+                      (achievement, achievementIndex) =>
+                        pick(
+                          achievement,
+                          resume.en?.experiences?.[index]?.achievements?.[
+                            achievementIndex
+                          ],
+                        ),
                     )}
                   />
                 ))}

@@ -52,6 +52,21 @@ import {
   useSectionDraft,
 } from "./fields";
 
+/** Common French contract types offered as a pick-list in the Resume editor. */
+const CONTRACT_TYPES = [
+  "CDI",
+  "CDD",
+  "Intérim",
+  "Freelance",
+  "Indépendant",
+  "Stage",
+  "Alternance",
+  "Apprentissage",
+  "Contrat pro",
+  "Bénévolat",
+  "Volontariat",
+] as const;
+
 function ItemCard({
   title,
   onRemove,
@@ -95,14 +110,18 @@ function TagsEditor({
   value,
   onChange,
   placeholder,
+  hint = "Chaque catégorie sert de filtre sur le site.",
+  addLabel = "Ajouter une catégorie",
 }: {
   label: string;
   value: string[];
   onChange: (value: string[]) => void;
   placeholder: string;
+  hint?: string;
+  addLabel?: string;
 }) {
   return (
-    <Field label={label} hint="Chaque catégorie sert de filtre sur le site.">
+    <Field label={label} hint={hint}>
       <div className="space-y-2">
         {value.map((tag, index) => (
           <div key={index} className="flex items-center gap-2">
@@ -127,7 +146,7 @@ function TagsEditor({
             </Button>
           </div>
         ))}
-        <AddButton label="Ajouter une catégorie" onClick={() => onChange([...value, ""])} />
+        <AddButton label={addLabel} onClick={() => onChange([...value, ""])} />
       </div>
     </Field>
   );
@@ -591,6 +610,56 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                 }
                 placeholder="2022 — Aujourd'hui"
               />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Lieu"
+                  value={item.location ?? ""}
+                  onChange={(location) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      experiences: prev.experiences.map((i, n) =>
+                        n === index ? { ...i, location } : i,
+                      ),
+                    }))
+                  }
+                  placeholder="Lyon, France"
+                  hint="Facultatif — masqué sur le site si vide."
+                />
+                <Field
+                  label="Type de contrat"
+                  hint="Facultatif — « Non précisé » masque le champ."
+                >
+                  <Select
+                    value={item.contractType || "none"}
+                    onValueChange={(contractType) =>
+                      draft.set((prev) => ({
+                        ...prev,
+                        experiences: prev.experiences.map((i, n) =>
+                          n === index
+                            ? {
+                                ...i,
+                                contractType:
+                                  contractType === "none" ? "" : contractType,
+                              }
+                            : i,
+                        ),
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Non précisé</SelectItem>
+                      {CONTRACT_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
               <TextAreaField
                 label="Détails"
                 value={item.details}
@@ -604,6 +673,21 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                 }
                 rows={3}
               />
+              <TagsEditor
+                label="Réalisations clés"
+                value={item.achievements ?? []}
+                onChange={(achievements) =>
+                  draft.set((prev) => ({
+                    ...prev,
+                    experiences: prev.experiences.map((i, n) =>
+                      n === index ? { ...i, achievements } : i,
+                    ),
+                  }))
+                }
+                placeholder="+38 % de conversion…"
+                hint="Accomplissements mesurables, affichés en puces. Facultatif — laissez vide pour masquer."
+                addLabel="Ajouter une réalisation"
+              />
             </ItemCard>
           ))}
           <AddButton
@@ -613,7 +697,15 @@ export function ResumeEditor({ resume }: { resume: Doc<"resume"> | null | undefi
                 ...prev,
                 experiences: [
                   ...prev.experiences,
-                  { position: "", company: "", period: "", details: "" },
+                  {
+                    position: "",
+                    company: "",
+                    period: "",
+                    location: "",
+                    contractType: "",
+                    details: "",
+                    achievements: [],
+                  },
                 ],
               }))
             }

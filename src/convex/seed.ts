@@ -133,22 +133,41 @@ const sampleResume: Infer<typeof resumeValidator> = {
       position: "Designer produit senior",
       company: "Atelier Nord",
       period: "2022 — Aujourd'hui",
+      location: "Lyon, France",
+      contractType: "CDI",
       details:
         "Refonte complète du produit phare (SaaS analytics). Mise en place du design system, pilotage des tests utilisateurs et accompagnement de deux designers juniors.",
+      achievements: [
+        "Refonte du produit phare adoptée par 3 000 équipes.",
+        "Design system déployé et documenté, repris par 20 designers.",
+        "Accompagnement de deux designers juniors.",
+      ],
     },
     {
       position: "Développeuse front-end",
       company: "Studio Hémisphère",
       period: "2020 — 2022",
+      location: "Paris, France",
+      contractType: "CDD",
       details:
         "Développement de sites et d'applications React pour des clients culturels et éditoriaux. Veille technique et contribution au socle de composants du studio.",
+      achievements: [
+        "Développement de sites React pour des clients culturels et éditoriaux.",
+        "Contribution au socle de composants réutilisables du studio.",
+      ],
     },
     {
       position: "UX/UI Designer indépendante",
       company: "Freelance",
       period: "2018 — 2020",
+      location: "Lyon, France",
+      contractType: "Freelance",
       details:
         "Accompagnement de startups en early-stage : cadrage, wireframes, design d'interfaces et premiers prototypes haute fidélité.",
+      achievements: [
+        "Cadrage et wireframes pour des startups en early-stage.",
+        "Design d'interfaces et premiers prototypes haute fidélité.",
+      ],
     },
   ],
   educations: [
@@ -498,6 +517,36 @@ export const ensureSeed = mutation({
           images: project.images,
           role: typeof project.role === "string" ? project.role : "",
           result: typeof project.result === "string" ? project.result : "",
+        })),
+      });
+    }
+    // Experiences gained location/contractType/achievements later — backfill
+    // empty values so they validate against the current schema when edited.
+    if (
+      resume &&
+      Array.isArray(resume.experiences) &&
+      resume.experiences.some(
+        (experience) =>
+          typeof experience.location !== "string" ||
+          typeof experience.contractType !== "string" ||
+          !Array.isArray(experience.achievements),
+      )
+    ) {
+      await ctx.db.patch(resume._id, {
+        experiences: resume.experiences.map((experience) => ({
+          position: experience.position,
+          company: experience.company,
+          period: experience.period,
+          details: experience.details,
+          location:
+            typeof experience.location === "string" ? experience.location : "",
+          contractType:
+            typeof experience.contractType === "string"
+              ? experience.contractType
+              : "",
+          achievements: Array.isArray(experience.achievements)
+            ? experience.achievements
+            : [],
         })),
       });
     }

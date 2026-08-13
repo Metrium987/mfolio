@@ -40,7 +40,10 @@ export const experienceValidator = v.object({
   position: v.string(),
   company: v.string(),
   period: v.string(),
+  location: v.string(),
+  contractType: v.string(),
   details: v.string(),
+  achievements: v.array(v.string()),
 });
 
 export const educationValidator = v.object({
@@ -125,6 +128,9 @@ export const resumeEnValidator = v.object({
     v.object({
       position: v.string(),
       details: v.string(),
+      location: v.string(),
+      contractType: v.string(),
+      achievements: v.array(v.string()),
     }),
   ),
   educations: v.array(
