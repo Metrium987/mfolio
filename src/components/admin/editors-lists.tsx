@@ -74,55 +74,40 @@ const CONTRACT_TYPES = [
   "Volontariat",
 ] as const;
 
-function ItemCard({
-  onRemove,
-  onMoveUp,
-  onMoveDown,
-  canMoveUp = false,
-  canMoveDown = false,
-  children,
+/** Icon picker shared by the Services and Interests editors. */
+function IconSelect({
+  value,
+  onChange,
 }: {
-  onRemove: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
-  canMoveUp?: boolean;
-  canMoveDown?: boolean;
-  children: React.ReactNode;
+  value: string;
+  onChange: (icon: string) => void;
 }) {
   return (
-    <div className="rounded-md border border-border bg-background p-4">
-      <div className="grid gap-4">{children}</div>
-      <div className="mt-4 flex items-center justify-end gap-0.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title="Monter"
-          disabled={!canMoveUp}
-          onClick={onMoveUp}
-        >
-          <ArrowUp className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title="Descendre"
-          disabled={!canMoveDown}
-          onClick={onMoveDown}
-        >
-          <ArrowDown className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title="Supprimer"
-          onClick={onRemove}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      </div>
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-muted-foreground">Icône</p>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full bg-background">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="max-h-80">
+          {SERVICE_ICON_GROUPS.map((group) => (
+            <SelectGroup key={group.label}>
+              <SelectLabel>{group.label}</SelectLabel>
+              {group.icons.map((name) => (
+                <SelectItem key={name} value={name}>
+                  <span className="flex items-center gap-2">
+                    <ServiceIcon
+                      name={name}
+                      className="size-4 text-(--studio-accent)"
+                    />
+                    {name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -498,19 +483,23 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
     items: [],
   });
 
-  const save = async () => {
+  const persist = async (data: typeof draft.value, silent = false) => {
     setSaving(true);
     try {
-      await updateServices({ data: draft.value });
-      draft.commit(draft.value);
-      toast.success("Section « Services » enregistrée");
+      await updateServices({ data });
+      draft.commit(data);
+      if (!silent) toast.success("Section « Services » enregistrée");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (!silent) toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
+  // Kept for the SectionEditor contract; with showSave={false} it is only
+  // reachable programmatically.
+  const save = () => void persist(draft.value);
 
   return (
     <SectionEditor
@@ -519,114 +508,88 @@ export function ServicesEditor({ services }: { services: Doc<"services"> | null 
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
+      showSave={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Services" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Ce que je peux faire pour vous." />
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} onBlur={() => void persist(draft.value, true)} placeholder="Services" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} onBlur={() => void persist(draft.value, true)} placeholder="Ce que je peux faire pour vous." />
       </div>
 
-      <div className="mt-6 space-y-4">
-        {draft.value.items.map((item, index) => (
-          <ItemCard
-            key={index}
-            onRemove={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: prev.items.filter((_, n) => n !== index),
-              }))
-            }
-            onMoveUp={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, -1),
-              }))
-            }
-            onMoveDown={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, 1),
-              }))
-            }
-            canMoveUp={index > 0}
-            canMoveDown={index < draft.value.items.length - 1}
-          >
-            <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Icône</p>
-                <Select
-                  value={item.icon}
-                  onValueChange={(icon) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      items: prev.items.map((i, n) =>
-                        n === index ? { ...i, icon } : i,
-                      ),
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-80">
-                    {SERVICE_ICON_GROUPS.map((group) => (
-                      <SelectGroup key={group.label}>
-                        <SelectLabel>{group.label}</SelectLabel>
-                        {group.icons.map((name) => (
-                          <SelectItem key={name} value={name}>
-                            <span className="flex items-center gap-2">
-                              <ServiceIcon
-                                name={name}
-                                className="size-4 text-(--studio-accent)"
-                              />
-                              {name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div className="mt-8 space-y-3">
+        <ManageList
+          items={draft.value.items}
+          onItemsChange={(items) => draft.set((prev) => ({ ...prev, items }))}
+          emptyItem={() => ({ title: "", details: "", icon: "Layers" })}
+          saving={saving}
+          onSaved={(items) => void persist({ ...draft.value, items })}
+          addLabel="Ajouter un service"
+          itemLabel={(item, index) => item.title.trim() || `Service ${index + 1}`}
+          summary={(item) => (
+            <div className="flex min-w-0 items-center gap-3">
+              {item.icon && (
+                <ServiceIcon
+                  name={item.icon}
+                  className="size-4 shrink-0 text-(--studio-accent)"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">
+                  {item.title.trim() || "Sans titre"}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {item.details.trim() || "—"}
+                </p>
               </div>
-              <TextField
-                label="Titre"
-                value={item.title}
-                onChange={(title) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, title } : i,
-                    ),
-                  }))
-                }
-                placeholder="Design d'interface"
+            </div>
+          )}
+          form={(item, update) => (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
+                <IconSelect
+                  value={item.icon}
+                  onChange={(icon) => update({ icon })}
+                />
+                <TextField
+                  label="Titre"
+                  value={item.title}
+                  onChange={(title) => update({ title })}
+                  placeholder="Design d'interface"
+                />
+              </div>
+              <TextAreaField
+                label="Détails"
+                value={item.details}
+                onChange={(details) => update({ details })}
+                rows={3}
               />
             </div>
-            <TextAreaField
-              label="Détails"
-              value={item.details}
-              onChange={(details) =>
-                draft.set((prev) => ({
-                  ...prev,
-                  items: prev.items.map((i, n) =>
-                    n === index ? { ...i, details } : i,
-                  ),
-                }))
-              }
-              rows={3}
-            />
-          </ItemCard>
-        ))}
-        <AddButton
-          label="Ajouter un service"
-          onClick={() =>
-            draft.set((prev) => ({
-              ...prev,
-              items: [...prev.items, { title: "", details: "", icon: "Layers" }],
-            }))
-          }
+          )}
+          preview={(item) => (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                {item.icon && (
+                  <ServiceIcon
+                    name={item.icon}
+                    className="size-5 text-(--studio-accent)"
+                  />
+                )}
+                <p className="font-medium text-foreground">
+                  {item.title || "Sans titre"}
+                </p>
+              </div>
+              {item.details && (
+                <div>
+                  <PreviewLabel>Détails</PreviewLabel>
+                  <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {item.details}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         />
       </div>
     </SectionEditor>
@@ -1593,29 +1556,33 @@ export function InterestsEditor({
     items: [],
   });
 
-  const save = async () => {
+  const persist = async (data: typeof draft.value, silent = false) => {
     setSaving(true);
     try {
       // Normalize icons for items saved before the icon field existed.
       await updateInterests({
         data: {
-          ...draft.value,
-          items: draft.value.items.map((item) => ({
+          ...data,
+          items: data.items.map((item) => ({
             name: item.name,
             details: item.details,
             icon: item.icon ?? "",
           })),
         },
       });
-      draft.commit(draft.value);
-      toast.success("Section « Centres d'intérêt » enregistrée");
+      draft.commit(data);
+      if (!silent) toast.success("Section « Centres d'intérêt » enregistrée");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (!silent) toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
+  // Kept for the SectionEditor contract; with showSave={false} it is only
+  // reachable programmatically.
+  const save = () => void persist(draft.value);
 
   return (
     <SectionEditor
@@ -1624,114 +1591,88 @@ export function InterestsEditor({
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
+      showSave={false}
       onSave={save}
       saving={saving}
       dirty={draft.dirty}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} placeholder="Centres d'intérêt" />
-        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} placeholder="Ce qui nourrit ma pratique, en dehors des écrans." />
+        <TextField label="Titre" value={draft.value.title} onChange={(title) => draft.set({ ...draft.value, title })} onBlur={() => void persist(draft.value, true)} placeholder="Centres d'intérêt" />
+        <TextField label="Description" value={draft.value.description} onChange={(description) => draft.set({ ...draft.value, description })} onBlur={() => void persist(draft.value, true)} placeholder="Ce qui nourrit ma pratique, en dehors des écrans." />
       </div>
 
-      <div className="mt-6 space-y-3">
-        {draft.value.items.map((item, index) => (
-          <ItemCard
-            key={index}
-            onRemove={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: prev.items.filter((_, n) => n !== index),
-              }))
-            }
-            onMoveUp={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, -1),
-              }))
-            }
-            onMoveDown={() =>
-              draft.set((prev) => ({
-                ...prev,
-                items: moveItem(prev.items, index, 1),
-              }))
-            }
-            canMoveUp={index > 0}
-            canMoveDown={index < draft.value.items.length - 1}
-          >
-            <div className="grid gap-4 sm:grid-cols-[160px_1.2fr_1.6fr]">
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Icône</p>
-                <Select
-                  value={item.icon ?? ""}
-                  onValueChange={(icon) =>
-                    draft.set((prev) => ({
-                      ...prev,
-                      items: prev.items.map((i, n) =>
-                        n === index ? { ...i, icon } : i,
-                      ),
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-80">
-                    {SERVICE_ICON_GROUPS.map((group) => (
-                      <SelectGroup key={group.label}>
-                        <SelectLabel>{group.label}</SelectLabel>
-                        {group.icons.map((name) => (
-                          <SelectItem key={name} value={name}>
-                            <span className="flex items-center gap-2">
-                              <ServiceIcon
-                                name={name}
-                                className="size-4 text-(--studio-accent)"
-                              />
-                              {name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div className="mt-8 space-y-3">
+        <ManageList
+          items={draft.value.items}
+          onItemsChange={(items) => draft.set((prev) => ({ ...prev, items }))}
+          emptyItem={() => ({ name: "", details: "", icon: "Sparkles" })}
+          saving={saving}
+          onSaved={(items) => void persist({ ...draft.value, items })}
+          addLabel="Ajouter un centre d'intérêt"
+          itemLabel={(item, index) => item.name.trim() || `Intérêt ${index + 1}`}
+          summary={(item) => (
+            <div className="flex min-w-0 items-center gap-3">
+              {item.icon && (
+                <ServiceIcon
+                  name={item.icon}
+                  className="size-4 shrink-0 text-(--studio-accent)"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">
+                  {item.name.trim() || "Sans titre"}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {item.details.trim() || "—"}
+                </p>
               </div>
-              <TextField
-                label="Intérêt"
-                value={item.name}
-                onChange={(name) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name } : i,
-                    ),
-                  }))
-                }
-                placeholder="Photographie"
-              />
-              <TextField
-                label="Détail (optionnel)"
-                value={item.details}
-                onChange={(details) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, details } : i,
-                    ),
-                  }))
-                }
-                placeholder="Façades et lumière naturelle"
-              />
             </div>
-          </ItemCard>
-        ))}
-        <AddButton
-          label="Ajouter un centre d'intérêt"
-          onClick={() =>
-            draft.set((prev) => ({
-              ...prev,
-              items: [...prev.items, { name: "", details: "", icon: "Sparkles" }],
-            }))
-          }
+          )}
+          form={(item, update) => (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-[220px_1.2fr_1.6fr]">
+                <IconSelect
+                  value={item.icon ?? ""}
+                  onChange={(icon) => update({ icon })}
+                />
+                <TextField
+                  label="Intérêt"
+                  value={item.name}
+                  onChange={(name) => update({ name })}
+                  placeholder="Photographie"
+                />
+                <TextField
+                  label="Détail (optionnel)"
+                  value={item.details}
+                  onChange={(details) => update({ details })}
+                  placeholder="Façades et lumière naturelle"
+                />
+              </div>
+            </div>
+          )}
+          preview={(item) => (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                {item.icon && (
+                  <ServiceIcon
+                    name={item.icon}
+                    className="size-5 text-(--studio-accent)"
+                  />
+                )}
+                <p className="font-medium text-foreground">
+                  {item.name || "Sans titre"}
+                </p>
+              </div>
+              {item.details && (
+                <div>
+                  <PreviewLabel>Détail</PreviewLabel>
+                  <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {item.details}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         />
       </div>
     </SectionEditor>
