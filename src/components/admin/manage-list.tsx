@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -25,8 +26,14 @@ export type ManageListUpdate<T> = (patch: Partial<T>) => void;
 /**
  * Admin list manager: each item is one compact row with three actions —
  * 👁 view (read-only preview modal), ✏️ edit (full form modal), 🗑 delete
- * (with confirmation). Edits apply to the parent draft; nothing is saved
- * until the section's own "Enregistrer" button is pressed.
+ * (with confirmation).
+ *
+ * The edit modal edits a LOCAL working copy of the item: nothing is written
+ * to the parent list until "Enregistrer" is pressed. "Annuler" (or closing
+ * the modal) discards the changes — and "Ajouter" opens the modal without
+ * creating an entry, so a new item only appears once it is saved. Nothing is
+ * persisted to the database until the section's own "Enregistrer" button is
+ * pressed.
  */
 export function ManageList<T extends object>({
   items,
@@ -47,14 +54,44 @@ export function ManageList<T extends object>({
   form: (item: T, update: ManageListUpdate<T>) => ReactNode;
   preview: (item: T) => ReactNode;
 }) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editing, setEditing] = useState<{
+    index: number;
+    isNew: boolean;
+  } | null>(null);
+  const [draftItem, setDraftItem] = useState<T | null>(null);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
+  const closeEdit = () => {
+    setEditing(null);
+    setDraftItem(null);
+  };
+
+  const openEdit = (index: number) => {
+    setEditing({ index, isNew: false });
+    setDraftItem(items[index]);
+  };
+
   const add = () => {
-    const next = [...items, emptyItem()];
-    onItemsChange(next);
-    setEditingIndex(next.length - 1);
+    // Nothing is appended yet — the item only enters the list on save.
+    setEditing({ index: items.length, isNew: true });
+    setDraftItem(emptyItem());
+  };
+
+  const updateDraftItem: ManageListUpdate<T> = (patch) => {
+    setDraftItem((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
+  const confirmSave = () => {
+    if (!editing || !draftItem) return;
+    if (editing.isNew) {
+      onItemsChange([...items, draftItem]);
+    } else {
+      onItemsChange(
+        items.map((item, n) => (n === editing.index ? draftItem : item)),
+      );
+    }
+    closeEdit();
   };
 
   const confirmDelete = () => {
@@ -63,17 +100,9 @@ export function ManageList<T extends object>({
     setDeletingIndex(null);
   };
 
-  const editingItem = editingIndex !== null ? items[editingIndex] : undefined;
   const previewItem = previewIndex !== null ? items[previewIndex] : undefined;
   const deletingItem =
     deletingIndex !== null ? items[deletingIndex] : undefined;
-
-  const updateEditingItem: ManageListUpdate<T> = (patch) => {
-    if (editingIndex === null) return;
-    onItemsChange(
-      items.map((item, n) => (n === editingIndex ? { ...item, ...patch } : item)),
-    );
-  };
 
   return (
     <div className="space-y-3">
@@ -103,7 +132,7 @@ export function ManageList<T extends object>({
                 variant="ghost"
                 size="icon-sm"
                 title="Éditer"
-                onClick={() => setEditingIndex(index)}
+                onClick={() => openEdit(index)}
               >
                 <Pencil className="size-4" />
               </Button>
@@ -154,27 +183,41 @@ export function ManageList<T extends object>({
         {addLabel}
       </Button>
 
-      {/* Edit modal */}
+      {/* Edit modal — works on a local copy until "Enregistrer" */}
       <Dialog
-        open={editingIndex !== null}
+        open={editing !== null}
         onOpenChange={(open) => {
-          if (!open) setEditingIndex(null);
+          if (!open) closeEdit();
         }}
       >
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingItem && editingIndex !== null
-                ? `Éditer — ${itemLabel(editingItem, editingIndex)}`
+              {editing && draftItem
+                ? editing.isNew
+                  ? addLabel
+                  : `Éditer — ${itemLabel(draftItem, editing.index)}`
                 : "Éditer"}
             </DialogTitle>
             <DialogDescription className="sr-only">
               Formulaire d'édition de l'élément.
             </DialogDescription>
           </DialogHeader>
-          {editingItem && editingIndex !== null
-            ? form(editingItem, updateEditingItem)
+          {editing && draftItem
+            ? form(draftItem, updateDraftItem)
             : null}
+          <DialogFooter className="mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={closeEdit}
+            >
+              Annuler
+            </Button>
+            <Button type="button" onClick={confirmSave}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
