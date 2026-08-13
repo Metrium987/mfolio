@@ -72,6 +72,40 @@ function LayoutPicker({
   );
 }
 
+/** Two-choice control for the order of the two Parcours sub-sections. */
+function ResumeOrderPicker({
+  value,
+  onChange,
+}: {
+  value: "experience-first" | "education-first";
+  onChange: (value: "experience-first" | "education-first") => void;
+}) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
+      {(
+        [
+          ["experience-first", "Expérience d'abord"],
+          ["education-first", "Formation d'abord"],
+        ] as const
+      ).map(([option, label]) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onChange(option)}
+          className={cn(
+            "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
+            value === option
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 type VisibilityKey = Extract<keyof Doc<"settings">, `visibility${string}`>;
 
 const VISIBILITY_ITEMS: { key: VisibilityKey; label: string }[] = [
@@ -863,6 +897,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
     visibilityInterests: true,
     servicesLayout: "cards",
     interestsLayout: "cards",
+    resumeOrder: "experience-first",
   });
 
   // Sanitized display order — stale ids (e.g. "about" from an older save)
@@ -882,6 +917,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
           sectionOrder: order,
           servicesLayout: draft.value.servicesLayout ?? "cards",
           interestsLayout: draft.value.interestsLayout ?? "cards",
+          resumeOrder: draft.value.resumeOrder ?? "experience-first",
           deeplApiKey: draft.value.deeplApiKey ?? "",
         },
       });
@@ -1055,6 +1091,31 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               }
             />
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <p className="text-[13px] font-medium">Section Parcours — ordre interne</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          La norme française place l'expérience d'abord ; les profils juniors
+          préfèrent souvent la formation en premier. Choisissez ce qui vous
+          valorise le plus.
+        </p>
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Formation / Expérience
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Ordre des deux blocs de la section Parcours
+            </p>
+          </div>
+          <ResumeOrderPicker
+            value={draft.value.resumeOrder ?? "experience-first"}
+            onChange={(resumeOrder) =>
+              draft.set({ ...draft.value, resumeOrder })
+            }
+          />
         </div>
       </div>
 

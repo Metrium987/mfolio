@@ -289,7 +289,10 @@ export default function Landing() {
         return (settings?.visibilityExperience ||
           settings?.visibilityEducation) &&
           data.resume ? (
-          <Resume resume={data.resume} />
+          <Resume
+            resume={data.resume}
+            educationFirst={settings.resumeOrder === "education-first"}
+          />
         ) : null;
       case "skills":
         return settings?.visibilitySkill && data.skills ? (

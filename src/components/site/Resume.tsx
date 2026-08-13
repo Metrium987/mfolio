@@ -103,8 +103,94 @@ function EducationEntry({
   );
 }
 
-export function Resume({ resume }: { resume: Doc<"resume"> }) {
+export function Resume({
+  resume,
+  educationFirst = false,
+}: {
+  resume: Doc<"resume">;
+  educationFirst?: boolean;
+}) {
   const { t, pick } = useSiteLang();
+
+  const educationBlock = (
+    <Reveal>
+      <p className="kicker mb-8">{t("resume.education")}</p>
+      {resume.educations.length > 0 ? (
+        <ul className="max-w-3xl">
+          {resume.educations.map((education, index) => (
+            <EducationEntry
+              key={`${education.degree}-${education.period}`}
+              degree={pick(
+                education.degree,
+                resume.en?.educations?.[index]?.degree,
+              )}
+              institution={education.institution}
+              period={education.period}
+              cgpa={education.cgpa}
+              department={pick(
+                education.department,
+                resume.en?.educations?.[index]?.department,
+              )}
+              thesis={pick(
+                education.thesis,
+                resume.en?.educations?.[index]?.thesis,
+              )}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          {t("resume.noEducation")}
+        </p>
+      )}
+    </Reveal>
+  );
+
+  const experienceBlock = (
+    <Reveal>
+      <p className="kicker mb-8">{t("resume.experience")}</p>
+      {resume.experiences.length > 0 ? (
+        <ul className="max-w-3xl">
+          {resume.experiences.map((experience, index) => (
+            <ExperienceEntry
+              key={`${experience.position}-${experience.period}`}
+              position={pick(
+                experience.position,
+                resume.en?.experiences?.[index]?.position,
+              )}
+              company={experience.company}
+              period={experience.period}
+              location={pick(
+                experience.location ?? "",
+                resume.en?.experiences?.[index]?.location,
+              )}
+              contractType={pick(
+                experience.contractType ?? "",
+                resume.en?.experiences?.[index]?.contractType,
+              )}
+              details={pick(
+                experience.details,
+                resume.en?.experiences?.[index]?.details,
+              )}
+              achievements={(experience.achievements ?? []).map(
+                (achievement, achievementIndex) =>
+                  pick(
+                    achievement,
+                    resume.en?.experiences?.[index]?.achievements?.[
+                      achievementIndex
+                    ],
+                  ),
+              )}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          {t("resume.noExperience")}
+        </p>
+      )}
+    </Reveal>
+  );
 
   return (
     <Container id="resume" className="py-24 md:py-32">
@@ -115,80 +201,17 @@ export function Resume({ resume }: { resume: Doc<"resume"> }) {
           description={pick(resume.description, resume.en?.description)}
         />
         <div className="space-y-16 lg:space-y-20">
-          <Reveal>
-            <p className="kicker mb-8">{t("resume.education")}</p>
-            {resume.educations.length > 0 ? (
-              <ul className="max-w-3xl">
-                {resume.educations.map((education, index) => (
-                  <EducationEntry
-                    key={`${education.degree}-${education.period}`}
-                    degree={pick(
-                      education.degree,
-                      resume.en?.educations?.[index]?.degree,
-                    )}
-                    institution={education.institution}
-                    period={education.period}
-                    cgpa={education.cgpa}
-                    department={pick(
-                      education.department,
-                      resume.en?.educations?.[index]?.department,
-                    )}
-                    thesis={pick(
-                      education.thesis,
-                      resume.en?.educations?.[index]?.thesis,
-                    )}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("resume.noEducation")}
-              </p>
-            )}
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="kicker mb-8">{t("resume.experience")}</p>
-            {resume.experiences.length > 0 ? (
-              <ul className="max-w-3xl">
-                {resume.experiences.map((experience, index) => (
-                  <ExperienceEntry
-                    key={`${experience.position}-${experience.period}`}
-                    position={pick(
-                      experience.position,
-                      resume.en?.experiences?.[index]?.position,
-                    )}
-                    company={experience.company}
-                    period={experience.period}
-                    location={pick(
-                      experience.location ?? "",
-                      resume.en?.experiences?.[index]?.location,
-                    )}
-                    contractType={pick(
-                      experience.contractType ?? "",
-                      resume.en?.experiences?.[index]?.contractType,
-                    )}
-                    details={pick(
-                      experience.details,
-                      resume.en?.experiences?.[index]?.details,
-                    )}
-                    achievements={(experience.achievements ?? []).map(
-                      (achievement, achievementIndex) =>
-                        pick(
-                          achievement,
-                          resume.en?.experiences?.[index]?.achievements?.[
-                            achievementIndex
-                          ],
-                        ),
-                    )}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("resume.noExperience")}
-              </p>
-            )}
-          </Reveal>
+          {educationFirst ? (
+            <>
+              {educationBlock}
+              {experienceBlock}
+            </>
+          ) : (
+            <>
+              {experienceBlock}
+              {educationBlock}
+            </>
+          )}
         </div>
       </div>
     </Container>

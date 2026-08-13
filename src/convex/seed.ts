@@ -51,6 +51,7 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   visibilityInterests: true,
   servicesLayout: "cards",
   interestsLayout: "cards",
+  resumeOrder: "experience-first",
 };
 
 const sampleAbout: Infer<typeof aboutValidator> = {
@@ -480,6 +481,15 @@ export const ensureSeed = mutation({
       if (layoutPatch.servicesLayout || layoutPatch.interestsLayout) {
         await ctx.db.patch(settings._id, layoutPatch);
       }
+    }
+    // The Parcours sub-section order was added later — default to the French
+    // norm (experience first) for existing settings docs.
+    if (
+      settings &&
+      settings.resumeOrder !== "experience-first" &&
+      settings.resumeOrder !== "education-first"
+    ) {
+      await ctx.db.patch(settings._id, { resumeOrder: "experience-first" });
     }
     // Interests gained an icon field later — backfill an empty string so the
     // items still validate against the current schema when edited.
