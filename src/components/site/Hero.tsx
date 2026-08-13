@@ -1,4 +1,3 @@
-import { useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -17,17 +16,11 @@ export function Hero({
   visibilityCv: boolean;
 }) {
   const { t, pick } = useSiteLang();
-  const reduceMotion = useReducedMotion();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [typedCount, setTypedCount] = useState(0);
   const taglines = about.taglines.filter(Boolean);
   const currentTagline = taglines[taglineIndex] ?? "";
   const currentText = pick(currentTagline, about.en?.taglines?.[taglineIndex]);
-  // Reduced-motion users get the full tagline instantly — the typing reveal is
-  // a decorative enhancement, not a content requirement.
-  const visibleText = reduceMotion
-    ? currentText
-    : currentText.slice(0, typedCount);
 
   // Reset the typewriter whenever the active tagline changes.
   useEffect(() => {
@@ -39,7 +32,7 @@ export function Hero({
   // Type the tagline character by character, hold it, then advance to the
   // next one (a slow, editorial rhythm — roughly 6 s per tagline).
   useEffect(() => {
-    if (reduceMotion || taglines.length === 0) return;
+    if (taglines.length === 0) return;
     if (typedCount < currentText.length) {
       const timeout = setTimeout(
         () => setTypedCount((count) => count + 1),
@@ -52,7 +45,7 @@ export function Hero({
       setTaglineIndex((index) => (index + 1) % taglines.length);
     }, 4600);
     return () => clearTimeout(timeout);
-  }, [reduceMotion, typedCount, currentText.length, taglines.length]);
+  }, [typedCount, currentText.length, taglines.length]);
 
   return (
     <Container id="top" className="relative pb-24 pt-16 sm:pt-20">
@@ -103,7 +96,7 @@ export function Hero({
                 <span className="sr-only">{currentText}</span>
                 {/* The typed reveal is decorative and hidden from assistive tech. */}
                 <span aria-hidden="true">
-                  {visibleText}
+                  {currentText.slice(0, typedCount)}
                   <span className="typewriter-caret" />
                 </span>
               </div>
