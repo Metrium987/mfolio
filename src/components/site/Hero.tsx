@@ -36,7 +36,7 @@ export function Hero({
     if (typedCount < currentText.length) {
       const timeout = setTimeout(
         () => setTypedCount((count) => count + 1),
-        45,
+        70,
       );
       return () => clearTimeout(timeout);
     }

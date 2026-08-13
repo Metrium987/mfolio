@@ -195,11 +195,5 @@
     background: currentColor;
     animation: mfolio-caret 1.06s steps(1) infinite;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .typewriter-caret {
-      animation: none;
-      opacity: 1;
-    }
-  }
 }
 
