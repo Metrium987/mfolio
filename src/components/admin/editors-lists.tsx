@@ -77,29 +77,68 @@ const CONTRACT_TYPES = [
 function ItemCard({
   title,
   onRemove,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
   children,
 }: {
   title: string;
   onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="rounded-md border border-border bg-background p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-foreground">{title}</p>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title="Supprimer"
-          onClick={onRemove}
-        >
-          <Trash2 className="size-4" />
-        </Button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            title="Monter"
+            disabled={!canMoveUp}
+            onClick={onMoveUp}
+          >
+            <ArrowUp className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            title="Descendre"
+            disabled={!canMoveDown}
+            onClick={onMoveDown}
+          >
+            <ArrowDown className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            title="Supprimer"
+            onClick={onRemove}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       </div>
       <div className="grid gap-4">{children}</div>
     </div>
   );
+}
+
+/** Swap two items of a draft list, returning a new array (no-op out of range). */
+function moveItem<T>(items: T[], index: number, direction: -1 | 1): T[] {
+  const target = index + direction;
+  if (target < 0 || target >= items.length) return items;
+  const next = [...items];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
 }
 
 function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
@@ -1432,6 +1471,20 @@ export function LanguagesEditor({
                 items: prev.items.filter((_, n) => n !== index),
               }))
             }
+            onMoveUp={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: moveItem(prev.items, index, -1),
+              }))
+            }
+            onMoveDown={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: moveItem(prev.items, index, 1),
+              }))
+            }
+            canMoveUp={index > 0}
+            canMoveDown={index < draft.value.items.length - 1}
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
@@ -1560,6 +1613,20 @@ export function InterestsEditor({
                 items: prev.items.filter((_, n) => n !== index),
               }))
             }
+            onMoveUp={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: moveItem(prev.items, index, -1),
+              }))
+            }
+            onMoveDown={() =>
+              draft.set((prev) => ({
+                ...prev,
+                items: moveItem(prev.items, index, 1),
+              }))
+            }
+            canMoveUp={index > 0}
+            canMoveDown={index < draft.value.items.length - 1}
           >
             <div className="grid gap-4 sm:grid-cols-[160px_1.2fr_1.6fr]">
               <div className="space-y-2">
