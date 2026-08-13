@@ -89,7 +89,7 @@ export function Hero({
 
           {taglines.length > 0 && (
             <Reveal delay={0.12}>
-              <div className="mt-5 min-h-10 font-display text-2xl font-light italic tracking-tight text-(--studio-accent)">
+              <div className="mt-5 min-h-16 font-display text-2xl font-light italic tracking-tight text-(--studio-accent)">
                 {currentText.slice(0, typedCount)}
                 <span aria-hidden className="typewriter-caret" />
               </div>

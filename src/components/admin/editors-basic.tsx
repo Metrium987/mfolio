@@ -129,14 +129,16 @@ function StringListEditor({
   value,
   onChange,
   placeholder,
+  hint,
 }: {
   label: string;
   value: string[];
   onChange: (value: string[]) => void;
   placeholder: string;
+  hint?: string;
 }) {
   return (
-    <Field label={label}>
+    <Field label={label} hint={hint}>
       <div className="space-y-2">
         {value.map((item, index) => (
           <div key={index} className="flex items-center gap-2">
@@ -439,6 +441,7 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
           value={draft.value.taglines}
           onChange={(taglines) => draft.set({ ...draft.value, taglines })}
           placeholder="Designer produit & développeuse"
+          hint="Slogans courts — ils défilent en « machine à écrire » sur l'accueil. Idéalement une ligne (moins de 60 caractères)."
         />
       </div>
 
