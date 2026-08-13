@@ -27,8 +27,6 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   themeColor: "#A85B32",
   googleAnalyticsId: "",
   deeplApiKey: "",
-  smtpUser: "",
-  smtpPass: "",
   notificationEmail: "",
   maintenanceMode: false,
   metaTitle: "Camille Roussel — Designer produit & développeuse",
@@ -447,25 +445,33 @@ export const ensureSeed = mutation({
     if (settings && typeof settings.deeplApiKey !== "string") {
       await ctx.db.patch(settings._id, { deeplApiKey: "" });
     }
-    if (settings && typeof settings.smtpUser !== "string") {
-      await ctx.db.patch(settings._id, { smtpUser: "" });
-    }
-    if (settings && typeof settings.smtpPass !== "string") {
-      await ctx.db.patch(settings._id, { smtpPass: "" });
-    }
     if (settings && typeof settings.notificationEmail !== "string") {
       await ctx.db.patch(settings._id, { notificationEmail: "" });
     }
-    // The Resend integration was removed — delete its leftover API key from the
-    // document. It is no longer in the schema, and Convex object validators
-    // reject unknown keys, so keeping it would break the Config editor's save.
+    // The Resend integration and Gmail SMTP credentials were removed — delete
+    // their leftover fields from the document. They are no longer in the
+    // schema, and Convex object validators reject unknown keys, so keeping
+    // them would break the Config editor's save.
     if (settings) {
       const legacy = settings as unknown as Record<string, unknown>;
-      if ("resendApiKey" in legacy) {
-        const { _id, _creationTime, resendApiKey: _remove, ...clean } = legacy;
+      if (
+        "resendApiKey" in legacy ||
+        "smtpUser" in legacy ||
+        "smtpPass" in legacy
+      ) {
+        const {
+          _id,
+          _creationTime,
+          resendApiKey: _resend,
+          smtpUser: _smtpUser,
+          smtpPass: _smtpPass,
+          ...clean
+        } = legacy;
         void _id;
         void _creationTime;
-        void _remove;
+        void _resend;
+        void _smtpUser;
+        void _smtpPass;
         await ctx.db.replace(settings._id, clean as never);
       }
     }

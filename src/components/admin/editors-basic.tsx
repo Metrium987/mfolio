@@ -486,15 +486,12 @@ function IntegrationsCard({
   // API keys are write-only (never sent back to the browser): these fields
   // only ever hold what the owner just typed.
   const [deeplApiKey, setDeeplApiKey] = useState("");
-  const [smtpUser, setSmtpUser] = useState("");
-  const [smtpPass, setSmtpPass] = useState("");
   const [notificationEmail, setNotificationEmail] = useState(
     settings?.notificationEmail ?? "",
   );
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const deeplKeySet = integrations?.deeplKeySet ?? false;
-  const smtpConfigured = integrations?.smtpConfigured ?? false;
 
   useEffect(() => {
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
@@ -504,9 +501,7 @@ function IntegrationsCard({
   const dirty =
     googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
     notificationEmail !== (settings?.notificationEmail ?? "") ||
-    deeplApiKey.trim() !== "" ||
-    smtpUser.trim() !== "" ||
-    smtpPass.trim() !== "";
+    deeplApiKey.trim() !== "";
 
   /** Translate every section once and report the outcome. */
   const translateAll = async () => {
@@ -537,13 +532,9 @@ function IntegrationsCard({
       await updateIntegrations({
         googleAnalyticsId: googleAnalyticsId.trim(),
         deeplApiKey: newKey,
-        smtpUser: smtpUser.trim(),
-        smtpPass: smtpPass.trim(),
         notificationEmail: notificationEmail.trim(),
       });
       setDeeplApiKey("");
-      setSmtpUser("");
-      setSmtpPass("");
       if (newKey) {
         // First time a key is set (or replaced): translate existing content
         // right away so the EN version is never left empty.
@@ -573,23 +564,6 @@ function IntegrationsCard({
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de la suppression de la clé");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const removeSmtp = async () => {
-    setSaving(true);
-    try {
-      await updateIntegrations({
-        googleAnalyticsId: googleAnalyticsId.trim(),
-        notificationEmail: notificationEmail.trim(),
-        clearSmtp: true,
-      });
-      toast.success("Identifiants Gmail SMTP supprimés.");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la suppression des identifiants");
     } finally {
       setSaving(false);
     }
@@ -638,57 +612,13 @@ function IntegrationsCard({
           </p>
         </div>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField
-          label="Email de notification"
-          value={notificationEmail}
-          onChange={setNotificationEmail}
-          placeholder="vous@exemple.com"
-          hint="Reçoit les messages du formulaire. Vide = votre email de contact."
-        />
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-[13px] font-medium">Adresse Gmail (SMTP)</label>
-            {smtpConfigured && (
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                Configuré
-              </span>
-            )}
-          </div>
-          <Input
-            type="email"
-            value={smtpUser}
-            onChange={(event) => setSmtpUser(event.target.value)}
-            placeholder="vous@gmail.com"
-            className="bg-background"
-          />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            L'email de notification part de cette boîte Gmail. Laissez vide
-            pour conserver l'adresse actuelle.
-          </p>
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-[13px] font-medium">
-          Mot de passe d'application Gmail
-        </label>
-        <Input
-          type="password"
-          value={smtpPass}
-          onChange={(event) => setSmtpPass(event.target.value)}
-          placeholder={
-            smtpConfigured
-              ? "•••••••• (conserver le mot de passe actuel)"
-              : "16 caractères — Google → Sécurité → Mots de passe d'application"
-          }
-          className="bg-background"
-        />
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          Jamais renvoyé au navigateur — laissez vide pour conserver. Nécessite
-          la validation en deux étapes activée sur votre compte Google.
-        </p>
-      </div>
+      <TextField
+        label="Email de notification"
+        value={notificationEmail}
+        onChange={setNotificationEmail}
+        placeholder="vous@exemple.com"
+        hint="Reçoit les messages du formulaire de contact, envoyés via la passerelle email intégrée. Vide = votre email de contact."
+      />
       <div className="flex flex-wrap items-center justify-end gap-3">
         {dirty && (
           <span className="text-xs text-muted-foreground">
@@ -723,18 +653,6 @@ function IntegrationsCard({
               Retirer la clé
             </Button>
           </>
-        )}
-        {smtpConfigured && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => void removeSmtp()}
-            disabled={saving}
-            className="rounded-full text-muted-foreground"
-          >
-            Retirer les identifiants SMTP
-          </Button>
         )}
         <Button
           onClick={() => void save()}

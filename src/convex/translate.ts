@@ -285,19 +285,9 @@ export const updateSettings = action({
       data.deeplApiKey.trim() === "" && raw?.deeplApiKey
         ? raw.deeplApiKey
         : data.deeplApiKey;
-    const smtpUser =
-      (data.smtpUser ?? "").trim() === "" && raw?.smtpUser
-        ? raw.smtpUser
-        : (data.smtpUser ?? "");
-    const smtpPass =
-      (data.smtpPass ?? "").trim() === "" && raw?.smtpPass
-        ? raw.smtpPass
-        : (data.smtpPass ?? "");
     await translateAndPersist(ctx, "settings", {
       ...data,
       deeplApiKey,
-      smtpUser,
-      smtpPass,
     });
   },
 });

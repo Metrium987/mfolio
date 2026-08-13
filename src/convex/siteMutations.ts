@@ -79,22 +79,11 @@ export const updateIntegrations = mutation({
     googleAnalyticsId: v.string(),
     deeplApiKey: v.optional(v.string()),
     clearDeeplKey: v.optional(v.boolean()),
-    smtpUser: v.optional(v.string()),
-    smtpPass: v.optional(v.string()),
-    clearSmtp: v.optional(v.boolean()),
     notificationEmail: v.optional(v.string()),
   }),
   handler: async (
     ctx,
-    {
-      googleAnalyticsId,
-      deeplApiKey,
-      clearDeeplKey,
-      smtpUser,
-      smtpPass,
-      clearSmtp,
-      notificationEmail,
-    },
+    { googleAnalyticsId, deeplApiKey, clearDeeplKey, notificationEmail },
   ) => {
     await requireOwner(ctx);
     const settings = await ctx.db.query("settings").first();
@@ -102,8 +91,6 @@ export const updateIntegrations = mutation({
     const patch: {
       googleAnalyticsId: string;
       deeplApiKey?: string;
-      smtpUser?: string;
-      smtpPass?: string;
       notificationEmail?: string;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
@@ -112,17 +99,6 @@ export const updateIntegrations = mutation({
       patch.deeplApiKey = "";
     } else if (deeplApiKey && deeplApiKey.trim() !== "") {
       patch.deeplApiKey = deeplApiKey.trim();
-    }
-    if (clearSmtp) {
-      patch.smtpUser = "";
-      patch.smtpPass = "";
-    } else {
-      if (smtpUser !== undefined && smtpUser.trim() !== "") {
-        patch.smtpUser = smtpUser.trim();
-      }
-      if (smtpPass !== undefined && smtpPass.trim() !== "") {
-        patch.smtpPass = smtpPass.trim();
-      }
     }
     if (notificationEmail !== undefined) {
       patch.notificationEmail = notificationEmail.trim();
@@ -167,20 +143,16 @@ export const addMessage = mutation({
       createdAt: Date.now(),
     });
 
-    // Email the owner in the background. The SMTP credentials are read from
-    // the settings doc and passed to the action (it runs unauthenticated, so
-    // it can't read the owner-only table itself).
+    // Email the owner in the background through the built-in gateway. The
+    // destination is read from the settings doc (notificationEmail, falling
+    // back to the contact email) and passed to the action, which runs
+    // unauthenticated and therefore can't read the owner-only tables itself.
     const settings = await ctx.db.query("settings").first();
     const about = await ctx.db.query("about").first();
     const to = settings?.notificationEmail?.trim() || about?.email?.trim();
-    const smtpUser = settings?.smtpUser?.trim() || "";
-    const smtpPass = settings?.smtpPass?.trim() || "";
     if (to) {
       await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
         to,
-        fromName: about?.name?.trim() || "Portfolio",
-        smtpUser,
-        smtpPass,
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),

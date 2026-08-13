@@ -4,20 +4,26 @@ import type { Doc } from "./_generated/dataModel";
 
 /**
  * Strip legacy settings fields that are no longer in the schema (e.g. the
- * removed Resend key). Convex `v.object()` validators reject unknown keys, so
- * a stale field left in the document would make the Config editor's
- * `updateSettings` save fail validation.
+ * removed Resend key and Gmail SMTP credentials). Convex `v.object()`
+ * validators reject unknown keys, so a stale field left in the document would
+ * make the Config editor's save fail validation — and the keys must never
+ * reach the browser.
  */
 function sanitizeSettings(settings: Doc<"settings"> | null): Doc<"settings"> | null {
   if (!settings) return null;
   const legacy = settings as unknown as Record<string, unknown>;
-  const { resendApiKey: _legacy, ...clean } = legacy;
-  void _legacy;
+  const {
+    resendApiKey: _resend,
+    smtpUser: _smtpUser,
+    smtpPass: _smtpPass,
+    ...clean
+  } = legacy;
+  void _resend;
+  void _smtpUser;
+  void _smtpPass;
   return {
     ...clean,
     deeplApiKey: "",
-    smtpUser: "",
-    smtpPass: "",
   } as unknown as Doc<"settings">;
 }
 
@@ -82,9 +88,6 @@ export const getIntegrations = query({
     return {
       googleAnalyticsId: settings?.googleAnalyticsId ?? "",
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
-      smtpConfigured: Boolean(
-        settings?.smtpUser?.trim() && settings?.smtpPass?.trim(),
-      ),
       notificationEmail: settings?.notificationEmail ?? "",
     };
   },
