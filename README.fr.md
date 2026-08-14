@@ -5,6 +5,9 @@
 **🇬🇧 English version: [README.md](README.md)**
 
 [![CI](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> 🚀 **Démo en ligne :** [mfolio.freebuff.app](https://mfolio.freebuff.app) — le portfolio public ; connexion sur `/auth` avec les identifiants par défaut ci-dessous.
 
 > **Origines :** Mfolio a été conçu à l'origine sur **Freebuff Web** (ex-vly.ai), qui fournit l'environnement hébergé, l'intégration Convex et un relais email de plateforme. L'application est entièrement portable : seules **deux fonctionnalités email optionnelles** dépendent de la plateforme, et les deux peuvent être désactivées ou rebranchées sur votre propre fournisseur. Voir [Déploiement](#déploiement).
 
@@ -21,7 +24,7 @@
 - 📊 **Statistiques** — visiteurs (jour/semaine/mois), visiteurs uniques, taux de retour, conversion contact, appareils, navigateurs principaux, heures de pointe. Purge automatique à 90 jours (tâche planifiée quotidienne).
 - 🔎 **SEO** — balises meta, Open Graph/Twitter cards, URLs canoniques, hreflang FR/EN, sitemap.xml, robots.txt, scripts personnalisés en-tête/pied de page.
 - 📱 **Entièrement responsive** — sidebar de bureau pour le tableau de bord, navigation mobile, pages publiques pensées mobile d'abord.
-- 🧪 **Testé** — 20+ tests unitaires (niveaux, ordre des sections, statistiques), TypeScript strict, ESLint propre.
+- 🧪 **Testé** — 22 tests unitaires (niveaux, ordre des sections, statistiques), TypeScript strict, ESLint propre.
 
 ## Stack technique
 
