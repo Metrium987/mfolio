@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { query } from "./_generated/server";
 import { getCurrentAdmin } from "./users";
 import type { Doc } from "./_generated/dataModel";
@@ -238,14 +239,27 @@ export const getStats = query({
 });
 
 /**
- * Contact form submissions — only the signed-in owner can read them.
+ * Contact form submissions — owner only, paginated (the inbox can grow well
+ * beyond 200 entries). The dashboard subscribes with usePaginatedQuery.
  */
 export const getMessages = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, { paginationOpts }) => {
+    const user = await getCurrentAdmin(ctx);
+    if (!user) return { page: [], isDone: true, continueCursor: "" };
+    return ctx.db.query("messages").order("desc").paginate(paginationOpts);
+  },
+});
+
+/** Total message count (dashboard sidebar badge) — owner only. */
+export const getMessagesCount = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentAdmin(ctx);
     if (!user) return null;
-    return ctx.db.query("messages").order("desc").take(200);
+    // No native count() on the query initializer in this Convex version —
+    // collect is fine at this scale (contact-form messages are small docs).
+    return (await ctx.db.query("messages").collect()).length;
   },
 });
 

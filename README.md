@@ -67,6 +67,8 @@ Open **http://localhost:5173** — sample content is seeded automatically on fir
 | Password | `admin123` |
 
 > ⚠️ **Change these immediately** from **Paramètres → Sécurité du compte** (email + password). The login page shows a hint until you do.
+>
+> **Lost password (self-host):** there is no email recovery anymore (OTP removed). Procedure: Convex dashboard → `authAccounts` table → delete the password account row → reload `/auth` — `ensureAdmin` recreates the default account (see `docs/DEPLOYMENT.md`).
 
 ## Environment variables
 
@@ -122,7 +124,7 @@ Mfolio is a standard Vite + Convex app:
 1. Clone, `bun install`, `bunx convex dev` (creates your Convex project).
 2. Set `SITE_URL`, `JWKS`, `JWT_PRIVATE_KEY` in the Convex dashboard (auth keys are provisioned by Convex Auth).
 3. Set `VITE_CONVEX_URL` in your host's env, build with `bun run build` (output: `dist/`).
-4. Decide your email strategy (see above). Optional: remove the Freebuff-specific bits (`vlyPlugin()` in `vite.config.ts`, the `@vly-ai/integrations` dependency, `src/lib/vly-integrations.ts`, `integrations.md`) — they are inert but no longer needed.
+4. Decide your email strategy (see above). Optional: remove the Freebuff-specific bits (`vlyPlugin()` in `vite.config.ts` and the `@vly-ai/integrations` dependency) — they are inert but no longer needed.
 5. First login with `admin@admin.com` / `admin123`, change the credentials, enter your DeepL key / GA ID.
 
 > 💡 **Keep your data:** all portfolio content lives in Convex. If you reuse the same Convex deployment, your content and settings follow automatically.

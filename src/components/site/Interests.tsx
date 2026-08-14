@@ -1,6 +1,6 @@
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useSiteLang } from "@/lib/i18n";
-import { ServiceIcon } from "@/lib/site";
+import { ServiceIcon } from "@/lib/service-icons";
 import { cn } from "@/lib/utils";
 import { Container, Reveal, SectionHeading } from "./Section";
 

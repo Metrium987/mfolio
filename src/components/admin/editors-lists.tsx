@@ -1,4 +1,4 @@
-import { useAction, useMutation } from "convex/react";
+import { useAction, useMutation, usePaginatedQuery } from "convex/react";
 import {
   ArrowDown,
   ArrowUp,
@@ -51,11 +51,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { formatTimestamp } from "@/lib/site";
 import {
-  formatTimestamp,
   SERVICE_ICON_GROUPS,
   ServiceIcon,
-} from "@/lib/site";
+} from "@/lib/service-icons";
 import { SectionEditor } from "./SectionEditor";
 import {
   Field,
@@ -1692,13 +1692,16 @@ export function InterestsEditor({
 // Messages — with subject and "replied" status (Ezfolio "Message")
 // ---------------------------------------------------------------------------
 
-export function MessagesView({
-  messages,
-}: {
-  messages: Doc<"messages">[] | null | undefined;
-}) {
+export function MessagesView() {
   const deleteMessage = useMutation(api.siteMutations.deleteMessage);
   const markMessageReplied = useMutation(api.siteMutations.markMessageReplied);
+  // Paginated inbox — loads 50 at a time, "Charger plus" for the rest.
+  const {
+    results: messages,
+    status,
+    loadMore,
+  } = usePaginatedQuery(api.site.getMessages, {}, { initialNumItems: 50 });
+  const loading = status === "LoadingFirstPage" || status === "LoadingMore";
 
   const [previewId, setPreviewId] = useState<Id<"messages"> | null>(null);
 
@@ -1762,8 +1765,8 @@ export function MessagesView({
             Messages reçus
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Les demandes envoyées depuis le formulaire de contact du site (les
-            200 plus récentes).
+            Les demandes envoyées depuis le formulaire de contact du site,
+            chargées par pages de 50.
           </p>
         </div>
         {messages.length > 0 && (
@@ -1849,6 +1852,26 @@ export function MessagesView({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {status === "CanLoadMore" && (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            onClick={() => void loadMore(50)}
+            className="rounded-full"
+          >
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Inbox className="size-4" />
+            )}
+            {loading ? "Chargement…" : "Charger plus de messages"}
+          </Button>
         </div>
       )}
 

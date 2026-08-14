@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import { Blog } from "@/components/site/Blog";
@@ -201,20 +201,26 @@ export default function Landing() {
     );
   }, [data?.settings?.googleAnalyticsId]);
 
-  // Custom header/footer scripts (Ezfolio Config)
+  // Custom header/footer scripts (Ezfolio Config). The settings object is
+  // reactive — any save anywhere re-runs this effect — so the scripts are
+  // only re-injected when their content actually changed. Otherwise they
+  // would re-execute (double analytics init) on every dashboard save.
+  const lastScripts = useRef<{ header: string; footer: string } | null>(null);
   useEffect(() => {
     const settings = data?.settings;
     if (!settings) return;
+    const header = settings.scriptHeader ?? "";
+    const footer = settings.scriptFooter ?? "";
+    const previous = lastScripts.current;
+    if (previous && previous.header === header && previous.footer === footer) {
+      return;
+    }
     document
       .querySelectorAll("[data-mfolio-script]")
       .forEach((node) => node.remove());
-    injectBlock(settings.scriptHeader, document.head);
-    injectBlock(settings.scriptFooter, document.body);
-    return () => {
-      document
-        .querySelectorAll("[data-mfolio-script]")
-        .forEach((node) => node.remove());
-    };
+    injectBlock(header, document.head);
+    injectBlock(footer, document.body);
+    lastScripts.current = { header, footer };
   }, [data?.settings]);
 
   // Visitor tracking (Ezfolio)
@@ -373,7 +379,19 @@ export default function Landing() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <>
+      {/* Keyboard / screen-reader skip link — first focusable element. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:border focus:border-border focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground"
+      >
+        {t("a11y.skipToContent")}
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-screen bg-background text-foreground outline-none"
+      >
       <SiteHeader
         siteName={siteName}
         links={nav}
@@ -393,6 +411,7 @@ export default function Landing() {
       {settings?.visibilityFooter && (
         <SiteFooter site={data.site} socials={data.about?.socials} />
       )}
-    </main>
+      </main>
+    </>
   );
 }

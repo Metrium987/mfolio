@@ -439,7 +439,7 @@ function Overview() {
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const data = useQuery(api.site.getSiteData);
-  const messages = useQuery(api.site.getMessages);
+  const messageCountQuery = useQuery(api.site.getMessagesCount);
   const visitors = useQuery(api.site.getVisitors);
   const integrations = useQuery(api.site.getIntegrations);
   const ensureSeed = useMutation(api.seed.ensureSeed);
@@ -529,7 +529,7 @@ export default function Dashboard() {
   }
 
   const siteName = data.site?.siteName ?? "Portfolio";
-  const messageCount = messages?.length ?? 0;
+  const messageCount = messageCountQuery ?? 0;
   const activeLabel = NAV.find((item) => item.id === active)?.label ?? "";
   const activeItem = NAV.find((item) => item.id === active);
 
@@ -558,7 +558,7 @@ export default function Dashboard() {
       case "visitors":
         return <VisitorsView visitors={visitors} />;
       case "messages":
-        return <MessagesView messages={messages} />;
+        return <MessagesView />;
       case "site":
         return <SiteEditor site={data.site} settings={data.settings} />;
       default:
@@ -568,6 +568,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background lg:flex">
+      {/* Keyboard / screen-reader skip link — first focusable element. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:border focus:border-border focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground"
+      >
+        Aller au contenu
+      </a>
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="border-b border-border px-5 py-6">
@@ -719,7 +726,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 lg:py-10">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-4xl px-5 py-8 outline-none sm:px-8 lg:py-10"
+        >
           {user && user.credentialsChanged !== true && !dismissCredentialsBanner && (
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border bg-card px-4 py-3">
               <div className="flex items-center gap-3">

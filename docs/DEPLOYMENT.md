@@ -93,8 +93,6 @@ Deux stratégies — voir la section 3 pour les détails :
 Hors plateforme, ces éléments ne servent plus (ils sont inertes) et peuvent être supprimés :
 
 - `vlyPlugin()` dans `vite.config.ts` (+ la dépendance `@vly-ai/integrations` dans `package.json`)
-- `src/lib/vly-integrations.ts`
-- `integrations.md`
 - Les fichiers signalés « DO NOT MODIFY » / read-only du template (ex. `vly-toolbar-readonly.tsx` à la racine)
 
 > Sur Freebuff Web, ces fichiers sont **gérés par la plateforme** : ne les modifiez pas là-bas, elle les recrée. Supprimez-les uniquement dans votre propre dépôt GitHub.

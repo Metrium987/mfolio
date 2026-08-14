@@ -21,12 +21,8 @@
   indexé, visites borné).
 
 **Reste (sévérité faible à moyenne) :**
-1. **`ensureSeed` est une mutation publique destructive par conception** —
-   si les tables de base manquent, elle **vide** messages + visiteurs avant de
-   re-seeder (seed.ts, ~ligne 660). En pratique inexploitable (le site de base
-   existe toujours), mais un incident (doc `site` supprimé accidentellement)
-   réinitialiserait la boîte de réception. → *envisager une garde role admin
-   sur la branche destructive.*
+1. ✅ **`ensureSeed`** : la branche destructive (vidage messages + visiteurs)
+   est désormais réservée au propriétaire (garde role admin, seed.ts).
 2. **`ensureAdmin`** (action publique) reste appelable par n'importe qui —
    idempotente et sans effet si un compte existe ; risque négligeable.
 3. **Pas de limite de tentatives** sur `signIn("password")` explicite côté
@@ -45,20 +41,17 @@
 `Dashboard` 23 Ko gz, `react-vendor` 17 Ko gz, `Auth` 7 Ko gz, `site` 15 Ko gz…).
 Split par route en place ✅ (Auth/Dashboard/NotFound lazy).
 
-1. **Registre d'icônes ~140 entrées** (`src/lib/site.tsx`) : toutes les icônes
-   référencées sont **dans le bundle du site public** (le Landing le charge).
-   Gain estimé : **30–50 Ko gz** en chargeant les groupes d'icônes en lazy
-   (dynamic `import()`) ou en ne gardant que les icônes réellement utilisées
-   côté public.
+1. ✅ **Registre d'icônes ~140 entrées** : extrait dans
+   `src/lib/service-icons.tsx` (module dédié, chunk séparé) — le site public
+   ne charge plus les icônes du dashboard avec ses helpers. Le lazy
+   `import()` par groupe reste une évolution possible.
 2. **`vly-toolbar-readonly.tsx`** (plateforme, DO NOT MODIFY) est importé en
    haut de `main.tsx` → **dans le bundle initial**. Ne s'active que sur
    `*.vly.sh` mais pèse en parsing. Option : l'isoler derrière un lazy import
    (à valider avec la plateforme).
-3. **Scripts personnalisés ré-injectés à chaque changement de `settings`**
-   (`Landing.tsx`, effect `[data?.settings]`) : une sauvegarde de n'importe
-   quelle section (settings inclus) **ré-exécute** les scripts → double init
-   d'analytics tiers. → *garder la version précédente et ne ré-injecter que si
-   le contenu a changé* (coût : ~5 lignes).
+3. ✅ **Scripts personnalisés** : ne ré-injectent plus que si le contenu a
+   réellement changé (garde par `useRef` de la dernière paire injectée,
+   Landing.tsx) — plus de double init d'analytics à chaque sauvegarde.
 
 **Backend :** lectures plafonnées (stats 5 000, messages 200, visiteurs 500) ;
 purge 90 j ; indexes pour les deux rate limits ; `runAfter(0)` pour l'email.
@@ -67,13 +60,11 @@ voir plan).
 
 ## C. Qualité / maintenabilité — bien, 3 nettoyages
 
-1. **`src/lib/vly-integrations.ts` est mort** (aucun import ; référence
-   `process.env.VLY_INTEGRATION_KEY` inexistant → casserait au chargement).
-   À supprimer avec `integrations.md` (reliquat vly.ai, passerelle 401).
-2. **`sonner.tsx` utilise `next-themes`** sans ThemeProvider : les toasts
-   suivent `"system"`, pas le toggle sombre/clair manuel de l'app → incohérent
-   en mode sombre forcé. → retirer `next-themes` (dépendance) et passer le
-   thème du Toaster depuis la classe `.dark` du document.
+1. ✅ **`src/lib/vly-integrations.ts` supprimé** (mort, aucun import) avec
+   `integrations.md` ; `@oslojs/crypto` retiré (dépendance fantôme depuis la
+   suppression de l'OTP).
+2. ✅ **`sonner.tsx`** : thème du Toaster dérivé de la classe `.dark` du
+   document ; dépendance `next-themes` retirée.
 3. **Fichiers volumineux** : `editors-lists.tsx` (~2 000 l),
    `editors-basic.tsx` (~1 260 l), `seed.ts` (~700 l). Bien commentés et
    fonctionnels ; refactor à faire au fil des besoins (pas d'urgence).
@@ -91,16 +82,15 @@ anti-spam, stats, export CSV des messages, bannière de sécurité, modes
 sombre/clair, maintenance, sections réordonnables, édition immédiate des
 listes.
 
-1. **Pas de récupération de mot de passe** (l'OTP servait à ça) : si le mot de
-   passe est perdu, l'accès se récupère via le dashboard Convex (supprimer la
-   ligne `authAccounts`) → le documenter dans le README (déjà partiellement :
-   docs/DEPLOYMENT.md).
-2. **Boîte de réception plafonnée à 200 messages** : l'UI le dit désormais et
-   l'export CSV couvre les chargés ; une vraie pagination serait un plus si
-   volume élevé.
-3. **A11y** : focus-visible ✅, `prefers-reduced-motion` ✅, labels/aria ✅.
-   Manque : lien d'évitement « Aller au contenu » et `lang` sur les bouts de
-   contenu EN (le `<html lang>` suit la langue active ✅). Mineur.
+1. ✅ **Récupération de mot de passe documentée** : procédure dashboard Convex
+   → `authAccounts` → suppression de la ligne → `/auth` recrée le compte par
+   défaut (README FR/EN + docs/DEPLOYMENT.md).
+2. ✅ **Boîte de réception paginée** : `getMessages` paginé (50/page,
+   « Charger plus ») + badge du sidebar via `getMessagesCount` — fini le
+   plafond de 200.
+3. ✅ **A11y** : lien d'évitement « Aller au contenu » sur le Landing et le
+   Dashboard (focus visible uniquement). Reste : `lang` sur les bouts de
+   contenu EN (mineur).
 
 ## E. Dépendances & config
 
@@ -130,11 +120,14 @@ listes.
 
 | Priorité | Action | Fichier | Effort |
 |---|---|---|---|
-| P0 | Garde admin sur la branche destructive de `ensureSeed` | seed.ts | 5 min |
-| P1 | Supprimer `vly-integrations.ts` + `integrations.md` ; retirer `@oslojs/crypto` si inutilisé | lib/, racine, package.json | 10 min |
-| P1 | Sonner : thème depuis `.dark` (retirer `next-themes`) | ui/sonner.tsx, package.json | 15 min |
-| P1 | Scripts perso : ne ré-injecter que si contenu changé | Landing.tsx | 15 min |
-| P2 | Icônes en lazy (÷ bundle public de 30–50 Ko gz) | lib/site.tsx | ½ j |
-| P2 | Documenter la récupération de mot de passe (self-host) | README/DEPLOYMENT | 10 min |
-| P2 | Pagination messages (au-delà de 200) | site.ts + editors-lists | ½ j |
-| P3 | Refactor `editors-lists`/`editors-basic` ; stats agrégées ; tests composants/Convex ; a11y skip-link | divers | 1–3 j |
+| Priorité | Action | Fichier | État |
+|---|---|---|---|
+| P0 | Garde admin sur la branche destructive de `ensureSeed` | seed.ts | ✅ |
+| P1 | Supprimer `vly-integrations.ts` + `integrations.md` ; retirer `@oslojs/crypto` | lib/, racine, package.json | ✅ |
+| P1 | Sonner : thème depuis `.dark` (retirer `next-themes`) | ui/sonner.tsx, package.json | ✅ |
+| P1 | Scripts perso : ne ré-injecter que si contenu changé | Landing.tsx | ✅ |
+| P2 | Icônes : registre extrait dans `service-icons.tsx` (chunk séparé) | lib/service-icons.tsx | ✅ |
+| P2 | Documenter la récupération de mot de passe (self-host) | README/DEPLOYMENT | ✅ |
+| P2 | Pagination messages (au-delà de 200) | site.ts + editors-lists | ✅ |
+| P3 | A11y skip-link | Landing.tsx + Dashboard.tsx | ✅ |
+| P3 | Refactor `editors-lists`/`editors-basic` ; stats agrégées ; tests composants/Convex ; CSP stricte | divers | ⏳ au besoin |

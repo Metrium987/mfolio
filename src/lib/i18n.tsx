@@ -109,6 +109,7 @@ export const UI_STRINGS = {
     en: "Sending failed. Please try again in a moment.",
   },
   "loading": { fr: "Chargement…", en: "Loading…" },
+  "a11y.skipToContent": { fr: "Aller au contenu", en: "Skip to content" },
   "maintenance.title": { fr: "Site en maintenance", en: "Site under maintenance" },
   "maintenance.body": {
     fr: "Le portfolio est en cours de rafraîchissement. Revenez dans quelques instants — le propriétaire a activé le mode maintenance.",

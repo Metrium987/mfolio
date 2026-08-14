@@ -2,6 +2,7 @@ import { mutation } from "./_generated/server";
 import type { Infer } from "convex/values";
 import { levelToNumber, proficiencyToLevel } from "../lib/levels";
 import { DEFAULT_SECTION_ORDER } from "../lib/sections";
+import { getCurrentAdmin } from "./users";
 import {
   aboutValidator,
   blogValidator,
@@ -655,7 +656,9 @@ export const ensureSeed = mutation({
       return;
     }
 
-    const managedTables = [
+    // Content tables only — these are safe to reset publicly: on a brand-new
+    // database they are empty, and the portfolio must always render fully.
+    const contentTables = [
       "site",
       "settings",
       "about",
@@ -666,13 +669,23 @@ export const ensureSeed = mutation({
       "blog",
       "languages",
       "interests",
-      "messages",
-      "visitors",
     ] as const;
-    for (const table of managedTables) {
+    for (const table of contentTables) {
       const stale = await ctx.db.query(table).collect();
       for (const doc of stale) {
         await ctx.db.delete(doc._id);
+      }
+    }
+    // Messages and visitors are business data — a public caller (the landing
+    // page) must never be able to wipe them. They are only reset (and
+    // re-seeded with the demo rows) when the owner runs the seed.
+    const owner = await getCurrentAdmin(ctx);
+    if (owner) {
+      for (const table of ["messages", "visitors"] as const) {
+        const stale = await ctx.db.query(table).collect();
+        for (const doc of stale) {
+          await ctx.db.delete(doc._id);
+        }
       }
     }
 
@@ -686,11 +699,13 @@ export const ensureSeed = mutation({
     await ctx.db.insert("blog", sampleBlog);
     await ctx.db.insert("languages", sampleLanguages);
     await ctx.db.insert("interests", sampleInterests);
-    for (const message of sampleMessages) {
-      await ctx.db.insert("messages", message);
-    }
-    for (const visitor of sampleVisitors) {
-      await ctx.db.insert("visitors", visitor);
+    if (owner) {
+      for (const message of sampleMessages) {
+        await ctx.db.insert("messages", message);
+      }
+      for (const visitor of sampleVisitors) {
+        await ctx.db.insert("visitors", visitor);
+      }
     }
   },
 });

@@ -67,6 +67,8 @@ Ouvrez **http://localhost:5173** — un contenu d'exemple est généré automati
 | Mot de passe | `admin123` |
 
 > ⚠️ **Changez ces identifiants immédiatement** depuis **Paramètres → Sécurité du compte** (email + mot de passe). La page de connexion affiche un rappel tant que ce n'est pas fait.
+>
+> **Mot de passe oublié (self-host)** : il n'existe plus de porte de secours par email (OTP supprimé). La procédure : dashboard Convex → table `authAccounts` → supprimer la ligne du compte mot de passe → recharger `/auth` — `ensureAdmin` recrée le compte par défaut (voir `docs/DEPLOYMENT.md`).
 
 ## Variables d'environnement
 
@@ -122,7 +124,7 @@ Mfolio est une application Vite + Convex standard :
 1. Clonez, `bun install`, `bunx convex dev` (crée votre projet Convex).
 2. Renseignez `SITE_URL`, `JWKS`, `JWT_PRIVATE_KEY` dans le dashboard Convex (les clés d'auth sont provisionnées par Convex Auth).
 3. Renseignez `VITE_CONVEX_URL` dans les variables d'environnement de votre hébergeur, build avec `bun run build` (sortie : `dist/`).
-4. Choisissez votre stratégie email (voir ci-dessus). Optionnel : supprimez les éléments spécifiques Freebuff (`vlyPlugin()` dans `vite.config.ts`, la dépendance `@vly-ai/integrations`, `src/lib/vly-integrations.ts`, `integrations.md`) — ils sont inertes mais inutiles hors plateforme.
+4. Choisissez votre stratégie email (voir ci-dessus). Optionnel : supprimez les éléments spécifiques Freebuff (`vlyPlugin()` dans `vite.config.ts` et la dépendance `@vly-ai/integrations`) — ils sont inertes mais inutiles hors plateforme.
 5. Première connexion avec `admin@admin.com` / `admin123`, changez les identifiants, saisissez votre clé DeepL / ID GA.
 
 > 💡 **Conserver vos données :** tout le contenu du portfolio vit dans Convex. En réutilisant le même déploiement Convex, votre contenu et vos réglages suivent automatiquement.
