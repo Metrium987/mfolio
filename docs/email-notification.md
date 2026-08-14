@@ -72,7 +72,7 @@ Connectez-vous au tableau de bord pour lire le message.
 ## Ce qui a été supprimé (nettoyage)
 
 - `src/lib/vly-integrations.ts` (module mort de la passerelle vly.ai).
-- Dépendances `axios` et `@vly-ai/integrations` (package.json + lockfile).
+- Dépendance `axios` (package.json + lockfile) ; `@vly-ai/integrations` est **conservée** — le `vlyPlugin()` de `vite.config.ts` en dépend (inert sur la plateforme, retirable hors Freebuff, voir README § Déploiement).
 - `import '@vly-ai/integrations'` dans `src/main.tsx` (import d'effet de bord du template — aurait cassé le build).
 - `test-relay.ts` (script de test jetable).
 

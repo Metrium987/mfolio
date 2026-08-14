@@ -129,8 +129,8 @@ FR, index par position).
   (voir `README.md` § Déploiement).
 - `vly-toolbar-readonly.tsx` : toolbar d'édition Freebuff (DO NOT MODIFY),
   embarquée dans le bundle, active uniquement sur les hôtes `*.vly.sh`.
-- `src/lib/vly-integrations.ts` : **fichier mort** (aucun import) — à supprimer
-  (reliquat de la passerelle vly.ai, inopérante depuis le rachat).
+- `src/lib/vly-integrations.ts` : **fichier mort supprimé** (2026-08-14) avec
+  `integrations.md` et la dépendance `@oslojs/crypto` (fantôme post-OTP).
 - Relais email : `src/convex/emailRelay.ts` (clé x-api-key plateforme), seul
   canal email restant (OTP supprimé) — notification de contact uniquement.
 
@@ -138,8 +138,8 @@ FR, index par position).
 
 - Miroir EN **par position** : un réordonnancement massif peut désaligner les
   traductions (le diff DeepL retraduit automatiquement les champs déplacés).
-- Boîte de réception plafonnée à **200 messages** affichés (export CSV
-  disponible ; pas de pagination).
+- Boîte de réception **paginée** (`getMessages` paginé, 50/page, « Charger
+  plus ») ; badge du sidebar via `getMessagesCount` ; export CSV des chargés.
 - `visitorId` (anti-spam) est généré côté client → contournable par rotation ;
   aucune adresse IP n'est disponible côté Convex.
 - Le site public charge les images telles quelles (pas de redimensionnement

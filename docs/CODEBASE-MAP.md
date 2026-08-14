@@ -61,15 +61,15 @@
 ### UI (shadcn) — `src/components/ui/`
 `button, card, input, textarea, label, select, switch, dialog, alert-dialog,
 sheet, tooltip, badge, separator, alert, sonner`. **`input-otp.tsx` supprimé**
-(2026-08-14). `sonner.tsx` lit `next-themes` (`useTheme`) — sans ThemeProvider,
-retombe sur `"system"` (voir AUDIT : incohérence avec le thème manuel).
+(2026-08-14). `sonner.tsx` dérive le thème du Toaster de la classe `.dark` du
+document (dépendance `next-themes` retirée le même jour).
 
 ### Libs — `src/lib/`
 - **`site.tsx`** — `APP_NAME`, monogrammes, `detectBrowser/detectPlatform`,
   `getOrCreateVisitorId` (localStorage `mfolio_visitor`), `applyFavicon`,
-  `applyThemeColor` (override `--primary`/`--studio-accent`), **registre de
-  ~140 icônes** `SERVICE_ICON_GROUPS` + `ServiceIcon` (poids bundle — voir
-  AUDIT).
+  `applyThemeColor` (override `--primary`/`--studio-accent`). Le **registre de
+  ~140 icônes** (`SERVICE_ICON_GROUPS` + `ServiceIcon`) vit dans
+  `src/lib/service-icons.tsx` (chunk dédié, extrait le 2026-08-14).
 - **`i18n.tsx`** — `SiteLangProvider` + `useSiteLang` : `t(key)` (UI),
   `pick(fr, en)` (contenu), localStorage `mfolio_lang`, `document.lang` synchro.
 - **`sections.ts`** — `SECTION_IDS` (8 sections ordonnables), labels FR.
@@ -91,7 +91,7 @@ retombe sur `"system"` (voir AUDIT : incohérence avec le thème manuel).
 | `users.ts` | `currentUser` (query publique du user connecté), `getCurrentUser`, **`getCurrentAdmin`** (rôle admin) | — |
 | `ensureAdmin.ts` | `hasPasswordAccount`, `ensureAdmin` (crée le compte par défaut si aucun) | Publique/idempotente |
 | `credentials.ts` | `getPasswordAccount` (email + `isDefault`), `updateAdminEmail` (merge si email déjà pris), `updateAdminPassword` (≥ 8 car.), `markCredentialsChanged` | Admin |
-| `site.ts` | `getSiteData` (public, clés masquées), `getIntegrations`, `getSettingsForBackend` (clé DeepL brute), `getStats`, `getMessages` (200), `getVisitors` (500) | Admin sauf `getSiteData` |
+| `site.ts` | `getSiteData` (public, clés masquées), `getIntegrations`, `getSettingsForBackend` (clé DeepL brute), `getStats`, `getMessages` (paginé 50/page) + `getMessagesCount`, `getVisitors` (500) | Admin sauf `getSiteData` |
 | `siteMutations.ts` | `persistSection` (écriture par l'action de traduction), `updateIntegrations`, `setCvUrl`, `addMessage` (public + anti-spam), `markMessageReplied`, `deleteMessage`, `trackVisit` (public, borné), `deleteVisitor`, `purgeOldVisitors` (internal, cron) | Admin sauf public |
 | `translate.ts` | `updateXxx` (10 actions), `translateAllContent` ; `translateOne` avec **diff** ; `getDeepLApiKey` | Admin |
 | `files.ts` | `generateUploadUrl`, `getUrl`, `deleteFile` | **Admin** (2026-08-14) |

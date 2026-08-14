@@ -71,8 +71,9 @@ voir plan).
 
 **Points forts vérifiés :** 22 tests unitaires (levels, sections, stats),
 lint propre, TypeScript strict, zéro dépendance inutilisée restante (hors
-`next-themes` ci-dessus et les deux fichiers plateforme), commentaires
-explicatifs partout, gestion des états vides et des erreurs cohérente.
+les deux dépendances plateforme `@zumer/snapdom` + `@vly-ai/integrations`),
+commentaires explicatifs partout, gestion des états vides et des erreurs
+cohérente.
 
 ## D. Produit / UX — complet, 3 améliorations utiles
 
@@ -97,9 +98,8 @@ listes.
 - **Installées et utilisées** : react, react-dom, react-router, convex,
   @convex-dev/auth, @radix-ui/* (8), framer-motion, lucide-react, sonner,
   tailwind-merge, clsx, class-variance-authority, tailwindcss,
-  @tailwindcss/vite, next-themes (sonner), @zumer/snapdom + @vly-ai/integrations
-  (plateforme), @oslojs/crypto (OTP… retiré ? **vérifier** — était importé par
-  emailOtp.ts supprimé ; si plus d'imports, le retirer).
+  @tailwindcss/vite, @zumer/snapdom + @vly-ai/integrations (plateforme).
+  **Retirées** : `input-otp` ✅, `next-themes` ✅, `@oslojs/crypto` ✅.
 - **`input-otp` retiré** ✅ (avec le composant).
 - `vite.config.ts` : `manualChunks` réparé ✅ (build 13 s), `optimizeDeps`
   cohérent, `hmr: false` imposé (ne pas toucher).
