@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -23,6 +23,14 @@ export function RequireAuth({ children }: { children: ReactNode }) {
         replace
       />
     );
+  }
+
+  // Owner-only area: a signed-in non-owner (e.g. an account created through
+  // the public email-code flow) must not reach the dashboard. The backend
+  // gates every sensitive function on the admin role as well — this is the
+  // UI-level mirror so non-owners aren't shown a broken dashboard.
+  if (user && user.role !== "admin") {
+    return <Navigate to="/" replace />;
   }
 
   return children;

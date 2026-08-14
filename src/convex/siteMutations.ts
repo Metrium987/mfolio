@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, MutationCtx } from "./_generated/server";
 import { api } from "./_generated/api";
 import { DAY } from "../lib/stats";
-import { getCurrentUser } from "./users";
+import { getCurrentAdmin } from "./users";
 
 type SectionTable =
   | "site"
@@ -48,8 +48,11 @@ async function upsertDoc(ctx: MutationCtx, table: SectionTable, data: unknown) {
 }
 
 async function requireOwner(ctx: MutationCtx) {
-  const user = await getCurrentUser(ctx);
-  if (!user) throw new Error("Not authenticated");
+  // The owner is the password account created with the admin role. Checking
+  // the role (not just authentication) closes the gap where any account
+  // created through the public email-code flow could reach owner functions.
+  const user = await getCurrentAdmin(ctx);
+  if (!user) throw new Error("Not authorized");
   return user;
 }
 

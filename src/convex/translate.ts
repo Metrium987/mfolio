@@ -14,6 +14,7 @@ import {
   settingsValidator,
   siteValidator,
   skillsValidator,
+  ROLES,
 } from "./schema";
 
 export type SectionName =
@@ -249,14 +250,14 @@ async function translateOne(
   return en;
 }
 
-/** Require an authenticated user, translate, then persist both languages. */
+/** Require the owner (admin role), translate, then persist both languages. */
 async function translateAndPersist(
   ctx: TranslateCtx,
   section: SectionName,
   data: Record<string, unknown>,
 ) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Not authenticated");
+  const user = await ctx.runQuery(api.users.currentUser);
+  if (!user || user.role !== ROLES.ADMIN) throw new Error("Not authorized");
 
   let en: unknown;
   try {
@@ -364,8 +365,8 @@ export const updateInterests = action({
 export const translateAllContent = action({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.runQuery(api.users.currentUser);
+    if (!user || user.role !== ROLES.ADMIN) throw new Error("Not authorized");
 
     const results: Record<string, "ok" | "skipped" | "failed"> = {};
     const apiKey = await getDeepLApiKey(ctx);

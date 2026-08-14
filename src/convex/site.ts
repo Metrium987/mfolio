@@ -1,5 +1,5 @@
 import { query } from "./_generated/server";
-import { getCurrentUser } from "./users";
+import { getCurrentAdmin } from "./users";
 import type { Doc } from "./_generated/dataModel";
 import {
   DAY,
@@ -94,7 +94,7 @@ export const getSiteData = query({
 export const getIntegrations = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentAdmin(ctx);
     if (!user) return null;
     const settings = await ctx.db.query("settings").first();
     return {
@@ -115,7 +115,7 @@ export const getIntegrations = query({
 export const getSettingsForBackend = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentAdmin(ctx);
     if (!user) return null;
     return ctx.db.query("settings").first();
   },
@@ -129,7 +129,7 @@ export const getSettingsForBackend = query({
 export const getStats = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentAdmin(ctx);
     if (!user) return null;
 
     const [visitors, messages] = await Promise.all([
@@ -244,7 +244,7 @@ export const getStats = query({
 export const getMessages = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentAdmin(ctx);
     if (!user) return null;
     return ctx.db.query("messages").order("desc").take(200);
   },
@@ -256,7 +256,7 @@ export const getMessages = query({
 export const getVisitors = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentAdmin(ctx);
     if (!user) return null;
     return ctx.db.query("visitors").order("desc").take(500);
   },

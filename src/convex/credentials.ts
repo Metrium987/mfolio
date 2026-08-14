@@ -2,7 +2,8 @@ import { modifyAccountCredentials } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
-import { getCurrentUser } from "./users";
+import { getCurrentAdmin } from "./users";
+import { ROLES } from "./schema";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,8 +31,8 @@ export const getPasswordAccount = query({
 export const updateAdminEmail = mutation({
   args: { newEmail: v.string() },
   handler: async (ctx, { newEmail }) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) throw new Error("Not authenticated");
+    const user = await getCurrentAdmin(ctx);
+    if (!user) throw new Error("Not authorized");
 
     const email = newEmail.trim().toLowerCase();
     if (!EMAIL_RE.test(email)) throw new Error("Adresse email invalide");
@@ -82,8 +83,10 @@ export const updateAdminEmail = mutation({
 export const updateAdminPassword = action({
   args: { newPassword: v.string() },
   handler: async (ctx, { newPassword }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const user = await ctx.runQuery(api.users.currentUser);
+    if (!user || user.role !== ROLES.ADMIN) {
+      throw new Error("Not authorized");
+    }
 
     const password = newPassword;
     if (password.length < 8) {
@@ -105,6 +108,8 @@ export const updateAdminPassword = action({
 export const markCredentialsChanged = mutation({
   args: {},
   handler: async (ctx) => {
+    const user = await getCurrentAdmin(ctx);
+    if (!user) throw new Error("Not authorized");
     const account = await ctx.db
       .query("authAccounts")
       .withIndex("providerAndAccountId", (q) => q.eq("provider", "password"))
