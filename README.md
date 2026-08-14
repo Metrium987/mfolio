@@ -16,7 +16,7 @@
 - 🗂️ **Full admin dashboard** — edit every section inline (À propos, Parcours, Compétences, Langues, Centres d'intérêt, Services, Portfolio, Journal), reorder items with ↑/↓, preview and delete from popups.
 - 🌍 **FR ↔ EN** — automatic translation via DeepL (optional key, free tier).
 - ✉️ **Contact form → inbox + email notification** — messages are stored in the dashboard inbox; an email notification (short notice, no message body) is sent to the owner.
-- 🔐 **Auth** — password login + email OTP recovery codes. Both channels are **toggleable** (portability).
+- 🔐 **Auth** — password login, owner-only (role-gated): every sensitive function (content, messages, stats, storage, credentials) requires the admin role. No public account creation.
 - 🛡️ **Anti-spam** — honeypot + per-visitor rate limit + input length caps.
 - 📊 **Statistics** — visitors (day/week/month), unique visitors, return rate, contact conversion, devices, top browsers, peak hours. Automatic 90-day purge (scheduled daily).
 - 🔎 **SEO** — meta tags, Open Graph/Twitter cards, canonical URLs, hreflang FR/EN, sitemap.xml, robots.txt, custom header/footer scripts.
@@ -96,17 +96,18 @@ See [.env.example](.env.example) for the full annotated template.
 
 ## Email channels
 
-Two features send email, both through a single helper:
+One feature sends email, through a single helper:
 
-1. **Contact notifications** — when a visitor submits the form
-2. **Sign-in codes (OTP)** — the password-recovery code emails
+1. **Contact notifications** — when a visitor submits the form (the message itself always stays in the dashboard inbox)
 
-On Freebuff Web, both use the **platform email relay** (`src/convex/emailRelay.ts`) — no SMTP, no key to configure.
+The email-code (OTP) login was **removed entirely** — the only sign-in channel is the owner's password, so no visitor can ever create an account.
+
+On Freebuff Web, the notification uses the **platform email relay** (`src/convex/emailRelay.ts`) — no SMTP, no key to configure.
 
 **Deploying elsewhere, two options:**
 
-- **Simplest:** in **Paramètres → Intégrations**, switch **“Notifications de contact”** and **“Connexion par code email (OTP)”** off. Password login and the in-app inbox keep working 100%. ✅
-- **Keep email:** edit `src/convex/emailRelay.ts` to call your own provider (e.g. Resend). Only **two call sites** exist: `src/convex/notify.ts` (notification) and `src/convex/auth/emailOtp.ts` (OTP codes).
+- **Simplest:** in **Paramètres → Intégrations**, switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
+- **Keep email:** edit `src/convex/emailRelay.ts` to call your own provider (e.g. Resend). Only **one call site** exists: `src/convex/notify.ts` (notification).
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.
 
@@ -135,7 +136,6 @@ src/
 │   ├── site/         # Public site sections (Hero, Resume, Skills, Contact…)
 │   └── ui/           # shadcn/ui primitives
 ├── convex/
-│   ├── auth/         # emailOtp provider (platform relay)
 │   ├── _generated/   # Auto-generated (do not edit)
 │   ├── schema.ts     # Database schema
 │   ├── site.ts       # Public queries (getSiteData, getStats…)

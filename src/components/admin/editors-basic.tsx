@@ -513,14 +513,9 @@ function IntegrationsCard({
   const [contactNotifications, setContactNotifications] = useState(
     settings?.contactNotifications !== false,
   );
-  const [emailOtpEnabled, setEmailOtpEnabled] = useState(
-    settings?.emailOtpEnabled !== false,
-  );
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const deeplKeySet = integrations?.deeplKeySet ?? false;
-  // If the owner tries to cut the OTP codes, a password must exist first.
-  const passwordAccount = useQuery(api.credentials.getPasswordAccount);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- one-time form sync
@@ -528,20 +523,17 @@ function IntegrationsCard({
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
     setNotificationEmail(settings?.notificationEmail ?? "");
     setContactNotifications(settings?.contactNotifications !== false);
-    setEmailOtpEnabled(settings?.emailOtpEnabled !== false);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [
     settings?.googleAnalyticsId,
     settings?.notificationEmail,
     settings?.contactNotifications,
-    settings?.emailOtpEnabled,
   ]);
 
   const dirty =
     googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
     notificationEmail !== (settings?.notificationEmail ?? "") ||
     contactNotifications !== (settings?.contactNotifications !== false) ||
-    emailOtpEnabled !== (settings?.emailOtpEnabled !== false) ||
     deeplApiKey.trim() !== "";
 
   /** Translate every section once and report the outcome. */
@@ -575,7 +567,6 @@ function IntegrationsCard({
         deeplApiKey: newKey,
         notificationEmail: notificationEmail.trim(),
         contactNotifications,
-        emailOtpEnabled,
       });
       setDeeplApiKey("");
       if (newKey) {
@@ -667,20 +658,6 @@ function IntegrationsCard({
         description="Envoie un email quand un visiteur écrit via le formulaire — coupez-le si vous déployez l'app ailleurs. Le message reste toujours dans la boîte de réception."
         checked={contactNotifications}
         onChange={setContactNotifications}
-      />
-      <ToggleField
-        label="Connexion par code email (OTP)"
-        description="Le code de connexion envoyé par email — votre solution de récupération de mot de passe. Coupez-le seulement si un mot de passe est défini (Sécurité du compte)."
-        checked={emailOtpEnabled}
-        onChange={(checked) => {
-          if (!checked && !passwordAccount) {
-            toast.error(
-              "Définissez d'abord un mot de passe (Paramètres → Sécurité du compte) avant de couper les codes email.",
-            );
-            return;
-          }
-          setEmailOtpEnabled(checked);
-        }}
       />
       <div className="flex flex-wrap items-center justify-end gap-3">
         {dirty && (
@@ -1257,7 +1234,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
 
         <FieldGroup
           title="Scripts personnalisés"
-          description="Code HTML/JS injecté tel quel sur le site public."
+          description="Code HTML/JS injecté tel quel sur le site public — il s'exécute dans le navigateur de chaque visiteur. Réservé au propriétaire ; ne collez que du code de confiance (analytics, chat…)."
         >
           <div className="space-y-4">
             <TextAreaField
@@ -1265,13 +1242,14 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               value={draft.value.scriptHeader}
               onChange={(scriptHeader) => draft.set({ ...draft.value, scriptHeader })}
               rows={4}
-              hint="HTML/JS injecté tel quel sur le site public."
+              hint="HTML/JS injecté tel quel dans le <head> du site public."
             />
             <TextAreaField
               label="Script de pied de page"
               value={draft.value.scriptFooter}
               onChange={(scriptFooter) => draft.set({ ...draft.value, scriptFooter })}
               rows={4}
+              hint="HTML/JS injecté tel quel avant la fermeture du <body>."
             />
           </div>
         </FieldGroup>

@@ -15,7 +15,7 @@ Rien à faire. Sur cette plateforme :
 
 - L'environnement de développement et le build sont gérés automatiquement.
 - Le déploiement Convex est provisionné et les types générés à chaque modification.
-- Le **relais email** (`src/convex/emailRelay.ts`) fonctionne sans aucune clé : notification de contact et codes OTP partent via `auth.freebuff.app/send_otp`.
+- Le **relais email** (`src/convex/emailRelay.ts`) fonctionne sans aucune clé : la notification de contact part via `auth.freebuff.app/send_otp` (l'ancien canal OTP a été supprimé).
 
 Seules choses à faire dans l'application après la première connexion (`admin@admin.com` / `admin123`) :
 
@@ -103,20 +103,19 @@ Hors plateforme, ces éléments ne servent plus (ils sont inertes) et peuvent ê
 
 ## 3. Les canaux email en détail
 
-Deux fonctionnalités envoient des emails, toutes deux via le helper `sendViaEmailRelay` :
+Une seule fonctionnalité envoie des emails, via le helper `sendViaEmailRelay` :
 
 | Fonctionnalité | Fichier | Réglage dans l'app |
 |---|---|---|
 | Notification de contact (avis court, sans le texte) | `src/convex/notify.ts` (appelé par `siteMutations.ts` → `addMessage`) | **Paramètres → Intégrations → « Notifications de contact (email) »** |
-| Codes de connexion OTP (récupération mot de passe) | `src/convex/auth/emailOtp.ts` | **Paramètres → Intégrations → « Connexion par code email (OTP) »** |
+
+> L'ancien canal **OTP** (codes de connexion par email) a été **supprimé entièrement** : la seule connexion est le mot de passe du propriétaire, et aucun visiteur ne peut créer de compte.
 
 ### Option A — Tout désactiver (aucun email)
 
 1. **Paramètres → Intégrations**.
 2. Coupez **« Notifications de contact (email) »** → plus d'email à la réception d'un message ; le message reste stocké dans **Messages**.
-3. Coupez **« Connexion par code email (OTP) »** → l'onglet « Code par email » disparaît de la page de connexion ; seule la connexion par **mot de passe** reste.
-   - *Garde-fou :* impossible de couper l'OTP s'il n'existe aucun mot de passe défini (vous ne pouvez pas vous enfermer dehors).
-4. Résultat : l'application tourne sans aucune dépendance email. ✅
+3. Résultat : l'application tourne sans aucune dépendance email. ✅
 
 ### Option B — Rebrancher sur votre propre fournisseur
 
@@ -164,14 +163,13 @@ Notes :
 
 - La clé API se configure dans le **dashboard Convex → Settings → Env Variables** (jamais dans le dépôt), et se lit avec `process.env`.
 - Le relais de la plateforme formate tous les emails comme un email de code (« Sign in to … »). Avec votre propre fournisseur, vous contrôlez le sujet et le corps : la notification de contact peut par exemple contenir le nom de l'expéditeur et le sujet du message.
-- `src/convex/auth/emailOtp.ts` est marqué « DO NOT MODIFY » par le template Freebuff — **dans votre propre dépôt GitHub, cette contrainte n'existe plus** : vous pouvez l'adapter librement.
 
 ### Récapitulatif : ce qui dépend de Freebuff
 
 | Élément | Dépend de Freebuff ? | Portable ? |
 |---|---|---|
 | Relais email (`emailRelay.ts`) | Oui (URL + clé codée en dur) | Oui — désactivable ou remplaçable |
-| Codes OTP | Oui (même relais) | Oui — désactivable ou remplaçable |
+| Codes OTP (connexion par email) | — | Supprimé — aucune création de compte public |
 | Base de données + backend Convex | Non | Oui — votre propre projet Convex |
 | Auth (mot de passe) | Non | Oui |
 | DeepL / Google Analytics | Non | Oui — clés personnelles |

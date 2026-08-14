@@ -12,11 +12,13 @@ import {
   LogOut,
   Newspaper,
   Settings,
+  ShieldAlert,
   SlidersHorizontal,
   Sparkles,
   TrendingUp,
   Users,
   Wrench,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -444,6 +446,7 @@ export default function Dashboard() {
   const translateAllContent = useAction(api.translate.translateAllContent);
   const [active, setActive] = useState<string>("overview");
   const [autoTranslateRan, setAutoTranslateRan] = useState(false);
+  const [dismissCredentialsBanner, setDismissCredentialsBanner] = useState(false);
 
   useEffect(() => {
     void ensureSeed();
@@ -717,6 +720,37 @@ export default function Dashboard() {
         </div>
 
         <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 lg:py-10">
+          {user && user.credentialsChanged !== true && !dismissCredentialsBanner && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border bg-card px-4 py-3">
+              <div className="flex items-center gap-3">
+                <ShieldAlert className="size-4 shrink-0 text-(--studio-accent)" />
+                <p className="text-[13px] text-muted-foreground">
+                  Vous utilisez encore les identifiants par défaut (
+                  <span className="font-medium text-foreground">admin@admin.com</span>
+                  ), connus publiquement. Changez-les dès maintenant.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setActive("site")}
+                  className="rounded-full"
+                >
+                  Changer maintenant
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Fermer"
+                  onClick={() => setDismissCredentialsBanner(true)}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
           {activeItem?.group && (
             <p className="mb-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground lg:hidden">
               {activeItem.group} — {activeLabel}

@@ -85,7 +85,6 @@ export const updateIntegrations = mutation({
     clearDeeplKey: v.optional(v.boolean()),
     notificationEmail: v.optional(v.string()),
     contactNotifications: v.optional(v.boolean()),
-    emailOtpEnabled: v.optional(v.boolean()),
   }),
   handler: async (
     ctx,
@@ -95,7 +94,6 @@ export const updateIntegrations = mutation({
       clearDeeplKey,
       notificationEmail,
       contactNotifications,
-      emailOtpEnabled,
     },
   ) => {
     await requireOwner(ctx);
@@ -106,7 +104,6 @@ export const updateIntegrations = mutation({
       deeplApiKey?: string;
       notificationEmail?: string;
       contactNotifications?: boolean;
-      emailOtpEnabled?: boolean;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
     };
@@ -120,9 +117,6 @@ export const updateIntegrations = mutation({
     }
     if (contactNotifications !== undefined) {
       patch.contactNotifications = contactNotifications;
-    }
-    if (emailOtpEnabled !== undefined) {
-      patch.emailOtpEnabled = emailOtpEnabled;
     }
     await ctx.db.patch(settings._id, patch);
   },
@@ -172,16 +166,21 @@ export const addMessage = mutation({
       throw new Error("Message trop long.");
     }
 
-    // Free per-visitor rate limit (in-database sliding window, 1 hour).
+    // Free per-visitor rate limit (in-database sliding window, 1 hour). The
+    // by_visitorId index makes the window exact — no dependence on the "most
+    // recent 50 messages" like before. visitorId is client-generated, so this
+    // is a best-effort throttle, not a hard anti-abuse barrier.
     const now = Date.now();
-    const recent = await ctx.db.query("messages").order("desc").take(50);
-    const recentFromVisitor = recent.filter(
-      (m) =>
-        m.visitorId &&
-        m.visitorId === visitorId &&
-        m.createdAt > now - 60 * 60 * 1000,
-    );
-    if (visitorId && recentFromVisitor.length >= 3) {
+    const vId = visitorId?.trim() || undefined;
+    const recentFromVisitor = vId
+      ? await ctx.db
+          .query("messages")
+          .withIndex("by_visitorId", (q) =>
+            q.eq("visitorId", vId).gt("createdAt", now - 60 * 60 * 1000),
+          )
+          .take(4)
+      : [];
+    if (vId && recentFromVisitor.length >= 3) {
       throw new Error("Trop de messages envoyés. Réessayez plus tard.");
     }
 
@@ -192,7 +191,7 @@ export const addMessage = mutation({
       message: message.trim(),
       replied: false,
       createdAt: now,
-      visitorId: visitorId?.trim() || undefined,
+      visitorId: vId,
     });
 
     // Email the owner in the background through the built-in gateway. The
@@ -244,12 +243,31 @@ export const trackVisit = mutation({
     platform: v.string(),
   }),
   handler: async (ctx, { trackingId, isNew, browser, platform }) => {
+    // Validation caps — silently drop malformed events instead of writing
+    // oversized rows (a script could otherwise bloat the table and skew the
+    // dashboard stats). The client already limits these lengths.
+    const tId = trackingId.trim();
+    const ua = browser.trim();
+    const os = platform.trim();
+    if (!tId || tId.length > 64 || ua.length > 100 || os.length > 64) {
+      return;
+    }
+
+    // Per-visitor throttle: at most 30 events per trackingId per minute. The
+    // trackingId is client-generated (rotatable), so this is best-effort.
+    const now = Date.now();
+    const recent = await ctx.db.query("visitors").order("desc").take(200);
+    const recentFromId = recent.filter(
+      (v) => v.trackingId === tId && v.createdAt > now - 60 * 1000,
+    );
+    if (recentFromId.length >= 30) return;
+
     await ctx.db.insert("visitors", {
-      trackingId,
+      trackingId: tId,
       isNew,
-      browser,
-      platform,
-      createdAt: Date.now(),
+      browser: ua,
+      platform: os,
+      createdAt: now,
     });
   },
 });

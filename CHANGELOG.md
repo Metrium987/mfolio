@@ -4,6 +4,24 @@ Toutes les évolutions notables de Mfolio sont documentées ici.
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.1.0] — 2026-08-14
+
+### Sécurité
+
+- **Contrôle d'accès par rôle** : `requireOwner` et toutes les fonctions sensibles (messages, stats, visiteurs, intégrations, clé DeepL, identifiants, stockage) vérifient désormais le rôle `admin`. Un compte non-propriétaire ne peut plus lire la boîte de réception ni modifier quoi que ce soit.
+- **Suppression complète des codes OTP** (connexion par email) : provider, UI, réglage et dépendance `input-otp` retirés. La seule connexion est le mot de passe du propriétaire — aucune création de compte public possible.
+- **Stockage verrouillé** : `generateUploadUrl`, `getUrl` et `deleteFile` sont réservés au propriétaire.
+- **Bannière « identifiants par défaut »** dans le tableau de bord tant que `admin@admin.com` n'est pas changé.
+
+### Changements
+
+- **Build de production réparé** : `manualChunks` de `vite.config.ts` nettoyés (packages inexistants retirés) → `bun run build` passe.
+- **Traduction DeepL incrémentale** : seuls les champs modifiés sont retraduits (économie de quota, miroir EN conservé).
+- **Export CSV** de la boîte de réception Messages.
+- **Anti-spam renforcé** : limite de contact par fenêtre temporelle indexée (`by_visitorId`), bornes + throttle sur `trackVisit`.
+- **CSP** ajoutée dans `index.html` (soupape pour scripts propriétaire + CDN connus).
+- Nettoyage : `isolate/` (vieux build committé) supprimé et gitignoré.
+
 ## [1.0.0] — 2026-08-13
 
 Première publication publique. Mfolio est un portfolio & CV clé en main, conçu à l'origine sur Freebuff Web (ex-vly.ai) et entièrement portable.

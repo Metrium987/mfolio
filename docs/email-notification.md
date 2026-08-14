@@ -8,7 +8,7 @@
 - La clé `VLY_INTEGRATION_KEY` (`sk_…`) + la passerelle `integrations.vly.ai` **ne fonctionnent plus** (401 « Invalid token »). C'est un reliquat de l'ancienne plateforme vly.ai, encore injecté par Freebuff Web mais **rejeté** par la passerelle.
 - Le **seul canal email qui fonctionne** sur Freebuff Web est le relais de la plateforme : `https://auth.freebuff.app/send_otp`, avec la clé `x-api-key` fournie par le template.
 - **Implémentation retenue :** la notification de contact est un **simple avis** (sans le texte du message) envoyé via ce relais. Le message complet reste dans le tableau de bord.
-- ⚠️ Le relais formate l'email comme un email de code (objet « Sign in to … ») : on ne contrôle ni l'objet ni le template. Parfait pour les codes, acceptable pour une notification courte.
+- ⚠️ Le relais formate l'email comme un email de code (objet « Sign in to … ») : on ne contrôle ni l'objet ni le template. Acceptable pour une notification courte — les codes OTP de connexion ont été supprimés de l'app, ce relais ne sert plus qu'à la notification de contact.
 
 ## Les faits vérifiés (tests réels)
 
@@ -59,7 +59,6 @@ x-api-key: fb_email_2crN1hqIArZP2bEfvjp5Qik4
 |---|---|
 | `src/convex/emailRelay.ts` | **Helper partagé** : un seul endroit qui appelle le relais (`sendViaEmailRelay({ to, appName, otp })`). Backend uniquement, la clé n'est jamais exposée au client. |
 | `src/convex/notify.ts` | Action `sendContactEmail` : **notification courte** (avis + nom + email + sujet), **sans le texte du message**. |
-| `src/convex/auth/emailOtp.ts` | Codes de connexion : envoi **direct** via le relais (plus de tentative morte vers la passerelle). |
 | `src/convex/siteMutations.ts` | `addMessage` enregistre le message complet en base puis planifie l'action de notification. |
 
 **Contenu de l'email de notification (tel que reçu) :**

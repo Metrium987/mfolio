@@ -2,9 +2,10 @@
 
 import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
-import { emailOtp } from "./auth/emailOtp";
 
-
+// Password only: the email-code (OTP) provider was removed entirely — it let
+// anyone create an account, which is a door we don't want. Freebuff federated
+// sign-in still works through the customJwt provider in auth.config.ts.
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [emailOtp, Password],
+  providers: [Password],
 });

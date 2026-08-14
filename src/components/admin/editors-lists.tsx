@@ -2,6 +2,7 @@ import { useAction, useMutation } from "convex/react";
 import {
   ArrowDown,
   ArrowUp,
+  Download,
   Eye,
   ImagePlus,
   Inbox,
@@ -1711,6 +1712,32 @@ export function MessagesView({
     }
   };
 
+  /** Client-side CSV export of the loaded messages (the 200 most recent). */
+  const exportCsv = () => {
+    if (!messages || messages.length === 0) return;
+    const escape = (cell: string | number | boolean) =>
+      `"${String(cell).replace(/"/g, '""')}"`;
+    const rows = [
+      ["Date", "Nom", "Email", "Sujet", "Message", "Répondu"],
+      ...messages.map((m) => [
+        new Date(m.createdAt).toISOString(),
+        m.name,
+        m.email,
+        m.subject,
+        m.message,
+        m.replied ? "Oui" : "Non",
+      ]),
+    ];
+    const csv = rows.map((row) => row.map(escape).join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `messages-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!messages) {
     return (
       <div className="flex items-center gap-2 border border-border bg-card p-6 text-sm text-muted-foreground">
@@ -1726,16 +1753,31 @@ export function MessagesView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-          Boîte de réception
-        </p>
-        <h1 className="mt-1 font-display text-2xl font-light tracking-tight text-foreground">
-          Messages reçus
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Les demandes envoyées depuis le formulaire de contact du site.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            Boîte de réception
+          </p>
+          <h1 className="mt-1 font-display text-2xl font-light tracking-tight text-foreground">
+            Messages reçus
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Les demandes envoyées depuis le formulaire de contact du site (les
+            200 plus récentes).
+          </p>
+        </div>
+        {messages.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={exportCsv}
+            className="rounded-full"
+          >
+            <Download className="size-4" />
+            Exporter en CSV
+          </Button>
+        )}
       </div>
 
       {messages.length === 0 ? (

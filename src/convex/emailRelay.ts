@@ -4,7 +4,9 @@
  * rejects every token with 401 "Invalid token" since the vly.ai → Freebuff
  * acquisition; see docs/email-notification.md for the full investigation.
  *
- * This relay is also what delivers the sign-in codes (src/convex/auth/emailOtp.ts).
+ * This is the only email channel left: the OTP sign-in codes were removed
+ * (src/convex/auth/emailOtp.ts is gone), so the relay only carries the
+ * contact-form notification.
  * Note: it formats every email as a sign-in message ("Sign in to …", code in the
  * body), which is perfect for codes and acceptable as a stopgap for contact
  * notifications.

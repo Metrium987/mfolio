@@ -8,6 +8,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!--
+    Content-Security-Policy (defense in depth). 'unsafe-inline' for scripts and
+    styles is required by the owner's custom scripts (Paramètres → Config →
+    Scripts personnalisés) and by inline styles. connect-src allows any HTTPS
+    endpoint so owner scripts / GA / DeepL / Convex keep working; the meaningful
+    restriction is on script origins: only self, Google (Analytics/GTM) and
+    Fontshare are allowed, so injected third-party scripts are blocked.
+  -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' data: https://api.fontshare.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; media-src 'self' https:; base-uri 'self'; form-action 'self'"
+  />
+
+  <!--
     Static SEO / social-sharing fallback. The app syncs these tags at runtime
     (title, description, og:*, twitter:*, canonical, hreflang) from the admin
     settings — but LinkedIn / Facebook / WhatsApp / Slack scrapers do NOT run

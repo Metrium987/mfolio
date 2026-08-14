@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-
-# ⚠️ Après publication, remplacez votre-domaine.fr par votre vrai domaine
-# (même valeur que dans index.html et sitemap.xml).
-Sitemap: https://votre-domaine.fr/sitemap.xml

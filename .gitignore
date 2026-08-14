@@ -10,6 +10,8 @@ node_modules
 dist
 dist-ssr
 *.local
+# Stale build output accidentally committed at the repo root (2024-era)
+isolate
 
 # --- Convex generated code ---
 # NOTE: src/convex/_generated is COMMITTED on purpose (Convex best practice):

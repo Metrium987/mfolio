@@ -219,7 +219,17 @@ async function getDeepLApiKey(ctx: TranslateCtx): Promise<string | null> {
   return settings?.deeplApiKey?.trim() || null;
 }
 
-/** Translate a section's content and build its English mirror. */
+/**
+ * Translate a section's content and build its English mirror.
+ *
+ * Diff-based: only the fields whose French text actually changed are sent to
+ * DeepL. Everything else keeps its existing English mirror, so re-saving an
+ * editor does not burn translation quota (free tier: 500k chars/month) and
+ * manual EN edits survive as long as the French text is untouched.
+ *
+ * Returns null when no DeepL key is configured, an empty object when nothing
+ * changed, or a populated English mirror.
+ */
 async function translateOne(
   ctx: TranslateCtx,
   section: SectionName,
@@ -233,7 +243,16 @@ async function translateOne(
   );
   if (paths.length === 0) return {};
 
-  const source = paths.map((path) => {
+  // Currently stored French content + its English mirror (getSiteData returns
+  // the same public docs; API keys are sanitized there, which is fine — we
+  // only compare text fields).
+  const current = (await ctx.runQuery(
+    api.site.getSiteData,
+  )) as unknown as Record<string, unknown>;
+  const stored = (current[section] ?? null) as { en?: unknown } | null;
+  const storedEn = stored?.en ?? null;
+
+  const sourceOf = (path: (string | number)[]): string => {
     const raw = getAt(data, path);
     // Languages levels are stored as 1–5 numbers — translate the canonical
     // label ("Avancé") instead of the raw digit, so the English mirror shows
@@ -242,11 +261,31 @@ async function translateOne(
       return levelLabel(levelToNumber(raw as string | number));
     }
     return String(raw ?? "");
-  });
-  const translated = await translateStrings(apiKey, source);
+  };
 
+  const toTranslate = new Map<number, string>();
   const en: Record<string, unknown> = {};
-  paths.forEach((path, index) => setAt(en, path, translated[index]));
+  paths.forEach((path, index) => {
+    const text = sourceOf(path);
+    const previous = stored ? getAt(stored, path) : undefined;
+    const previousEn = storedEn ? getAt(storedEn, path) : undefined;
+    if (previous === text && previousEn !== undefined) {
+      // French text unchanged and an EN value already exists — keep it.
+      setAt(en, path, String(previousEn));
+    } else {
+      toTranslate.set(index, text);
+    }
+  });
+
+  if (toTranslate.size === 0) return en;
+
+  const translated = await translateStrings(
+    apiKey,
+    paths.map((_, index) => toTranslate.get(index) ?? ""),
+  );
+  translated.forEach((text, index) => {
+    if (toTranslate.has(index)) setAt(en, paths[index], text);
+  });
   return en;
 }
 
@@ -262,7 +301,15 @@ async function translateAndPersist(
   let en: unknown;
   try {
     const translated = await translateOne(ctx, section, data);
-    if (translated) en = translated;
+    // Only persist a mirror when something actually changed — an empty object
+    // means the stored EN is already up to date, and saving it would wipe it.
+    if (
+      translated &&
+      typeof translated === "object" &&
+      Object.keys(translated as object).length > 0
+    ) {
+      en = translated;
+    }
   } catch (error) {
     console.error(`[translate] ${section} failed, saving French only:`, error);
   }
@@ -397,7 +444,11 @@ export const translateAllContent = action({
       void _oldEn;
       try {
         const translated = await translateOne(ctx, section, content);
-        if (!translated) {
+        if (
+          !translated ||
+          (typeof translated === "object" &&
+            Object.keys(translated as object).length === 0)
+        ) {
           results[section] = "skipped";
           continue;
         }

@@ -16,7 +16,7 @@
 - 🗂️ **Tableau de bord complet** — édition de chaque section (À propos, Parcours, Compétences, Langues, Centres d'intérêt, Services, Portfolio, Journal), réorganisation des éléments avec ↑/↓, aperçu et suppression en popup.
 - 🌍 **FR ↔ EN** — traduction automatique via DeepL (clé optionnelle, offre gratuite).
 - ✉️ **Formulaire de contact → boîte de réception + notification email** — les messages sont stockés dans la boîte de réception du tableau de bord ; une notification courte (avis, sans le texte du message) est envoyée au propriétaire.
-- 🔐 **Authentification** — connexion par mot de passe + codes de récupération par email (OTP). Les deux canaux sont **désactivables** (portabilité).
+- 🔐 **Authentification** — connexion par mot de passe, réservée au propriétaire (rôle admin) : toutes les fonctions sensibles (contenu, messages, stats, stockage, identifiants) exigent le rôle admin. Aucune création de compte public.
 - 🛡️ **Anti-spam** — honeypot + limite de fréquence par visiteur + longueurs de saisie plafonnées.
 - 📊 **Statistiques** — visiteurs (jour/semaine/mois), visiteurs uniques, taux de retour, conversion contact, appareils, navigateurs principaux, heures de pointe. Purge automatique à 90 jours (tâche planifiée quotidienne).
 - 🔎 **SEO** — balises meta, Open Graph/Twitter cards, URLs canoniques, hreflang FR/EN, sitemap.xml, robots.txt, scripts personnalisés en-tête/pied de page.
@@ -96,17 +96,18 @@ Voir [.env.example](.env.example) pour le modèle annoté complet.
 
 ## Canaux email
 
-Deux fonctionnalités envoient des emails, via un unique helper :
+Une seule fonctionnalité envoie des emails, via un unique helper :
 
-1. **Notifications de contact** — quand un visiteur envoie le formulaire
-2. **Codes de connexion (OTP)** — les emails de codes de récupération de mot de passe
+1. **Notifications de contact** — quand un visiteur envoie le formulaire (le message reste toujours dans la boîte de réception du tableau de bord)
 
-Sur Freebuff Web, les deux passent par le **relais email de la plateforme** (`src/convex/emailRelay.ts`) — pas de SMTP, aucune clé à configurer.
+Les **codes de connexion par email (OTP)** ont été **supprimés entièrement** : la seule connexion est le mot de passe du propriétaire, donc aucun visiteur ne peut créer de compte.
+
+Sur Freebuff Web, la notification passe par le **relais email de la plateforme** (`src/convex/emailRelay.ts`) — pas de SMTP, aucune clé à configurer.
 
 **Déployer ailleurs, deux options :**
 
-- **Le plus simple :** dans **Paramètres → Intégrations**, désactivez **« Notifications de contact »** et **« Connexion par code email (OTP) »**. La connexion par mot de passe et la boîte de réception continuent de fonctionner à 100 %. ✅
-- **Garder l'email :** modifiez `src/convex/emailRelay.ts` pour appeler votre propre fournisseur (ex. Resend). Il n'existe que **deux points d'appel** : `src/convex/notify.ts` (notification) et `src/convex/auth/emailOtp.ts` (codes OTP).
+- **Le plus simple :** dans **Paramètres → Intégrations**, désactivez **« Notifications de contact »**. La connexion par mot de passe et la boîte de réception continuent de fonctionner à 100 %. ✅
+- **Garder l'email :** modifiez `src/convex/emailRelay.ts` pour appeler votre propre fournisseur (ex. Resend). Il n'existe plus qu'**un point d'appel** : `src/convex/notify.ts` (notification).
 
 Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) pour le guide complet.
 
@@ -135,7 +136,6 @@ src/
 │   ├── site/         # Sections du site public (Hero, Resume, Skills, Contact…)
 │   └── ui/           # Primitives shadcn/ui
 ├── convex/
-│   ├── auth/         # Provider emailOtp (relais de plateforme)
 │   ├── _generated/   # Généré automatiquement (ne pas modifier)
 │   ├── schema.ts     # Schéma de la base de données
 │   ├── site.ts       # Requêtes publiques (getSiteData, getStats…)

@@ -102,7 +102,6 @@ export const getIntegrations = query({
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
       notificationEmail: settings?.notificationEmail ?? "",
       contactNotifications: settings?.contactNotifications !== false,
-      emailOtpEnabled: settings?.emailOtpEnabled !== false,
     };
   },
 });

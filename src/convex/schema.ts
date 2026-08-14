@@ -217,7 +217,6 @@ export const settingsValidator = v.object({
   // relay is platform-specific, so these can be switched off when the app is
   // deployed elsewhere). Absent = enabled, for backward compatibility.
   contactNotifications: v.optional(v.boolean()),
-  emailOtpEnabled: v.optional(v.boolean()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),
@@ -370,7 +369,10 @@ const schema = defineSchema(
     blog: defineTable(blogValidator),
     languages: defineTable(languagesValidator),
     interests: defineTable(interestsValidator),
-    messages: defineTable(messageValidator),
+    messages: defineTable(messageValidator).index("by_visitorId", [
+      "visitorId",
+      "createdAt",
+    ]),
     visitors: defineTable(visitorValidator).index("by_createdAt", ["createdAt"]),
   },
   {

@@ -47,10 +47,10 @@ export const updateAdminEmail = mutation({
       return { changed: false };
     }
 
-    // Another user may already own this email (e.g. created through the OTP
-    // code flow with the same address). Merge that user into the owner's
-    // account — re-link its auth accounts, drop its sessions, remove the
-    // duplicate — so the email can be reused as the password login.
+    // Another user may already own this email (e.g. created through the
+    // Freebuff federated sign-in with the same address). Merge that user into
+    // the owner's account — re-link its auth accounts, drop its sessions,
+    // remove the duplicate — so the email can be reused as the password login.
     const otherUser = await ctx.db
       .query("users")
       .withIndex("email", (q) => q.eq("email", email))
