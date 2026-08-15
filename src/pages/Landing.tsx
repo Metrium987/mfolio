@@ -23,6 +23,7 @@ import {
   VISITOR_STORAGE_KEY,
   applyFavicon,
   applyThemeColor,
+  applyThemePreset,
   detectBrowser,
   detectPlatform,
   getOrCreateVisitorId,
@@ -113,10 +114,11 @@ export default function Landing() {
     }
   }, [ensureSeed]);
 
-  // Theme color + favicon
+  // Theme preset (paper/ink/surfaces) + accent + favicon
   useEffect(() => {
+    applyThemePreset(data?.settings?.themePreset);
     applyThemeColor(data?.settings?.themeColor);
-  }, [data?.settings?.themeColor]);
+  }, [data?.settings?.themePreset, data?.settings?.themeColor]);
 
   useEffect(() => {
     applyFavicon(data?.site?.faviconUrl);

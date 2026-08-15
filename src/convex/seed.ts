@@ -27,6 +27,7 @@ const sampleSite: Infer<typeof siteValidator> = {
 
 const sampleSettings: Infer<typeof settingsValidator> = {
   themeColor: "#A85B32",
+  themePreset: "studio",
   googleAnalyticsId: "",
   deeplApiKey: "",
   notificationEmail: "",

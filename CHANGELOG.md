@@ -9,13 +9,18 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
 ### Ajouté
 
 - **Thèmes & palettes** — Sécurité du compte → Apparence repensé :
-  - **10 palettes prédéfinies** nommées (Terracotta, Encre, Bleu nuit, Forêt,
-    Prune, Braise, Or ancien, Cobalt, Rose poudré, Sauge) — une teinte
-    d'accent curée par palette, remplaçant les pastilles anonymes.
+  - **10 thèmes complets** (inspirés des « UI Presets » de Freebuff Web) :
+    Studio, Encre, Bleu nuit, Forêt, Prune, Braise, Or ancien, Cobalt,
+    Rose poudré, Sauge — chaque thème est un ensemble coordonné (papier,
+    surfaces, encre, neutres, bordures et accent) défini en **clair et en
+    sombre**, choisi en un clic. Choisir un thème règle aussi l'accent.
+  - **Rétro-compatible** : réglage absent, inconnu ou « Studio » = rendu
+    d'origine inchangé ; la couleur personnalisée reste une surcharge
+    d'accent sur le thème choisi.
   - **Ambiance par défaut** du site contrôlée par le propriétaire :
     Automatique (suit la préférence du visiteur), Clair ou Sombre — le
     visiteur garde son interrupteur clair/sombre dans l'en-tête.
-  - **Accent adapté au mode sombre** : chaque palette et toute couleur
+  - **Accent adapté au mode sombre** : chaque thème et toute couleur
     personnalisée disposent d'une variante éclaircie automatique, lisible
     sur fond sombre (boutons, liens, accents).
 

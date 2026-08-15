@@ -1,4 +1,4 @@
-import { darkVariant } from "./themes";
+import { darkVariant, findPreset } from "./themes";
 
 export type Social = { title: string; link: string };
 
@@ -93,6 +93,43 @@ function readableOn(hex: string): string {
   return luminance > 0.55
     ? "oklch(0.24 0.014 60)"
     : "oklch(0.977 0.005 85)";
+}
+
+/** Theme tokens applied per mode (light = `--p-*`, dark = `--p-dark-*`). */
+const PRESET_TOKEN_KEYS = [
+  "background",
+  "card",
+  "ink",
+  "muted",
+  "mutedInk",
+  "border",
+  "tint",
+  "ring",
+] as const;
+
+/**
+ * Applies the admin-chosen theme preset (paper, ink, surfaces, borders) to
+ * the live site, light and dark at once — the stylesheet resolves each mode
+ * from `--p-*` / `--p-dark-*` (see index.css).
+ *
+ * No-op for absent/unknown ids, and for the "studio" preset which IS the
+ * stylesheet default: existing installs render exactly as before until the
+ * owner picks another theme. Call before applyThemeColor so a custom accent
+ * still wins over the preset's accent.
+ */
+export function applyThemePreset(presetId: string | null | undefined) {
+  const root = document.documentElement;
+  const preset = findPreset(presetId);
+  const apply = preset && preset.id !== "studio" ? preset : undefined;
+  for (const key of PRESET_TOKEN_KEYS) {
+    if (apply) {
+      root.style.setProperty(`--p-${key}`, apply.light[key]);
+      root.style.setProperty(`--p-dark-${key}`, apply.dark[key]);
+    } else {
+      root.style.removeProperty(`--p-${key}`);
+      root.style.removeProperty(`--p-dark-${key}`);
+    }
+  }
 }
 
 export function formatTimestamp(ts: number): string {

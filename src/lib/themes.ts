@@ -1,11 +1,21 @@
 /**
- * Site theming — named accent palettes + the owner-controlled ambiance
- * (light / dark / auto) applied to the public site.
+ * Site theming — accent palettes + complete theme presets (the owner's
+ * "UI Presets", like the Freebuff Web builder's curated color sets).
  *
- * The palette presets are curated color sets: each one carries its own
- * light-mode accent and a lightened "dark" variant (used on dark
- * backgrounds, where a dark accent would be unreadable). Custom colors
- * typed by the owner get a computed dark variant via `lightenHex`.
+ * Two layers, both applied at runtime via CSS variables:
+ *
+ * 1. **Accent** (`themeColor`) — the accent color used on buttons, links and
+ *    kickers. `applyThemeColor` feeds `--accent-light` / `--accent-dark`
+ *    (see src/lib/site.tsx); the stylesheet resolves each mode from them.
+ *
+ * 2. **Theme presets** (`themePreset`) — full coordinated color systems: the
+ *    paper (background), surfaces (cards), ink (text), neutrals, borders and
+ *    ring, each defined for light AND dark. `applyThemePreset` feeds the
+ *    `--p-*` / `--p-dark-*` variables. Absent or unknown preset = the default
+ *    Studio look, so existing installs are byte-for-byte unchanged.
+ *
+ * The "studio" preset IS the stylesheet default: it is listed here for the
+ * admin UI, but applyThemePreset skips it at runtime (nothing to override).
  */
 
 /** Ambiance of the public site as chosen by the owner (default for visitors). */
@@ -20,10 +30,10 @@ export type AccentPalette = {
   dark: string;
 };
 
-/** Curated palettes — the color sets offered in Sécurité → Apparence. */
+/** Curated accent palettes — the color sets offered in Sécurité → Apparence. */
 export const ACCENT_PALETTES: AccentPalette[] = [
   { id: "terracotta", label: "Terracotta", color: "#A85B32", dark: "#D18963" },
-  { id: "ink", label: "Encre", color: "#1F1C18", dark: "#8A857C" },
+  { id: "ink", label: "Encre", color: "#1F1C18", dark: "#D6D2CA" },
   { id: "midnight", label: "Bleu nuit", color: "#2F4858", dark: "#7E9CB0" },
   { id: "forest", label: "Forêt", color: "#3F6B4F", dark: "#86AC92" },
   { id: "plum", label: "Prune", color: "#7D5BA6", dark: "#B79CD4" },
@@ -33,6 +43,328 @@ export const ACCENT_PALETTES: AccentPalette[] = [
   { id: "rose", label: "Rose poudré", color: "#B4656F", dark: "#DD9CA4" },
   { id: "sage", label: "Sauge", color: "#7A8B6F", dark: "#AABBA0" },
 ];
+
+/** The neutral tokens a theme preset overrides for one mode (light or dark). */
+export type ThemeTokens = {
+  /** Page background (the "paper"). */
+  background: string;
+  /** Surfaces: cards, popovers, dashboard sidebar. */
+  card: string;
+  /** Main text color (the "ink"). */
+  ink: string;
+  /** Subtle fill (inputs backgrounds, muted rows). */
+  muted: string;
+  /** Secondary text on the muted fills. */
+  mutedInk: string;
+  /** Hairline borders. */
+  border: string;
+  /** Hover/selected tint (shadcn `accent` + `secondary`). */
+  tint: string;
+  /** Focus ring. */
+  ring: string;
+};
+
+/** A complete, coordinated color theme for the public site (+ dashboard). */
+export type ThemePreset = {
+  id: string;
+  label: string;
+  description: string;
+  /** Accent family id (ACCENT_PALETTES) — the theme's accent + dark accent. */
+  paletteId: string;
+  light: ThemeTokens;
+  dark: ThemeTokens;
+};
+
+/**
+ * The 10 validated theme presets. The "studio" tokens mirror the stylesheet
+ * defaults exactly (see index.css) — applyThemePreset skips it at runtime.
+ */
+export const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: "studio",
+    label: "Studio",
+    description:
+      "Le thème d'origine — papier chaud, encre brune, accent terracotta.",
+    paletteId: "terracotta",
+    light: {
+      background: "oklch(0.975 0.005 85)",
+      card: "oklch(0.992 0.003 85)",
+      ink: "oklch(0.24 0.014 60)",
+      muted: "oklch(0.955 0.006 85)",
+      mutedInk: "oklch(0.5 0.015 70)",
+      border: "oklch(0.89 0.008 85)",
+      tint: "oklch(0.945 0.007 85)",
+      ring: "oklch(0.7 0.02 70)",
+    },
+    dark: {
+      background: "oklch(0.17 0.01 60)",
+      card: "oklch(0.21 0.012 60)",
+      ink: "oklch(0.94 0.008 80)",
+      muted: "oklch(0.27 0.012 60)",
+      mutedInk: "oklch(0.72 0.012 75)",
+      border: "oklch(1 0 0 / 10%)",
+      tint: "oklch(0.27 0.012 60)",
+      ring: "oklch(0.6 0.02 70)",
+    },
+  },
+  {
+    id: "encre",
+    label: "Encre",
+    description:
+      "Monochrome éditorial et sobre — papier neutre, encre presque noire.",
+    paletteId: "ink",
+    light: {
+      background: "#F6F5F2",
+      card: "#FCFBFA",
+      ink: "#1B1A17",
+      muted: "#ECEAE6",
+      mutedInk: "#6E6B64",
+      border: "#DCDAD4",
+      tint: "#ECEAE6",
+      ring: "#B8B4AC",
+    },
+    dark: {
+      background: "#161614",
+      card: "#1F1F1C",
+      ink: "#F2F1EE",
+      muted: "#2C2B28",
+      mutedInk: "#A6A29A",
+      border: "#3A3935",
+      tint: "#2C2B28",
+      ring: "#6E6B64",
+    },
+  },
+  {
+    id: "bleu-nuit",
+    label: "Bleu nuit",
+    description:
+      "Papier froid et encre marine — sobre et professionnel.",
+    paletteId: "midnight",
+    light: {
+      background: "#F5F6F8",
+      card: "#FCFCFD",
+      ink: "#1E2530",
+      muted: "#E9ECF0",
+      mutedInk: "#67717D",
+      border: "#D9DEE5",
+      tint: "#E9ECF0",
+      ring: "#A7B4C1",
+    },
+    dark: {
+      background: "#141B23",
+      card: "#1C242E",
+      ink: "#E7EBF0",
+      muted: "#28313C",
+      mutedInk: "#9AA6B3",
+      border: "#3A4652",
+      tint: "#28313C",
+      ring: "#64778A",
+    },
+  },
+  {
+    id: "foret",
+    label: "Forêt",
+    description:
+      "Papier légèrement végétal, encre verte profonde — apaisant.",
+    paletteId: "forest",
+    light: {
+      background: "#F6F7F1",
+      card: "#FCFCF8",
+      ink: "#2C322B",
+      muted: "#ECEFE6",
+      mutedInk: "#6C7567",
+      border: "#DCE2D5",
+      tint: "#ECEFE6",
+      ring: "#A9BBA3",
+    },
+    dark: {
+      background: "#1A211B",
+      card: "#222A23",
+      ink: "#E8EDE5",
+      muted: "#2E3730",
+      mutedInk: "#9CA89A",
+      border: "#3C463C",
+      tint: "#2E3730",
+      ring: "#6F8875",
+    },
+  },
+  {
+    id: "prune",
+    label: "Prune",
+    description:
+      "Papier mauve pâle, encre violacée — doux et singulier.",
+    paletteId: "plum",
+    light: {
+      background: "#F7F5F9",
+      card: "#FDFCFE",
+      ink: "#322D39",
+      muted: "#EFECF3",
+      mutedInk: "#746D7E",
+      border: "#E1DCE8",
+      tint: "#EFECF3",
+      ring: "#B9AFC7",
+    },
+    dark: {
+      background: "#1E1A25",
+      card: "#26212F",
+      ink: "#EFEAF5",
+      muted: "#342D40",
+      mutedInk: "#A59CB2",
+      border: "#403750",
+      tint: "#342D40",
+      ring: "#7A6D8F",
+    },
+  },
+  {
+    id: "braise",
+    label: "Braise",
+    description:
+      "Papier chaud, accent feu — chaleureux et affirmé.",
+    paletteId: "ember",
+    light: {
+      background: "#F5F1EC",
+      card: "#FBF8F4",
+      ink: "#2F2A23",
+      muted: "#EAE4DB",
+      mutedInk: "#6F675C",
+      border: "#DCD3C6",
+      tint: "#EAE4DB",
+      ring: "#C0A79A",
+    },
+    dark: {
+      background: "#201B16",
+      card: "#29231C",
+      ink: "#F1EBE1",
+      muted: "#383128",
+      mutedInk: "#A69A8B",
+      border: "#433A2F",
+      tint: "#383128",
+      ring: "#8A6B5C",
+    },
+  },
+  {
+    id: "or-ancien",
+    label: "Or ancien",
+    description:
+      "Parchemin et encre ambrée — bibliothèque et artisanat.",
+    paletteId: "antique-gold",
+    light: {
+      background: "#F6F0E1",
+      card: "#FBF6EA",
+      ink: "#443A26",
+      muted: "#ECE4CD",
+      mutedInk: "#7C7053",
+      border: "#DDD2B4",
+      tint: "#ECE4CD",
+      ring: "#C4B083",
+    },
+    dark: {
+      background: "#241F15",
+      card: "#2D271B",
+      ink: "#F0E8D4",
+      muted: "#3D3626",
+      mutedInk: "#B0A483",
+      border: "#4A422E",
+      tint: "#3D3626",
+      ring: "#9C8A5C",
+    },
+  },
+  {
+    id: "cobalt",
+    label: "Cobalt",
+    description:
+      "Papier clair très net, accent bleu franc — précis et moderne.",
+    paletteId: "cobalt",
+    light: {
+      background: "#F6F7FA",
+      card: "#FDFDFE",
+      ink: "#23262E",
+      muted: "#ECEEF3",
+      mutedInk: "#68707D",
+      border: "#DEE1E9",
+      tint: "#ECEEF3",
+      ring: "#A9B6C9",
+    },
+    dark: {
+      background: "#15181F",
+      card: "#1D212A",
+      ink: "#EAECF0",
+      muted: "#2A2E38",
+      mutedInk: "#9AA2B0",
+      border: "#39404C",
+      tint: "#2A2E38",
+      ring: "#5F7390",
+    },
+  },
+  {
+    id: "rose-poudre",
+    label: "Rose poudré",
+    description:
+      "Papier blush, encre brune douce — délicat et éditorial.",
+    paletteId: "rose",
+    light: {
+      background: "#F9F5F4",
+      card: "#FEFCFB",
+      ink: "#3A2F2F",
+      muted: "#F1E9E8",
+      mutedInk: "#7B6C6A",
+      border: "#E6DAD8",
+      tint: "#F1E9E8",
+      ring: "#CDB4B1",
+    },
+    dark: {
+      background: "#231C1C",
+      card: "#2B2424",
+      ink: "#F2EAEA",
+      muted: "#3B3232",
+      mutedInk: "#AB9C9A",
+      border: "#463A3A",
+      tint: "#3B3232",
+      ring: "#936F6F",
+    },
+  },
+  {
+    id: "sauge",
+    label: "Sauge",
+    description:
+      "Papier gris-vert, accent sauge — naturel et posé.",
+    paletteId: "sage",
+    light: {
+      background: "#F5F6F2",
+      card: "#FBFCF9",
+      ink: "#2B3129",
+      muted: "#E9EDE4",
+      mutedInk: "#697264",
+      border: "#D8DFD2",
+      tint: "#E9EDE4",
+      ring: "#A7B49C",
+    },
+    dark: {
+      background: "#191D18",
+      card: "#21261F",
+      ink: "#E7EBE3",
+      muted: "#2D332B",
+      mutedInk: "#99A496",
+      border: "#3A4238",
+      tint: "#2D332B",
+      ring: "#6C7D68",
+    },
+  },
+];
+
+/** Find a theme preset by id (undefined for absent/unknown ids). */
+export function findPreset(id: string | null | undefined): ThemePreset | undefined {
+  if (!id) return undefined;
+  return THEME_PRESETS.find((preset) => preset.id === id);
+}
+
+/** The accent palette family attached to a preset (accent + dark variant). */
+export function presetAccent(
+  preset: ThemePreset | undefined,
+): AccentPalette | undefined {
+  if (!preset) return undefined;
+  return ACCENT_PALETTES.find((palette) => palette.id === preset.paletteId);
+}
 
 /** Find the curated palette matching a hex color (case-insensitive). */
 export function findPalette(

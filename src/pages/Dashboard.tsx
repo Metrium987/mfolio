@@ -46,7 +46,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { APP_NAME, applyFavicon, applyThemeColor, monogram } from "@/lib/site";
+import {
+  APP_NAME,
+  applyFavicon,
+  applyThemeColor,
+  applyThemePreset,
+  monogram,
+} from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -511,8 +517,9 @@ export default function Dashboard() {
   }, [data, integrations, autoTranslateRan, translateAllContent]);
 
   useEffect(() => {
+    applyThemePreset(data?.settings?.themePreset);
     applyThemeColor(data?.settings?.themeColor);
-  }, [data?.settings?.themeColor]);
+  }, [data?.settings?.themePreset, data?.settings?.themeColor]);
 
   useEffect(() => {
     applyFavicon(data?.site?.faviconUrl);

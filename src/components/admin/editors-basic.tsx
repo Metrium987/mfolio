@@ -23,7 +23,11 @@ import {
 } from "@/lib/sections";
 import { SectionEditor } from "./SectionEditor";
 import { SortableList } from "./sortable-list";
-import { ACCENT_PALETTES, type SiteAppearanceMode } from "@/lib/themes";
+import {
+  THEME_PRESETS,
+  presetAccent,
+  type SiteAppearanceMode,
+} from "@/lib/themes";
 import {
   Field,
   FieldGroup,
@@ -75,6 +79,7 @@ function AmbiancePicker({
 const EMPTY_SETTINGS: Omit<Doc<"settings">, "_id" | "_creationTime" | "en"> = {
   themeColor: "#A85B32",
   themeMode: "auto",
+  themePreset: "studio",
   googleAnalyticsId: "",
   deeplApiKey: "",
   maintenanceMode: false,
@@ -867,7 +872,7 @@ export function SecurityEditor({
 
         <FieldGroup
           title="Apparence"
-          description="L'ambiance générale et la couleur d'accent du site public — appliquées aux boutons, liens et accents, en clair comme en sombre."
+          description="Le thème (papier, encre, surfaces), l'ambiance et la couleur d'accent du site public — en clair comme en sombre."
         >
           <div className="space-y-6">
             <div className="space-y-2">
@@ -890,46 +895,65 @@ export function SecurityEditor({
 
             <div className="space-y-2.5">
               <div>
-                <p className="text-[13px] font-medium">
-                  Palettes prédéfinies
-                </p>
+                <p className="text-[13px] font-medium">Thèmes</p>
                 <p className="text-xs text-muted-foreground">
-                  Des ensembles de couleurs curés — la teinte s'adapte
-                  automatiquement en mode sombre.
+                  Des ensembles complets — papier, encre et accent vont
+                  ensemble, en clair comme en sombre. Choisir un thème règle
+                  aussi la couleur d'accent.
                 </p>
               </div>
-              <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-                {ACCENT_PALETTES.map((palette) => {
-                  const active =
-                    palette.color.toLowerCase() ===
-                    (draft.value.themeColor ?? "").toLowerCase();
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {THEME_PRESETS.map((preset) => {
+                  const accent = presetAccent(preset);
+                  const active = draft.value.themePreset === preset.id;
                   return (
                     <button
-                      key={palette.id}
+                      key={preset.id}
                       type="button"
-                      title={`${palette.label} — ${palette.color}`}
                       onClick={() =>
-                        draft.set({ ...draft.value, themeColor: palette.color })
+                        draft.set({
+                          ...draft.value,
+                          themePreset: preset.id,
+                          themeColor: accent?.color ?? draft.value.themeColor,
+                        })
                       }
                       className={cn(
-                        "flex flex-col items-center gap-1.5 rounded-md border p-2 transition-colors",
+                        "rounded-md border p-3 text-left transition-colors",
                         active
                           ? "border-foreground bg-accent"
                           : "border-border bg-background hover:border-foreground/50",
                       )}
                     >
-                      <span
-                        className="size-6 rounded-full border border-black/10"
-                        style={{ backgroundColor: palette.color }}
-                      />
-                      <span
-                        className={cn(
-                          "text-center text-[10px] leading-none",
-                          active ? "text-foreground" : "text-muted-foreground",
-                        )}
-                      >
-                        {palette.label}
-                      </span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex shrink-0 items-center gap-1">
+                          <span
+                            className="size-4 rounded-full border border-black/10"
+                            title="Papier (clair)"
+                            style={{ backgroundColor: preset.light.background }}
+                          />
+                          <span
+                            className="size-4 rounded-full border border-black/10"
+                            title="Encre"
+                            style={{ backgroundColor: preset.light.ink }}
+                          />
+                          <span
+                            className="size-4 rounded-full border border-black/10"
+                            title="Accent"
+                            style={{ backgroundColor: accent?.color }}
+                          />
+                          <span
+                            className="size-4 rounded-full border border-black/10"
+                            title="Papier (sombre)"
+                            style={{ backgroundColor: preset.dark.background }}
+                          />
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {preset.label}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                        {preset.description}
+                      </p>
                     </button>
                   );
                 })}
@@ -942,8 +966,9 @@ export function SecurityEditor({
                   Couleur personnalisée
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Un réglage fin au-delà des palettes — une variante sombre est
-                  générée automatiquement.
+                  Un réglage fin au-delà du thème — la famille de couleurs du
+                  thème reste appliquée et une variante sombre est générée
+                  automatiquement.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
