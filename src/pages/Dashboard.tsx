@@ -574,7 +574,7 @@ export default function Dashboard() {
       case "integrations":
         return <IntegrationsEditor settings={data.settings} />;
       case "security":
-        return <SecurityEditor />;
+        return <SecurityEditor settings={data.settings} />;
       default:
         return <Overview />;
     }

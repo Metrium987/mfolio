@@ -95,10 +95,10 @@ Voir [.env.example](.env.example) pour le modèle annoté complet.
 | **Parcours / Portfolio / Journal** | Expériences, formations, projets, articles — réorganisation, aperçu, édition en popup |
 | **Compétences / Langues / Centres d'intérêt / Services** | Éléments avec niveaux (1–5), icônes, réorganisation, aperçu |
 | **Messages** | Boîte de réception : prévisualisation en popup, marquer comme répondu, supprimer |
-| **Config** | Couleur d'accent, visibilité et ordre des sections, styles d'affichage, ordre du Parcours, mode maintenance |
+| **Config** | Visibilité et ordre des sections, styles d'affichage, ordre du Parcours |
 | **Paramètres** | Nom/slogan/pied de page du site, logo & favicon, **référencement (SEO)**, scripts personnalisés |
 | **Intégrations** | Clés DeepL + Google Analytics, email de notification, **interrupteurs des canaux email** |
-| **Sécurité du compte** | Email et mot de passe de connexion du propriétaire |
+| **Sécurité du compte** | Mode maintenance, couleur d'accent, email et mot de passe de connexion du propriétaire |
 | **Statistiques** | Visiteurs, uniques, conversion, appareils, navigateurs, heures de pointe |
 
 ## Canaux email

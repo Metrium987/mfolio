@@ -52,10 +52,11 @@
   (publication immédiate). Utilisé par toutes les listes.
 - **`editors-basic.tsx`** (~1 260 lignes) — `SiteEditor` (Paramètres :
   identité, logo/favicon, **SEO**, **scripts perso**), `ConfigEditor` (Config :
-  thème, visibilités, ordre, maintenance, layouts), `IntegrationsEditor`
-  (clés GA/DeepL, email de notification, interrupteurs email) et
-  `SecurityEditor` (email + mot de passe du propriétaire) — partagent la
-  constante `EMPTY_SETTINGS` pour leurs brouillons.
+  visibilités, ordre, styles d'affichage, ordre du Parcours),
+  `IntegrationsEditor` (clés GA/DeepL, email de notification, interrupteurs
+  email) et `SecurityEditor` (mode maintenance, couleur d'accent, email +
+  mot de passe du propriétaire) — partagent la constante `EMPTY_SETTINGS`
+  pour leurs brouillons.
 - **`editors-lists.tsx`** (~2 000 lignes) — éditeurs de listes (Compétences,
   Langues, Intérêts, Services, Parcours, Projets, Journal) + `MessagesView`
   (boîte de réception, **export CSV**, popup, marquer répondu) +

@@ -95,10 +95,10 @@ See [.env.example](.env.example) for the full annotated template.
 | **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
 | **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
 | **Messages** | Inbox: preview messages in a popup, mark as replied, delete |
-| **Config** | Accent color, section visibility & order, display layouts, resume order, maintenance mode |
+| **Config** | Section visibility & order, display layouts, resume order |
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
-| **Sécurité du compte** | Owner login email and password |
+| **Sécurité du compte** | Maintenance mode, accent color, owner login email and password |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 
 ## Email channels

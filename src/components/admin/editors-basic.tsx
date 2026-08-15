@@ -735,14 +735,21 @@ export function IntegrationsEditor({
 // Account security — change the owner login email / password
 // ---------------------------------------------------------------------------
 
-export function SecurityEditor() {
+export function SecurityEditor({
+  settings,
+}: {
+  settings: Doc<"settings"> | null | undefined;
+}) {
   const account = useQuery(api.credentials.getPasswordAccount);
   const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
   const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
+  const updateSettings = useAction(api.translate.updateSettings);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
   useEffect(() => {
     // Sync the form field with the fetched account (before user interaction).
@@ -784,73 +791,161 @@ export function SecurityEditor() {
     }
   };
 
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await updateSettings({
+        data: {
+          ...draft.value,
+          sectionOrder: draft.value.sectionOrder?.length
+            ? draft.value.sectionOrder
+            : [...DEFAULT_SECTION_ORDER],
+          servicesLayout: draft.value.servicesLayout ?? "cards",
+          interestsLayout: draft.value.interestsLayout ?? "cards",
+          resumeOrder: draft.value.resumeOrder ?? "experience-first",
+          deeplApiKey: draft.value.deeplApiKey ?? "",
+        },
+      });
+      draft.commit(draft.value);
+      toast.success("Réglages enregistrés");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   return (
     <SectionEditor
       title="Sécurité du compte"
-      description="Identifiants de connexion du propriétaire (email + mot de passe)."
+      description="Maintenance, apparence et identifiants de connexion du propriétaire."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
-      showSave={false}
-      onSave={() => {}}
-      saving={false}
-      dirty={false}
+      onSave={saveSettings}
+      saving={savingSettings}
+      dirty={draft.dirty}
     >
-      <div className="space-y-5">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium">Email de connexion</label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="admin@admin.com"
-            className="bg-background"
-          />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            L'email utilisé pour se connecter avec le mot de passe.
-          </p>
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium">
-            Nouveau mot de passe
-          </label>
-          <Input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••"
-            autoComplete="new-password"
-            className="bg-background"
-          />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            8 caractères minimum. Laissez vide pour ne rien changer.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => void saveEmail()}
-          disabled={savingEmail || !email.trim() || email.trim() === account?.email}
-          className="rounded-full"
+      <div className="space-y-8">
+        <FieldGroup
+          title="Maintenance"
+          description="Masquez temporairement le portfolio public pendant vos mises à jour."
         >
-          {savingEmail ? <Loader2 className="size-4 animate-spin" /> : null}
-          Mettre à jour l'email
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => void savePassword()}
-          disabled={savingPassword || password.length < 8}
-          className="rounded-full"
+          <ToggleField
+            label="Mode maintenance"
+            description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
+            checked={draft.value.maintenanceMode}
+            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
+          />
+        </FieldGroup>
+
+        <FieldGroup
+          title="Apparence"
+          description="La couleur d'accent du site, appliquée aux boutons, liens et accents."
         >
-          {savingPassword ? <Loader2 className="size-4 animate-spin" /> : null}
-          Changer le mot de passe
-        </Button>
-      </div>
+          <div className="space-y-2">
+            <p className="text-[13px] font-medium">Couleur de thème</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="color"
+                value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
+                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
+                title="Choisir une couleur"
+              />
+              <Input
+                value={draft.value.themeColor}
+                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                placeholder="#A85B32"
+                className="w-32 bg-background font-mono text-xs"
+              />
+              <div className="flex flex-wrap gap-2">
+                {SWATCHES.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    onClick={() => draft.set({ ...draft.value, themeColor: color })}
+                    className="size-7 rounded-full border border-border transition-transform hover:scale-110"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Appliquée aux boutons, liens et accents du site.
+            </p>
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Identifiants de connexion"
+          description="L'email et le mot de passe utilisés pour se connecter au tableau de bord."
+        >
+          <div className="space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium">
+                  Email de connexion
+                </label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="admin@admin.com"
+                  className="bg-background"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  L'email utilisé pour se connecter avec le mot de passe.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium">
+                  Nouveau mot de passe
+                </label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  className="bg-background"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  8 caractères minimum. Laissez vide pour ne rien changer.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void saveEmail()}
+                disabled={
+                  savingEmail ||
+                  !email.trim() ||
+                  email.trim() === account?.email
+                }
+                className="rounded-full"
+              >
+                {savingEmail ? <Loader2 className="size-4 animate-spin" /> : null}
+                Mettre à jour l'email
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => void savePassword()}
+                disabled={savingPassword || password.length < 8}
+                className="rounded-full"
+              >
+                {savingPassword ? <Loader2 className="size-4 animate-spin" /> : null}
+                Changer le mot de passe
+              </Button>
+            </div>
+          </div>
+        </FieldGroup>
       </div>
     </SectionEditor>
   );
@@ -1043,7 +1138,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
   return (
     <SectionEditor
       title="Config"
-      description="Le rendu global du portfolio : couleur, maintenance, ordre et visibilité des sections."
+      description="L'ordre, la visibilité et le style d'affichage des sections du portfolio."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
@@ -1052,57 +1147,6 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
       dirty={draft.dirty}
     >
       <div className="space-y-8">
-        <FieldGroup
-          title="Apparence"
-          description="La couleur d'accent du site, appliquée aux boutons, liens et accents."
-        >
-          <div className="space-y-2">
-            <p className="text-[13px] font-medium">Couleur de thème</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                type="color"
-                value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
-                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-                className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
-                title="Choisir une couleur"
-              />
-              <Input
-                value={draft.value.themeColor}
-                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-                placeholder="#A85B32"
-                className="w-32 bg-background font-mono text-xs"
-              />
-              <div className="flex flex-wrap gap-2">
-                {SWATCHES.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    title={color}
-                    onClick={() => draft.set({ ...draft.value, themeColor: color })}
-                    className="size-7 rounded-full border border-border transition-transform hover:scale-110"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Appliquée aux boutons, liens et accents du site.
-            </p>
-          </div>
-        </FieldGroup>
-
-        <FieldGroup
-          title="Maintenance"
-          description="Masquez temporairement le portfolio public pendant vos mises à jour."
-        >
-          <ToggleField
-            label="Mode maintenance"
-            description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
-            checked={draft.value.maintenanceMode}
-            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
-          />
-        </FieldGroup>
-
         <FieldGroup
           title="Visibilité des sections"
           description="Affichez ou masquez chaque partie du portfolio."
@@ -1258,11 +1302,6 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             />
           </div>
         </FieldGroup>
-
-        <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-          Les clés API (Google Analytics, DeepL) et les notifications de
-          contact se configurent dans le menu «&nbsp;Intégrations&nbsp;».
-        </div>
       </div>
     </SectionEditor>
   );
