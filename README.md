@@ -95,7 +95,7 @@ See [.env.example](.env.example) for the full annotated template.
 | **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
 | **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
 | **Messages** | Inbox: preview messages in a popup, mark as replied, delete |
-| **Config** | Section visibility & order, display layouts, resume order |
+| **Config** | Section visibility & order, display layouts (list/cards for Services, Interests, Languages, Skills, Projects, Blog), resume order |
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
 | **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |

@@ -370,11 +370,14 @@ export default function Landing() {
         ) : null;
       case "portfolio":
         return settings?.visibilityProject && data.portfolio ? (
-          <Portfolio portfolio={data.portfolio} />
+          <Portfolio
+            portfolio={data.portfolio}
+            layout={settings.portfolioLayout ?? "cards"}
+          />
         ) : null;
       case "blog":
         return settings?.visibilityBlog && data.blog ? (
-          <Blog blog={data.blog} />
+          <Blog blog={data.blog} layout={settings.blogLayout ?? "cards"} />
         ) : null;
       case "contact":
         return settings?.visibilityContact && data.about ? (

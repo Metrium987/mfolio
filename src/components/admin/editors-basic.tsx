@@ -1194,6 +1194,8 @@ export function SecurityEditor({
             : [...DEFAULT_SECTION_ORDER],
           servicesLayout: draft.value.servicesLayout ?? "cards",
           interestsLayout: draft.value.interestsLayout ?? "cards",
+          portfolioLayout: draft.value.portfolioLayout ?? "cards",
+          blogLayout: draft.value.blogLayout ?? "cards",
           resumeOrder: draft.value.resumeOrder ?? "experience-first",
           deeplApiKey: draft.value.deeplApiKey ?? "",
         },
@@ -1628,6 +1630,34 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
                 value={draft.value.skillsLayout ?? "cards"}
                 onChange={(skillsLayout) =>
                   draft.set({ ...draft.value, skillsLayout })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Projets</p>
+                <p className="text-xs text-muted-foreground">
+                  Grille de cartes ou rangées éditoriales
+                </p>
+              </div>
+              <LayoutPicker
+                value={draft.value.portfolioLayout ?? "cards"}
+                onChange={(portfolioLayout) =>
+                  draft.set({ ...draft.value, portfolioLayout })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Journal</p>
+                <p className="text-xs text-muted-foreground">
+                  Grille de cartes ou liste d'articles
+                </p>
+              </div>
+              <LayoutPicker
+                value={draft.value.blogLayout ?? "cards"}
+                onChange={(blogLayout) =>
+                  draft.set({ ...draft.value, blogLayout })
                 }
               />
             </div>

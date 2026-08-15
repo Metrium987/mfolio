@@ -11,7 +11,13 @@ import { useSiteLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Container, Reveal, SectionHeading } from "./Section";
 
-export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
+export function Portfolio({
+  portfolio,
+  layout = "cards",
+}: {
+  portfolio: Doc<"portfolio">;
+  layout?: "list" | "cards";
+}) {
   const { t, pick } = useSiteLang();
 
   // Deduplicated French categories, with their English mirror when available.
@@ -89,85 +95,167 @@ export function Portfolio({ portfolio }: { portfolio: Doc<"portfolio"> }) {
         )}
 
         {portfolio.projects.length > 0 ? (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {portfolio.projects.map((project, index) => {
-              // Skip filtered projects, but keep the original index so the
-              // English mirror (aligned by position) stays correct.
-              if (active !== null && !project.categories.includes(active)) {
-                return null;
-              }
-              return (
-                <Reveal
-                  key={project.title}
-                  delay={Math.min(index * 0.05, 0.25)}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenIndex(index)}
-                    className="group block w-full text-left"
+          layout === "cards" ? (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {portfolio.projects.map((project, index) => {
+                // Skip filtered projects, but keep the original index so the
+                // English mirror (aligned by position) stays correct.
+                if (active !== null && !project.categories.includes(active)) {
+                  return null;
+                }
+                return (
+                  <Reveal
+                    key={project.title}
+                    delay={Math.min(index * 0.05, 0.25)}
                   >
-                    <article className="flex h-full flex-col border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
-                      {project.thumbnail && (
-                        <div className="overflow-hidden">
-                          <img
-                            src={project.thumbnail}
-                            alt={pick(
+                    <button
+                      type="button"
+                      onClick={() => setOpenIndex(index)}
+                      className="group block w-full text-left"
+                    >
+                      <article className="flex h-full flex-col border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
+                        {project.thumbnail && (
+                          <div className="overflow-hidden">
+                            <img
+                              src={project.thumbnail}
+                              alt={pick(
+                                project.title,
+                                portfolio.en?.projects?.[index]?.title,
+                              )}
+                              loading="lazy"
+                              decoding="async"
+                              className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
+                          <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
+                            {project.categories
+                              .map((category, catIndex) =>
+                                pick(
+                                  category,
+                                  portfolio.en?.projects?.[index]?.categories?.[
+                                    catIndex
+                                  ],
+                                ),
+                              )
+                              .filter(Boolean)
+                              .join(" · ") || t("portfolio.project")}
+                          </p>
+                          <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
+                            {pick(
                               project.title,
                               portfolio.en?.projects?.[index]?.title,
                             )}
-                            loading="lazy"
-                            decoding="async"
-                            className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                          />
-                        </div>
-                      )}
-                      <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
-                        <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
-                          {project.categories
-                            .map((category, catIndex) =>
-                              pick(
-                                category,
-                                portfolio.en?.projects?.[index]?.categories?.[
-                                  catIndex
-                                ],
-                              ),
-                            )
-                            .filter(Boolean)
-                            .join(" · ") || t("portfolio.project")}
-                        </p>
-                        <h3 className="mt-2 font-display text-xl font-medium tracking-tight text-foreground">
-                          {pick(
-                            project.title,
-                            portfolio.en?.projects?.[index]?.title,
+                          </h3>
+                          {project.role && (
+                            <p className="mt-1 text-sm font-medium text-muted-foreground">
+                              {pick(
+                                project.role,
+                                portfolio.en?.projects?.[index]?.role,
+                              )}
+                            </p>
                           )}
-                        </h3>
-                        {project.role && (
-                          <p className="mt-1 text-sm font-medium text-muted-foreground">
-                            {pick(
-                              project.role,
-                              portfolio.en?.projects?.[index]?.role,
-                            )}
-                          </p>
+                          {project.details && (
+                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                              {pick(
+                                project.details,
+                                portfolio.en?.projects?.[index]?.details,
+                              )}
+                            </p>
+                          )}
+                          <span className="mt-5 inline-flex items-center gap-1.5 border-t border-border/70 pt-4 text-sm font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
+                            {t("portfolio.viewProject")}
+                            <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </span>
+                        </div>
+                      </article>
+                    </button>
+                  </Reveal>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="border-t border-border">
+              {portfolio.projects.map((project, index) => {
+                // Skip filtered projects, but keep the original index so the
+                // English mirror (aligned by position) stays correct.
+                if (active !== null && !project.categories.includes(active)) {
+                  return null;
+                }
+                return (
+                  <Reveal
+                    key={project.title}
+                    delay={Math.min(index * 0.04, 0.2)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenIndex(index)}
+                      className="group block w-full text-left"
+                    >
+                      <article className="flex flex-col gap-6 border-b border-border py-8 transition-colors duration-300 hover:bg-card/40 sm:flex-row sm:items-start md:py-10">
+                        {project.thumbnail && (
+                          <div className="shrink-0 overflow-hidden sm:w-60">
+                            <img
+                              src={project.thumbnail}
+                              alt={pick(
+                                project.title,
+                                portfolio.en?.projects?.[index]?.title,
+                              )}
+                              loading="lazy"
+                              decoding="async"
+                              className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                            />
+                          </div>
                         )}
-                        {project.details && (
-                          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                            {pick(
-                              project.details,
-                              portfolio.en?.projects?.[index]?.details,
-                            )}
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
+                            {project.categories
+                              .map((category, catIndex) =>
+                                pick(
+                                  category,
+                                  portfolio.en?.projects?.[index]?.categories?.[
+                                    catIndex
+                                  ],
+                                ),
+                              )
+                              .filter(Boolean)
+                              .join(" · ") || t("portfolio.project")}
                           </p>
-                        )}
-                        <span className="mt-5 inline-flex items-center gap-1.5 border-t border-border/70 pt-4 text-sm font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
-                          {t("portfolio.viewProject")}
-                          <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                        </span>
-                      </div>
-                    </article>
-                  </button>
-                </Reveal>
-              );
-            })}
-          </div>
+                          <h3 className="mt-2 font-display text-2xl font-light tracking-tight text-foreground">
+                            {pick(
+                              project.title,
+                              portfolio.en?.projects?.[index]?.title,
+                            )}
+                          </h3>
+                          {project.role && (
+                            <p className="mt-1 text-sm font-medium text-muted-foreground">
+                              {pick(
+                                project.role,
+                                portfolio.en?.projects?.[index]?.role,
+                              )}
+                            </p>
+                          )}
+                          {project.details && (
+                            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                              {pick(
+                                project.details,
+                                portfolio.en?.projects?.[index]?.details,
+                              )}
+                            </p>
+                          )}
+                          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors group-hover:text-(--studio-accent)">
+                            {t("portfolio.viewProject")}
+                            <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </span>
+                        </div>
+                      </article>
+                    </button>
+                  </Reveal>
+                );
+              })}
+            </div>
+          )
         ) : (
           <p className="text-sm text-muted-foreground">
             {t("portfolio.noProjects")}

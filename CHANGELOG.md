@@ -23,6 +23,16 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
     `.site-root[data-design]` dans `src/index.css`) ; le tableau de bord
     garde sa propre structure. Typographies chargées depuis Fontshare
     (déjà autorisé par la CSP) avec uniquement les graisses utilisées.
+- **Projets et Journal : choix grille / liste** — deux nouveaux réglages
+  indépendants dans Config → « Style d'affichage des sections », sur le
+  même principe que Services / Compétences / Langues / Centres d'intérêt :
+  - **Projets** : grille de cartes (défaut, l'actuelle) ou rangées
+    éditoriales (vignette, catégories, titre, rôle, extrait) avec le filtre
+    par catégorie conservé.
+  - **Journal** : grille de cartes (défaut) ou liste d'articles (date,
+    titre, extrait, « Lire la suite »).
+  - Rétro-compatible : réglage absent = grille actuelle, rien ne change
+    pour les installations existantes.
 
 ## [1.2.0] — 2026-08-15
 
