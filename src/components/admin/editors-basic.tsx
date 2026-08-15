@@ -2,6 +2,7 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   FileText,
   Languages,
   Loader2,
@@ -25,8 +26,11 @@ import { SectionEditor } from "./SectionEditor";
 import { SortableList } from "./sortable-list";
 import {
   THEME_PRESETS,
+  darkVariant,
+  findPreset,
   presetAccent,
   type SiteAppearanceMode,
+  type ThemeTokens,
 } from "@/lib/themes";
 import {
   Field,
@@ -68,6 +72,109 @@ function AmbiancePicker({
           {option.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/** Near-white (or near-ink) text that stays readable on the accent. */
+function onAccent(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55
+    ? "oklch(0.24 0.014 60)"
+    : "oklch(0.977 0.005 85)";
+}
+
+/**
+ * Miniature mockup of the public site — lets the owner judge a theme without
+ * leaving the dashboard (light and dark side by side, live-updating).
+ */
+function MiniSitePreview({
+  tokens,
+  accent,
+  label,
+}: {
+  tokens: ThemeTokens;
+  accent: string;
+  label: string;
+}) {
+  return (
+    <div
+      className="overflow-hidden rounded-md border"
+      style={{
+        backgroundColor: tokens.background,
+        borderColor: tokens.border,
+      }}
+    >
+      {/* Fake header: accent dot + site name + nav hint */}
+      <div
+        className="flex items-center justify-between border-b px-3 py-2"
+        style={{ borderColor: tokens.border }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span
+            className="size-2 rounded-full"
+            style={{ backgroundColor: accent }}
+          />
+          <span
+            className="h-1 w-12 rounded-full"
+            style={{ backgroundColor: tokens.ink, opacity: 0.75 }}
+          />
+        </div>
+        <span
+          className="h-1 w-8 rounded-full"
+          style={{ backgroundColor: tokens.mutedInk, opacity: 0.5 }}
+        />
+      </div>
+      {/* Fake hero: headline, subhead, buttons */}
+      <div className="space-y-2 px-3 pt-3">
+        <span
+          className="block h-2 w-3/4 rounded-full"
+          style={{ backgroundColor: tokens.ink }}
+        />
+        <span
+          className="block h-1.5 w-1/2 rounded-full"
+          style={{ backgroundColor: tokens.mutedInk }}
+        />
+        <div className="flex items-center gap-2 pt-1">
+          <span
+            className="rounded-full px-2.5 py-1 text-[9px] font-semibold"
+            style={{ backgroundColor: accent, color: onAccent(accent) }}
+          >
+            Bouton
+          </span>
+          <span
+            className="rounded-full border px-2.5 py-1 text-[9px]"
+            style={{ borderColor: tokens.border, color: tokens.ink }}
+          >
+            Lien
+          </span>
+        </div>
+      </div>
+      {/* Fake nav + mode label */}
+      <div className="flex items-center gap-2 px-3 pb-3 pt-3">
+        <span
+          className="text-[9px] uppercase tracking-[0.18em]"
+          style={{ color: accent }}
+        >
+          À propos
+        </span>
+        <span
+          className="h-1 w-px"
+          style={{ backgroundColor: tokens.border }}
+        />
+        <span className="text-[9px]" style={{ color: tokens.mutedInk }}>
+          Parcours · Projets · Contact
+        </span>
+        <span
+          className="ml-auto text-[9px] uppercase tracking-[0.2em]"
+          style={{ color: tokens.mutedInk }}
+        >
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
@@ -774,6 +881,15 @@ export function AppearanceEditor({
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
+  // Live preview: the selected preset's tokens (Studio by default), with the
+  // accent — custom color included — applied on top.
+  const previewPreset =
+    findPreset(draft.value.themePreset) ?? THEME_PRESETS[0];
+  const previewAccent = /^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor)
+    ? draft.value.themeColor
+    : presetAccent(previewPreset)?.color ?? "#A85B32";
+  const previewAccentDark = darkVariant(previewAccent);
+
   const save = async () => {
     setSaving(true);
     try {
@@ -811,6 +927,24 @@ export function AppearanceEditor({
       dirty={draft.dirty}
     >
       <div className="space-y-8">
+        <FieldGroup
+          title="Aperçu"
+          description="Le rendu du site public dans le thème sélectionné — l'accent personnalisé est appliqué si vous en avez défini un. Le visiteur garde toujours la main sur son ambiance clair/sombre."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MiniSitePreview
+              tokens={previewPreset.light}
+              accent={previewAccent}
+              label="Clair"
+            />
+            <MiniSitePreview
+              tokens={previewPreset.dark}
+              accent={previewAccentDark}
+              label="Sombre"
+            />
+          </div>
+        </FieldGroup>
+
         <FieldGroup
           title="Thème & ambiance"
           description="Le thème (papier, encre, surfaces), l'ambiance par défaut et la couleur d'accent du site public."
@@ -866,31 +1000,18 @@ export function AppearanceEditor({
                       )}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="flex shrink-0 items-center gap-1">
-                          <span
-                            className="size-4 rounded-full border border-black/10"
-                            title="Papier (clair)"
-                            style={{ backgroundColor: preset.light.background }}
-                          />
-                          <span
-                            className="size-4 rounded-full border border-black/10"
-                            title="Encre"
-                            style={{ backgroundColor: preset.light.ink }}
-                          />
-                          <span
-                            className="size-4 rounded-full border border-black/10"
-                            title="Accent"
-                            style={{ backgroundColor: accent?.color }}
-                          />
-                          <span
-                            className="size-4 rounded-full border border-black/10"
-                            title="Papier (sombre)"
-                            style={{ backgroundColor: preset.dark.background }}
-                          />
-                        </span>
+                        <span
+                          className="size-5 shrink-0 rounded-full border border-black/10"
+                          style={{ backgroundColor: accent?.color }}
+                        />
                         <span className="text-sm font-medium text-foreground">
                           {preset.label}
                         </span>
+                        {active && (
+                          <span className="ml-auto flex size-5 items-center justify-center rounded-full bg-foreground text-background">
+                            <Check className="size-3" />
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                         {preset.description}
