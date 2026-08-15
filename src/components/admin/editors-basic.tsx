@@ -1054,7 +1054,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
       <div className="space-y-8">
         <FieldGroup
           title="Apparence"
-          description="La couleur d'accent du site et le mode maintenance."
+          description="La couleur d'accent du site, appliquée aux boutons, liens et accents."
         >
           <div className="space-y-2">
             <p className="text-[13px] font-medium">Couleur de thème</p>
@@ -1089,16 +1089,18 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               Appliquée aux boutons, liens et accents du site.
             </p>
           </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Maintenance"
+          description="Masquez temporairement le portfolio public pendant vos mises à jour."
+        >
           <ToggleField
             label="Mode maintenance"
             description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
             checked={draft.value.maintenanceMode}
             onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
           />
-          <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-            Les clés API (Google Analytics, DeepL) et les notifications de
-            contact se configurent dans le menu «&nbsp;Intégrations&nbsp;».
-          </div>
         </FieldGroup>
 
         <FieldGroup
@@ -1256,6 +1258,11 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             />
           </div>
         </FieldGroup>
+
+        <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+          Les clés API (Google Analytics, DeepL) et les notifications de
+          contact se configurent dans le menu «&nbsp;Intégrations&nbsp;».
+        </div>
       </div>
     </SectionEditor>
   );
