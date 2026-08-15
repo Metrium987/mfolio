@@ -73,10 +73,11 @@ export const persistSection = mutation({
 });
 
 /**
- * Patch-only update for external service keys (Google Analytics, DeepL).
- * The DeepL key is write-only: the client sends a replacement only when the
- * owner types one, and `clearDeeplKey` explicitly removes it. An empty string
- * means "keep the stored key".
+ * Patch-only update for external service keys (Google Analytics, DeepL,
+ * SMTP). The DeepL key and the SMTP app password are write-only: the client
+ * sends a replacement only when the owner types one, and `clearDeeplKey` /
+ * `clearSmtpPass` explicitly remove them. An empty string means "keep the
+ * stored key".
  */
 export const updateIntegrations = mutation({
   args: v.object({
@@ -85,6 +86,13 @@ export const updateIntegrations = mutation({
     clearDeeplKey: v.optional(v.boolean()),
     notificationEmail: v.optional(v.string()),
     contactNotifications: v.optional(v.boolean()),
+    smtpEnabled: v.optional(v.boolean()),
+    smtpHost: v.optional(v.string()),
+    smtpPort: v.optional(v.number()),
+    smtpSecure: v.optional(v.boolean()),
+    smtpUser: v.optional(v.string()),
+    smtpPass: v.optional(v.string()),
+    clearSmtpPass: v.optional(v.boolean()),
   }),
   handler: async (
     ctx,
@@ -94,6 +102,13 @@ export const updateIntegrations = mutation({
       clearDeeplKey,
       notificationEmail,
       contactNotifications,
+      smtpEnabled,
+      smtpHost,
+      smtpPort,
+      smtpSecure,
+      smtpUser,
+      smtpPass,
+      clearSmtpPass,
     },
   ) => {
     await requireOwner(ctx);
@@ -104,6 +119,12 @@ export const updateIntegrations = mutation({
       deeplApiKey?: string;
       notificationEmail?: string;
       contactNotifications?: boolean;
+      smtpEnabled?: boolean;
+      smtpHost?: string;
+      smtpPort?: number;
+      smtpSecure?: boolean;
+      smtpUser?: string;
+      smtpPass?: string;
     } = {
       googleAnalyticsId: googleAnalyticsId.trim(),
     };
@@ -117,6 +138,26 @@ export const updateIntegrations = mutation({
     }
     if (contactNotifications !== undefined) {
       patch.contactNotifications = contactNotifications;
+    }
+    if (smtpEnabled !== undefined) {
+      patch.smtpEnabled = smtpEnabled;
+    }
+    if (smtpHost !== undefined) {
+      patch.smtpHost = smtpHost.trim() || "smtp.gmail.com";
+    }
+    if (smtpPort !== undefined) {
+      patch.smtpPort = smtpPort;
+    }
+    if (smtpSecure !== undefined) {
+      patch.smtpSecure = smtpSecure;
+    }
+    if (smtpUser !== undefined) {
+      patch.smtpUser = smtpUser.trim();
+    }
+    if (clearSmtpPass) {
+      patch.smtpPass = "";
+    } else if (smtpPass && smtpPass.trim() !== "") {
+      patch.smtpPass = smtpPass.trim();
     }
     await ctx.db.patch(settings._id, patch);
   },
@@ -204,12 +245,26 @@ export const addMessage = mutation({
     const about = await ctx.db.query("about").first();
     const to = settings?.notificationEmail?.trim() || about?.email?.trim();
     if (settings?.contactNotifications !== false && to) {
+      // SMTP (Gmail app password) when enabled and configured — passed as an
+      // argument because the scheduled action runs unauthenticated.
+      const smtp = settings?.smtpEnabled &&
+        settings.smtpUser?.trim() &&
+        settings.smtpPass
+        ? {
+            host: settings.smtpHost?.trim() || "smtp.gmail.com",
+            port: settings.smtpPort ?? 465,
+            secure: settings.smtpSecure !== false,
+            user: settings.smtpUser.trim(),
+            pass: settings.smtpPass,
+          }
+        : undefined;
       await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
         to,
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
         message: message.trim(),
+        smtp,
       });
     }
   },

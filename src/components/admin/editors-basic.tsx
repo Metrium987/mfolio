@@ -8,6 +8,7 @@ import {
   Languages,
   Loader2,
   Plus,
+  Send,
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_SECTION_ORDER,
@@ -674,6 +676,7 @@ export function IntegrationsEditor({
 }) {
   const updateIntegrations = useMutation(api.siteMutations.updateIntegrations);
   const translateAllContent = useAction(api.translate.translateAllContent);
+  const sendTestEmail = useAction(api.notify.sendTestEmail);
   const integrations = useQuery(api.site.getIntegrations);
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState(
     settings?.googleAnalyticsId ?? "",
@@ -687,9 +690,22 @@ export function IntegrationsEditor({
   const [contactNotifications, setContactNotifications] = useState(
     settings?.contactNotifications !== false,
   );
+  // SMTP — Gmail by default (host/port/secure pre-filled); the app password
+  // is write-only like the DeepL key.
+  const [smtpEnabled, setSmtpEnabled] = useState(
+    settings?.smtpEnabled === true,
+  );
+  const [smtpHost, setSmtpHost] = useState(
+    settings?.smtpHost || "smtp.gmail.com",
+  );
+  const [smtpPort, setSmtpPort] = useState<number>(settings?.smtpPort ?? 465);
+  const [smtpUser, setSmtpUser] = useState(settings?.smtpUser ?? "");
+  const [smtpPass, setSmtpPass] = useState("");
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [testing, setTesting] = useState(false);
   const deeplKeySet = integrations?.deeplKeySet ?? false;
+  const smtpPassSet = integrations?.smtpPassSet ?? false;
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- one-time form sync
@@ -697,18 +713,31 @@ export function IntegrationsEditor({
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
     setNotificationEmail(settings?.notificationEmail ?? "");
     setContactNotifications(settings?.contactNotifications !== false);
+    setSmtpEnabled(settings?.smtpEnabled === true);
+    setSmtpHost(settings?.smtpHost || "smtp.gmail.com");
+    setSmtpPort(settings?.smtpPort ?? 465);
+    setSmtpUser(settings?.smtpUser ?? "");
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [
     settings?.googleAnalyticsId,
     settings?.notificationEmail,
     settings?.contactNotifications,
+    settings?.smtpEnabled,
+    settings?.smtpHost,
+    settings?.smtpPort,
+    settings?.smtpUser,
   ]);
 
   const dirty =
     googleAnalyticsId !== (settings?.googleAnalyticsId ?? "") ||
     notificationEmail !== (settings?.notificationEmail ?? "") ||
     contactNotifications !== (settings?.contactNotifications !== false) ||
-    deeplApiKey.trim() !== "";
+    smtpEnabled !== (settings?.smtpEnabled === true) ||
+    smtpHost !== (settings?.smtpHost || "smtp.gmail.com") ||
+    smtpPort !== (settings?.smtpPort ?? 465) ||
+    smtpUser !== (settings?.smtpUser ?? "") ||
+    deeplApiKey.trim() !== "" ||
+    smtpPass.trim() !== "";
 
   /** Translate every section once and report the outcome. */
   const translateAll = async () => {
@@ -736,13 +765,21 @@ export function IntegrationsEditor({
     setSaving(true);
     try {
       const newKey = deeplApiKey.trim();
+      const newSmtpPass = smtpPass.trim();
       await updateIntegrations({
         googleAnalyticsId: googleAnalyticsId.trim(),
         deeplApiKey: newKey,
         notificationEmail: notificationEmail.trim(),
         contactNotifications,
+        smtpEnabled,
+        smtpHost: smtpHost.trim() || "smtp.gmail.com",
+        smtpPort: smtpPort || 465,
+        smtpSecure: smtpPort === 465,
+        smtpUser: smtpUser.trim(),
+        smtpPass: newSmtpPass,
       });
       setDeeplApiKey("");
+      setSmtpPass("");
       if (newKey) {
         // First time a key is set (or replaced): translate existing content
         // right away so the EN version is never left empty.
@@ -756,6 +793,44 @@ export function IntegrationsEditor({
       toast.error("Erreur lors de l'enregistrement des clés");
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** Remove the stored SMTP app password (write-only, like the DeepL key). */
+  const removeSmtpKey = async () => {
+    setSaving(true);
+    try {
+      await updateIntegrations({
+        googleAnalyticsId: googleAnalyticsId.trim(),
+        smtpEnabled,
+        clearSmtpPass: true,
+      });
+      toast.success("Mot de passe SMTP supprimé.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** Validate the SMTP setup by sending a real test email. */
+  const testEmail = async () => {
+    setTesting(true);
+    try {
+      const result = await sendTestEmail();
+      if (result.ok) {
+        toast.success(`Email de test envoyé à ${result.to}`);
+      } else {
+        toast.error(`Échec SMTP : ${result.error}`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Échec de l'envoi de test",
+      );
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -824,19 +899,160 @@ export function IntegrationsEditor({
           </p>
         </div>
       </div>
-      <TextField
-        label="Email de notification"
-        value={notificationEmail}
-        onChange={setNotificationEmail}
-        placeholder="vous@exemple.com"
-        hint="Reçoit les messages du formulaire de contact, envoyés via la passerelle email intégrée. Vide = votre email de contact."
-      />
-      <ToggleField
-        label="Notifications de contact (email)"
-        description="Envoie un email quand un visiteur écrit via le formulaire — coupez-le si vous déployez l'app ailleurs. Le message reste toujours dans la boîte de réception."
-        checked={contactNotifications}
-        onChange={setContactNotifications}
-      />
+      <div className="rounded-md border border-border bg-card p-4">
+        <div className="space-y-4">
+          <TextField
+            label="Email de notification"
+            value={notificationEmail}
+            onChange={setNotificationEmail}
+            placeholder="vous@exemple.com"
+            hint="Reçoit les messages du formulaire de contact. Vide = votre email de contact (section À propos)."
+          />
+          <ToggleField
+            label="Notifications de contact (email)"
+            description="Envoie un email quand un visiteur écrit via le formulaire. Le message reste toujours dans la boîte de réception."
+            checked={contactNotifications}
+            onChange={setContactNotifications}
+          />
+        </div>
+
+        {/* SMTP — Gmail by default, the portable alternative to the relay */}
+        <div className="mt-4 border-t border-border/60 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium">
+                Envoyer via SMTP (Gmail)
+              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Utilisez votre boîte Gmail (mot de passe d'application) au
+                lieu du relais de la plateforme — fonctionne partout, même
+                déployé hors Freebuff. Valeurs Gmail pré-remplies par défaut.
+              </p>
+            </div>
+            <Switch
+              checked={smtpEnabled}
+              onCheckedChange={setSmtpEnabled}
+              aria-label="Activer le SMTP Gmail"
+            />
+          </div>
+
+          {smtpEnabled && (
+            <div className="mt-4 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Adresse Gmail (expéditeur)"
+                  value={smtpUser}
+                  onChange={setSmtpUser}
+                  placeholder="vous@gmail.com"
+                  hint="L'adresse utilisée pour envoyer les notifications."
+                />
+                <TextField
+                  label="Serveur SMTP"
+                  value={smtpHost}
+                  onChange={setSmtpHost}
+                  placeholder="smtp.gmail.com"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-[13px] font-medium">Port</p>
+                <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
+                  {(
+                    [
+                      [465, "465 — SSL/TLS"],
+                      [587, "587 — STARTTLS"],
+                    ] as [number, string][]
+                  ).map(([port, label]) => (
+                    <button
+                      key={port}
+                      type="button"
+                      onClick={() => setSmtpPort(port)}
+                      className={cn(
+                        "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
+                        smtpPort === port
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mot de passe d'application — write-only, comme la clé DeepL */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-[13px] font-medium">
+                    Mot de passe d'application
+                  </label>
+                  {smtpPassSet && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="size-1.5 rounded-full bg-emerald-500" />
+                      Mot de passe configuré
+                    </span>
+                  )}
+                </div>
+                <Input
+                  type="password"
+                  value={smtpPass}
+                  onChange={(event) => setSmtpPass(event.target.value)}
+                  placeholder={
+                    smtpPassSet
+                      ? "•••••••••••••••• (conserver le mot de passe actuel)"
+                      : "abcd efgh ijkl mnop (16 caractères, sans espaces)"
+                  }
+                  className="bg-background font-mono text-xs"
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Gmail refuse votre mot de passe normal sur SMTP — générez un{" "}
+                  <a
+                    href="https://myaccount.google.com/apppasswords"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-(--studio-accent) hover:underline"
+                  >
+                    mot de passe d'application
+                  </a>{" "}
+                  (Validation en 2 étapes requise, 16 caractères — retirez les
+                  espaces). Le mot de passe n'est jamais renvoyé au navigateur :
+                  laissez le champ vide pour le conserver.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void testEmail()}
+                  disabled={testing || saving}
+                  className="rounded-full"
+                >
+                  {testing ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                  {testing ? "Envoi…" : "Envoyer un email de test"}
+                </Button>
+                {smtpPassSet && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void removeSmtpKey()}
+                    disabled={saving}
+                    className="rounded-full text-muted-foreground"
+                  >
+                    Retirer le mot de passe
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       {deeplKeySet && (
         <div className="flex flex-wrap items-center gap-3">
           <Button

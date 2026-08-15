@@ -17,10 +17,10 @@ import {
 
 /**
  * Strip legacy settings fields that are no longer in the schema (e.g. the
- * removed Resend key and Gmail SMTP credentials). Convex `v.object()`
- * validators reject unknown keys, so a stale field left in the document would
- * make the Config editor's save fail validation — and the keys must never
- * reach the browser.
+ * removed Resend key and the OTP toggle). Convex `v.object()` validators
+ * reject unknown keys, so a stale field left in the document would make the
+ * Config editor's save fail validation — and the write-only keys (DeepL,
+ * SMTP app password) must never reach the browser.
  */
 function sanitizeSettings(settings: Doc<"settings"> | null): Doc<"settings"> | null {
   if (!settings) return null;
@@ -30,18 +30,17 @@ function sanitizeSettings(settings: Doc<"settings"> | null): Doc<"settings"> | n
   // would silently break every settings save (Config, maintenance mode…).
   const {
     resendApiKey: _resend,
-    smtpUser: _smtpUser,
-    smtpPass: _smtpPass,
     emailOtpEnabled: _emailOtpEnabled,
     ...clean
   } = legacy;
   void _resend;
-  void _smtpUser;
-  void _smtpPass;
   void _emailOtpEnabled;
   return {
     ...clean,
     deeplApiKey: "",
+    // The SMTP app password is write-only too — never sent back to the
+    // browser; the dashboard shows a masked "key set" state instead.
+    smtpPass: "",
   } as unknown as Doc<"settings">;
 }
 
@@ -161,6 +160,13 @@ export const getIntegrations = query({
       deeplKeySet: Boolean(settings?.deeplApiKey?.trim()),
       notificationEmail: settings?.notificationEmail ?? "",
       contactNotifications: settings?.contactNotifications !== false,
+      // SMTP state — the app password itself is write-only (never returned).
+      smtpPassSet: Boolean(settings?.smtpPass),
+      smtpEnabled: settings?.smtpEnabled === true,
+      smtpHost: settings?.smtpHost ?? "smtp.gmail.com",
+      smtpPort: settings?.smtpPort ?? 465,
+      smtpSecure: settings?.smtpSecure !== false,
+      smtpUser: settings?.smtpUser ?? "",
     };
   },
 });

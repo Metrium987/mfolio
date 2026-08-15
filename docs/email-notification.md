@@ -10,6 +10,15 @@
 - **Implémentation retenue :** la notification de contact est un **simple avis** (sans le texte du message) envoyé via ce relais. Le message complet reste dans le tableau de bord.
 - ⚠️ Le relais formate l'email comme un email de code (objet « Sign in to … ») : on ne contrôle ni l'objet ni le template. Acceptable pour une notification courte — les codes OTP de connexion ont été supprimés de l'app, ce relais ne sert plus qu'à la notification de contact.
 
+## Depuis la v1.3.0 : SMTP Gmail en option
+
+Depuis la 1.3.0, la notification de contact peut aussi partir en **SMTP réel** (Gmail par défaut, mot de passe d'application) :
+
+- **Intégrations → « Envoyer via SMTP (Gmail) »** — valeurs Gmail pré-remplies (`smtp.gmail.com`, port 465 SSL/TLS ou 587 STARTTLS), adresse Gmail + mot de passe d'application (champ masqué, write-only, comme la clé DeepL) et bouton **« Envoyer un email de test »** pour valider avant de basculer.
+- Envoi via **nodemailer** dans `src/convex/notify.ts` (`sendContactEmail`) — expéditeur réel, délivrabilité correcte, **portable hors Freebuff**.
+- Désactivé par défaut : le relais reste le canal actif tant que SMTP n'est pas configuré. Le choix est fait dans la mutation `addMessage` (`src/convex/siteMutations.ts`), qui passe la config SMTP en argument à l'action planifiée (celle-ci s'exécute non authentifiée).
+- Le test `sendTestEmail` (action `"use node"`) lit les réglages via `getSettingsForBackend` (owner-only) et vérifie les identifiants avec `transporter.verify()`.
+
 ## Les faits vérifiés (tests réels)
 
 | Canal | Test | Résultat |

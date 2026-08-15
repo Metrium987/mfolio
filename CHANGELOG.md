@@ -47,6 +47,21 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
   site : une feuille de style print isole un CV propre (en-tête avec nom et
   coordonnées, Parcours, Compétences), monochrome et sans décoration, avec
   les marges de page réglées. Zéro dépendance.
+- **SMTP Gmail dans Intégrations** — le canal email portable, en plus du
+  relais de la plateforme :
+  - **Valeurs Gmail par défaut** : `smtp.gmail.com`, port 465 (SSL/TLS) ou
+    587 (STARTTLS) au choix, désactivé par défaut (le relais reste actif
+    tant que SMTP n'est pas configuré).
+  - **Mot de passe d'application** saisi comme la clé DeepL : champ masqué,
+    badge « Mot de passe configuré », jamais renvoyé au navigateur
+    (write-only), bouton « Retirer le mot de passe », et aide avec lien vers
+    myaccount.google.com/apppasswords (Validation en 2 étapes requise).
+  - **« Envoyer un email de test »** : vérifie les identifiants et envoie un
+    email de confirmation — pour valider la configuration avant de basculer.
+  - Les notifications de contact passent alors par **nodemailer** (expéditeur
+    réel, meilleure délivrabilité) ; le relais reste le repli automatique.
+    Envoi via `ctx.scheduler.runAfter` (l'action s'exécute non authentifiée),
+    la config SMTP est passée en argument depuis la mutation.
 
 ## [1.2.0] — 2026-08-15
 

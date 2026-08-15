@@ -97,7 +97,7 @@ See [.env.example](.env.example) for the full annotated template.
 | **Messages** | Inbox: preview messages in a popup, reply from your mail client (pre-filled), mark as replied, delete, CSV export |
 | **Config** | Section visibility & order, display layouts (list/cards for Services, Interests, Languages, Skills, Projects, Blog), resume order |
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts, full JSON backup/export |
-| **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
+| **Intégrations** | DeepL + Google Analytics keys, notification email, **SMTP Gmail** (app password, values pre-filled, test email), **email channel toggles** |
 | **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
 | **Sécurité du compte** | Maintenance mode, owner login email and password |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
@@ -110,12 +110,13 @@ One feature sends email, through a single helper:
 
 The email-code (OTP) login was **removed entirely** — the only sign-in channel is the owner's password, so no visitor can ever create an account.
 
-On Freebuff Web, the notification uses the **platform email relay** (`src/convex/emailRelay.ts`) — no SMTP, no key to configure.
+On Freebuff Web, the notification uses the **platform email relay** (`src/convex/emailRelay.ts`) by default — no SMTP, no key to configure.
 
-**Deploying elsewhere, two options:**
+**Deploying elsewhere, three options:**
 
-- **Simplest:** in **Intégrations**, switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
-- **Keep email:** edit `src/convex/emailRelay.ts` to call your own provider (e.g. Resend). Only **one call site** exists: `src/convex/notify.ts` (notification).
+- **Best:** in **Intégrations**, enable **“Envoyer via SMTP (Gmail)”** and add your Gmail address + an [app password](https://myaccount.google.com/apppasswords). Gmail values are pre-filled (smtp.gmail.com, 465/SSL); a **test email** button validates the setup. Fully portable, no platform dependency.
+- **Simplest:** switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
+- **Keep email via code:** edit `src/convex/notify.ts` to call your own provider. Only **one call site** exists.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.
 

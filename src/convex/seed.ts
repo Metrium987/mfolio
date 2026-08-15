@@ -32,6 +32,14 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   googleAnalyticsId: "",
   deeplApiKey: "",
   notificationEmail: "",
+  // SMTP off by default — Gmail values pre-filled, the owner just adds the
+  // address + an app password (Intégrations) to switch off the relay.
+  smtpEnabled: false,
+  smtpHost: "smtp.gmail.com",
+  smtpPort: 465,
+  smtpSecure: true,
+  smtpUser: "",
+  smtpPass: "",
   maintenanceMode: false,
   metaTitle: "Camille Roussel — Designer produit & développeuse",
   metaDescription:
@@ -457,36 +465,40 @@ export const ensureSeed = mutation({
     if (settings && typeof settings.notificationEmail !== "string") {
       await ctx.db.patch(settings._id, { notificationEmail: "" });
     }
-    // The Resend integration, Gmail SMTP credentials and the OTP login
-    // toggle were removed — delete their leftover fields from the document.
-    // They are no longer in the schema, and Convex object validators reject
-    // unknown keys, so keeping them would break the Config editor's save
-    // (and with it the maintenance-mode toggle).
+    // The Resend integration and the OTP login toggle were removed — delete
+    // their leftover fields from the document. They are no longer in the
+    // schema, and Convex object validators reject unknown keys, so keeping
+    // them would break the Config editor's save (and with it the
+    // maintenance-mode toggle). smtpUser/smtpPass are real schema fields
+    // again (Gmail SMTP, Intégrations) and must NOT be stripped here.
     if (settings) {
       const legacy = settings as unknown as Record<string, unknown>;
-      if (
-        "resendApiKey" in legacy ||
-        "smtpUser" in legacy ||
-        "smtpPass" in legacy ||
-        "emailOtpEnabled" in legacy
-      ) {
+      if ("resendApiKey" in legacy || "emailOtpEnabled" in legacy) {
         const {
           _id,
           _creationTime,
           resendApiKey: _resend,
-          smtpUser: _smtpUser,
-          smtpPass: _smtpPass,
           emailOtpEnabled: _emailOtpEnabled,
           ...clean
         } = legacy;
         void _id;
         void _creationTime;
         void _resend;
-        void _smtpUser;
-        void _smtpPass;
         void _emailOtpEnabled;
         await ctx.db.replace(settings._id, clean as never);
       }
+    }
+    // SMTP fields added later — default to Gmail, disabled, so existing
+    // installs keep using the relay until the owner configures SMTP.
+    if (settings && typeof settings.smtpEnabled !== "boolean") {
+      await ctx.db.patch(settings._id, {
+        smtpEnabled: false,
+        smtpHost: "smtp.gmail.com",
+        smtpPort: 465,
+        smtpSecure: true,
+        smtpUser: "",
+        smtpPass: "",
+      });
     }
     if (settings && !Array.isArray(settings.sectionOrder)) {
       await ctx.db.patch(settings._id, {
