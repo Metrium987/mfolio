@@ -67,6 +67,7 @@ import {
   useSectionDraft,
 } from "./fields";
 import { ManageList, PreviewLabel } from "./manage-list";
+import { SortableList } from "./sortable-list";
 
 /** Common French contract types offered as a pick-list in the Resume editor. */
 const CONTRACT_TYPES = [
@@ -362,20 +363,24 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
       </div>
 
       <div className="mt-6 space-y-3">
-        {draft.value.items.map((item, index) => (
-          <div key={index} className="rounded-md border border-border bg-background p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Input
-                value={item.name}
-                onChange={(event) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name: event.target.value } : i,
-                    ),
-                  }))
-                }
-                placeholder="Nom de la compétence"
+        <SortableList
+          items={draft.value.items}
+          onReorder={(items) => draft.set((prev) => ({ ...prev, items }))}
+          renderRow={(item, index, dragHandle) => (
+            <div className="rounded-md border border-border bg-background p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                {dragHandle}
+                <Input
+                  value={item.name}
+                  onChange={(event) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i, n) =>
+                        n === index ? { ...i, name: event.target.value } : i,
+                      ),
+                    }))
+                  }
+                  placeholder="Nom de la compétence"
                 className="min-w-0 max-w-xs flex-1 bg-background"
               />
               <div className="min-w-44 flex-1">
@@ -461,10 +466,11 @@ export function SkillsEditor({ skills }: { skills: Doc<"skills"> | null | undefi
                 }
               >
                 <Trash2 className="size-4" />
-              </Button>
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          )}
+        />
         <AddButton
           label="Ajouter une compétence"
           onClick={() =>
@@ -1441,20 +1447,24 @@ export function LanguagesEditor({
       </div>
 
       <div className="mt-6 space-y-3">
-        {draft.value.items.map((item, index) => (
-          <div key={index} className="rounded-md border border-border bg-background p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Input
-                value={item.name}
-                onChange={(event) =>
-                  draft.set((prev) => ({
-                    ...prev,
-                    items: prev.items.map((i, n) =>
-                      n === index ? { ...i, name: event.target.value } : i,
-                    ),
-                  }))
-                }
-                placeholder="Français"
+        <SortableList
+          items={draft.value.items}
+          onReorder={(items) => draft.set((prev) => ({ ...prev, items }))}
+          renderRow={(item, index, dragHandle) => (
+            <div className="rounded-md border border-border bg-background p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                {dragHandle}
+                <Input
+                  value={item.name}
+                  onChange={(event) =>
+                    draft.set((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i, n) =>
+                        n === index ? { ...i, name: event.target.value } : i,
+                      ),
+                    }))
+                  }
+                  placeholder="Français"
                 className="min-w-0 max-w-xs flex-1 bg-background"
               />
               <div className="min-w-44 flex-1">
@@ -1530,10 +1540,11 @@ export function LanguagesEditor({
                 }
               >
                 <Trash2 className="size-4" />
-              </Button>
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          )}
+        />
         <AddButton
           label="Ajouter une langue"
           onClick={() =>

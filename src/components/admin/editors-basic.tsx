@@ -23,6 +23,7 @@ import {
   type SectionId,
 } from "@/lib/sections";
 import { SectionEditor } from "./SectionEditor";
+import { SortableList } from "./sortable-list";
 import {
   Field,
   FieldGroup,
@@ -1080,10 +1081,15 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
 
         <FieldGroup
           title="Ordre d'affichage des sections"
-          description="L'en-tête (votre nom, votre portrait, vos boutons) est la section « À propos » du site — elle est toujours affichée en premier et ne peut pas être déplacée. Les sections ci-dessous suivent par défaut l'ordre du CV français : Parcours → Compétences → Langues → Centres d'intérêt → Services → Projets → Journal → Contact. Utilisez les flèches pour réorganiser."
+          description="L'en-tête (votre nom, votre portrait, vos boutons) est la section « À propos » du site — elle est toujours affichée en premier et ne peut pas être déplacée. Les sections ci-dessous suivent par défaut l'ordre du CV français : Parcours → Compétences → Langues → Centres d'intérêt → Services → Projets → Journal → Contact. Glissez-déposez avec la souris (⋮⋮) ou utilisez les flèches pour réorganiser."
         >
-          <div className="space-y-1.5">
-            {order.map((id, index) => {
+          <SortableList
+            className="space-y-1.5"
+            items={order}
+            onReorder={(next) =>
+              draft.set({ ...draft.value, sectionOrder: next })
+            }
+            renderRow={(id, index, dragHandle) => {
               const label = SECTION_LABELS[id];
               const move = (dir: -1 | 1) => {
                 const target = index + dir;
@@ -1093,10 +1099,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
                 draft.set({ ...draft.value, sectionOrder: next });
               };
               return (
-                <div
-                  key={id}
-                  className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
-                >
+                <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2">
+                  {dragHandle}
                   <span className="w-6 shrink-0 text-right font-mono text-xs text-muted-foreground">
                     {String(index + 1).padStart(2, "0")}
                   </span>
@@ -1125,8 +1129,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
                   </Button>
                 </div>
               );
-            })}
-          </div>
+            }}
+          />
         </FieldGroup>
 
         <FieldGroup

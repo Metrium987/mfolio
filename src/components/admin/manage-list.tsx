@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowDown, ArrowUp, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { SortableList } from "./sortable-list";
 
 export type ManageListUpdate<T> = (patch: Partial<T>) => void;
 
@@ -128,13 +129,19 @@ export function ManageList<T extends object>({
           Aucun élément pour le moment.
         </p>
       ) : (
-        items.map((item, index) => (
-          <div
-            key={index}
-            className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-md border border-border bg-card px-4 py-3"
-          >
-            <div className="min-w-0 flex-1">{summary(item)}</div>
-            <div className="flex shrink-0 items-center gap-0.5">
+        <SortableList
+          items={items}
+          onReorder={(nextItems) => {
+            onItemsChange(nextItems);
+            onSaved?.(nextItems);
+          }}
+          renderRow={(item, index, dragHandle) => (
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-md border border-border bg-card px-4 py-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                {dragHandle}
+                <div className="min-w-0 flex-1">{summary(item)}</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-0.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -204,9 +211,10 @@ export function ManageList<T extends object>({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              </div>
             </div>
-          </div>
-        ))
+          )}
+        />
       )}
 
       <Button

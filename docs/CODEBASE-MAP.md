@@ -46,6 +46,7 @@
   `ToggleField`, `FieldGroup`), `ImageField` (upload storage ou URL),
   `SocialLinksEditor`, `useSectionDraft` (copie locale, `dirty` par
   `JSON.stringify`, `commit` après save).
+- **`sortable-list.tsx`** — `SortableList` + `DragHandle` (poignée ⋮⋮) : glisser-déposer souris/tactile/clavier (@dnd-kit) pour toutes les listes réordonnables, en complément des flèches ↑/↓.
 - **`manage-list.tsx`** — `ManageList` générique : modale édition (copie
   locale), modale aperçu, ↑/↓, suppression avec confirmation, `onSaved`
   (publication immédiate). Utilisé par toutes les listes.
