@@ -42,7 +42,7 @@ appliqués manuellement dans les args des fonctions) :
 | `users` | Compte propriétaire (`role: "admin"`, `credentialsChanged`) | Auth |
 | `authAccounts`, `authSessions`, … | Tables Convex Auth (ne pas modifier) | Auth |
 | `site` | Nom, slogan, footer, logo, favicon | Public |
-| `settings` | Config du rendu : thème complet `themePreset` (papier, surfaces, encre, bordures — clair + sombre, voir `src/lib/themes.ts`), accent `themeColor` + ambiance clair/sombre/auto, GA, DeepL (write-only), visibilités, ordre, SEO, scripts perso, maintenance, layout | Public (clés masquées) |
+| `settings` | Config du rendu : design `design` (éditorial/moderne/minimal — structure, typo et formes, voir `src/lib/themes.ts`), thème complet `themePreset` (papier, surfaces, encre, bordures — clair + sombre), accent `themeColor` + ambiance clair/sombre/auto, GA, DeepL (write-only), visibilités, ordre, SEO, scripts perso, maintenance, layout | Public (clés masquées) |
 | `about` | Persona : nom, portrait, description, taglines, réseaux, CV | Public |
 | `skills` | Compétences `{name, proficiency 1–5}` | Public |
 | `services` | `{title, icon, details}` | Public |

@@ -15,7 +15,7 @@
 
 ## Fonctionnalités
 
-- 🎨 **Thème Studio** — galerie épurée, blancs cassés chaleureux, cadres fins, neutres feutrés, typographie éditoriale. Mode clair/sombre + couleur d'accent configurable.
+- 🎨 **Design & thèmes** — 3 designs (Éditorial, Moderne, Minimal : typographies, formes, profondeur) × 10 thèmes complets clair/sombre (papier, surfaces, encre, accent), ambiance par défaut et couleur d'accent personnalisée. Chaque palette fonctionne avec chaque design.
 - 🗂️ **Tableau de bord complet** — édition de chaque section (À propos, Parcours, Compétences, Langues, Centres d'intérêt, Services, Portfolio, Journal), réorganisation des éléments avec ↑/↓, aperçu et suppression en popup.
 - 🌍 **FR ↔ EN** — traduction automatique via DeepL (clé optionnelle, offre gratuite).
 - ✉️ **Formulaire de contact → boîte de réception + notification email** — les messages sont stockés dans la boîte de réception du tableau de bord ; une notification courte (avis, sans le texte du message) est envoyée au propriétaire.

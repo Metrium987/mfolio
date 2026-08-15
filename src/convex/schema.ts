@@ -219,6 +219,11 @@ export const settingsValidator = v.object({
   // Studio look, so existing installs are unchanged. Values live in
   // src/lib/themes.ts.
   themePreset: v.optional(v.string()),
+  // Site design (Apparence → Design) — an orthogonal axis to the color
+  // presets: typefaces, shapes and depth for the public site. Absent or
+  // unknown = the default Éditorial look (today's rendering), so existing
+  // installs are unchanged. Values live in src/lib/themes.ts.
+  design: v.optional(v.string()),
   googleAnalyticsId: v.string(),
   deeplApiKey: v.string(),
   // Destination of the contact-form notification email.

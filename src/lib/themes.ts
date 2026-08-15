@@ -358,6 +358,92 @@ export function findPreset(id: string | null | undefined): ThemePreset | undefin
   return THEME_PRESETS.find((preset) => preset.id === id);
 }
 
+// ---------------------------------------------------------------------------
+// Design axis — orthogonal to the color presets
+// ---------------------------------------------------------------------------
+
+/**
+ * A site design: the structure of the public site — typefaces, shapes and
+ * depth — independent from the color presets, so any palette works with any
+ * design (3 designs × 10 palettes = 30 combinations, no 30 themes to
+ * maintain). Applied at runtime as `--ds-*` variables + `.site-root[data-
+ * design]` CSS overrides in index.css; the dashboard keeps its own structure.
+ */
+export type SiteDesign = {
+  id: string;
+  label: string;
+  description: string;
+  /** Display typeface (headings) — Fontshare family loaded in index.html. */
+  displayFont: string;
+  /** Body typeface. */
+  bodyFont: string;
+  /** Full CSS font stacks applied as --ds-display / --ds-sans on the site root. */
+  displayStack: string;
+  bodyStack: string;
+  /** Corner treatment on cards and frames. */
+  radius: "soft" | "round" | "sharp";
+  /** Card rendering: hairline frames, elevated with soft shadow, or bare rows. */
+  cards: "frame" | "elevated" | "bare";
+  /** Hero heading scale. */
+  hero: "standard" | "large";
+};
+
+/**
+ * The 3 validated designs. "editorial" IS the current Studio look: its
+ * stacks mirror the stylesheet defaults, so absent/unknown ids change
+ * nothing (existing installs stay byte-for-byte identical).
+ */
+export const DESIGN_PRESETS: SiteDesign[] = [
+  {
+    id: "editorial",
+    label: "Éditorial",
+    description:
+      "L'identité Studio d'origine — serif Zodiak, fils fins, présentation de galerie.",
+    displayFont: "Zodiak",
+    bodyFont: "Switzer",
+    displayStack: '"Zodiak", Georgia, "Times New Roman", serif',
+    bodyStack:
+      '"Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+    radius: "soft",
+    cards: "frame",
+    hero: "standard",
+  },
+  {
+    id: "moderne",
+    label: "Moderne",
+    description:
+      "Clash Display + Satoshi, cartes arrondies et ombres douces — le contre-pied du plat.",
+    displayFont: "Clash Display",
+    bodyFont: "Satoshi",
+    displayStack: '"Clash Display", "Zodiak", Georgia, serif',
+    bodyStack: '"Satoshi", "Switzer", ui-sans-serif, system-ui, sans-serif',
+    radius: "round",
+    cards: "elevated",
+    hero: "large",
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    description:
+      "Sentient + General Sans, coins francs, air et hairlines — l'atelier d'architecte.",
+    displayFont: "Sentient",
+    bodyFont: "General Sans",
+    displayStack: '"Sentient", "Zodiak", Georgia, serif',
+    bodyStack: '"General Sans", "Switzer", ui-sans-serif, system-ui, sans-serif',
+    radius: "sharp",
+    cards: "frame",
+    hero: "standard",
+  },
+];
+
+/** Find a design by id (undefined for absent/unknown ids). */
+export function findDesign(
+  id: string | null | undefined,
+): SiteDesign | undefined {
+  if (!id) return undefined;
+  return DESIGN_PRESETS.find((design) => design.id === id);
+}
+
 /** The accent palette family attached to a preset (accent + dark variant). */
 export function presetAccent(
   preset: ThemePreset | undefined,

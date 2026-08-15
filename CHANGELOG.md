@@ -4,6 +4,26 @@ Toutes les évolutions notables de Mfolio sont documentées ici.
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.3.0] — 2026-08-15
+
+### Ajouté
+
+- **Axe « Design » dans Apparence** — trois structures du site public,
+  orthogonales aux 10 thèmes de couleurs : chaque palette fonctionne avec
+  chaque design (30 combinaisons, aucune à maintenir).
+  - **Éditorial** — l'identité Studio d'origine (Zodiak + Switzer, fils
+    fins, galerie). C'est le défaut : aucune installation existante ne
+    change (réglage absent ou inconnu = rendu d'origine).
+  - **Moderne** — Clash Display + Satoshi, cartes arrondies aux ombres
+    douces qui se soulèvent au survol, hero agrandi, titres plus affirmés,
+    boutons avec halo d'accent : la réponse directe au « c'est plat ».
+  - **Minimal** — Sentient + General Sans, coins francs, air et hairlines,
+    kickers espacés, accent discret : l'atelier d'architecte.
+  - Les designs s'appliquent **au site public uniquement** (racine
+    `.site-root[data-design]` dans `src/index.css`) ; le tableau de bord
+    garde sa propre structure. Typographies chargées depuis Fontshare
+    (déjà autorisé par la CSP) avec uniquement les graisses utilisées.
+
 ## [1.2.0] — 2026-08-15
 
 ### Ajouté

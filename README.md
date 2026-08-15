@@ -98,7 +98,7 @@ See [.env.example](.env.example) for the full annotated template.
 | **Config** | Section visibility & order, display layouts, resume order |
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
-| **Apparence** | Theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
+| **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
 | **Sécurité du compte** | Maintenance mode, owner login email and password |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 

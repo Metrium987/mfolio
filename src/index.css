@@ -41,12 +41,21 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* Switzer replaces Inter/Instrument Sans — faces on Impeccable's
-     anti-pattern list of overused AI-generator fonts. */
-  --font-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    sans-serif;
+     anti-pattern list of overused AI-generator fonts. The --ds-* indirection
+     lets the site designs (Apparence → Design) swap the typefaces at runtime;
+     the fallbacks ARE the default Éditorial stacks. */
+  --font-sans: var(
+    --ds-sans,
+    "Switzer",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif
+  );
   /* Zodiak replaces Fraunces — flagged as overused by the Impeccable
      design detector. Keeps the editorial serif personality. */
-  --font-display: "Zodiak", Georgia, "Times New Roman", serif;
+  --font-display: var(--ds-display, "Zodiak", Georgia, "Times New Roman", serif);
 }
 
 /* ---------------------------------------------------------------------------
@@ -132,6 +141,17 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    /* Explicit default so the design typefaces propagate reliably — the
+       site root (.site-root) overrides this for the public site. */
+    font-family: var(
+      --ds-sans,
+      "Switzer",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif
+    );
   }
   html {
     scroll-behavior: smooth;
@@ -199,5 +219,89 @@
     background: currentColor;
     animation: mfolio-caret 1.06s steps(1) infinite;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Site designs (Apparence → Design) — an axis orthogonal to the color
+   presets: typefaces, shapes and depth. Applied ONLY to the public site root
+   (.site-root, the <main> of the landing page); the dashboard keeps its own
+   structure. Default = Éditorial (the Studio look): absent/unknown design
+   ids change nothing, so existing installs are untouched. These rules are
+   unlayered so they win over the Tailwind utility layers.
+--------------------------------------------------------------------------- */
+.site-root {
+  --ds-display: "Zodiak", Georgia, "Times New Roman", serif;
+  --ds-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  font-family: var(--ds-sans);
+}
+
+/* --- Moderne — geometric display, rounded elevated cards, soft depth --- */
+.site-root[data-design="moderne"] {
+  --ds-display: "Clash Display", "Zodiak", Georgia, serif;
+  --ds-sans: "Satoshi", "Switzer", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--ds-sans);
+}
+/* Bolder, tighter headings — the Clash Display personality. */
+.site-root[data-design="moderne"] h1,
+.site-root[data-design="moderne"] h2,
+.site-root[data-design="moderne"] h3 {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.site-root[data-design="moderne"] h1 {
+  font-size: clamp(2.75rem, 7vw, 4.5rem);
+  line-height: 1.02;
+}
+.site-root[data-design="moderne"] h2 {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+}
+/* Cards: rounded, softly elevated, lift on hover. */
+.site-root[data-design="moderne"] article {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 18px 40px -24px rgb(0 0 0 / 0.22);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
+}
+.site-root[data-design="moderne"] article:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.05), 0 26px 56px -28px rgb(0 0 0 / 0.3);
+}
+/* Frames (hero cover/portrait) and card images share the rounded corner. */
+.site-root[data-design="moderne"] figure,
+.site-root[data-design="moderne"] article > .overflow-hidden {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+/* Primary buttons cast a soft accent glow. */
+.site-root[data-design="moderne"] .bg-primary {
+  box-shadow: 0 10px 24px -14px
+    color-mix(in oklab, var(--studio-accent) 70%, transparent);
+}
+
+/* --- Minimal — warm serif, sharp corners, quiet and airy --- */
+.site-root[data-design="minimal"] {
+  --ds-display: "Sentient", "Zodiak", Georgia, serif;
+  --ds-sans: "General Sans", "Switzer", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--ds-sans);
+}
+.site-root[data-design="minimal"] h1,
+.site-root[data-design="minimal"] h2,
+.site-root[data-design="minimal"] h3 {
+  font-weight: 400;
+}
+.site-root[data-design="minimal"] article,
+.site-root[data-design="minimal"] figure {
+  border-radius: 2px;
+}
+.site-root[data-design="minimal"] article:hover {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+/* Kickers gain air — the small-caps label becomes a quiet detail. */
+.site-root[data-design="minimal"] .kicker {
+  letter-spacing: 0.28em;
+}
+/* Sharp-cornered primary buttons for the architect's-studio feel. */
+.site-root[data-design="minimal"] .bg-primary {
+  border-radius: 2px;
 }
 

@@ -28,6 +28,7 @@ const sampleSite: Infer<typeof siteValidator> = {
 const sampleSettings: Infer<typeof settingsValidator> = {
   themeColor: "#A85B32",
   themePreset: "studio",
+  design: "editorial",
   googleAnalyticsId: "",
   deeplApiKey: "",
   notificationEmail: "",
@@ -502,6 +503,11 @@ export const ensureSeed = mutation({
       await ctx.db.patch(settings._id, {
         sectionOrder: settings.sectionOrder.filter((id) => id !== "about"),
       });
+    }
+    // The design axis was added later — default to Éditorial (the Studio
+    // look) for existing settings docs.
+    if (settings && typeof settings.design !== "string") {
+      await ctx.db.patch(settings._id, { design: "editorial" });
     }
     // Layout fields added later — default to the card/vignette rendering.
     if (settings) {

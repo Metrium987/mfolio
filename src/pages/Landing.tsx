@@ -80,10 +80,13 @@ function injectBlock(html: string, parent: HTMLElement) {
   parent.appendChild(container);
 }
 
-function MaintenanceScreen() {
+function MaintenanceScreen({ design }: { design?: string }) {
   const { t } = useSiteLang();
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center">
+    <main
+      data-design={design ?? "editorial"}
+      className="site-root flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center"
+    >
       <p className="kicker mb-6">{APP_NAME}</p>
       <h1 className="font-display text-4xl font-light tracking-tight text-foreground sm:text-5xl">
         {t("maintenance.title")}
@@ -306,7 +309,7 @@ export default function Landing() {
   }
 
   if (data.settings?.maintenanceMode) {
-    return <MaintenanceScreen />;
+    return <MaintenanceScreen design={data.settings.design} />;
   }
 
   const siteName = data.site?.siteName ?? "Portfolio";
@@ -392,7 +395,8 @@ export default function Landing() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="min-h-screen bg-background text-foreground outline-none"
+        data-design={settings?.design ?? "editorial"}
+        className="site-root min-h-screen bg-background text-foreground outline-none"
       >
       <SiteHeader
         siteName={siteName}

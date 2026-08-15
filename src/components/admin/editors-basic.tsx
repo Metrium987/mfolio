@@ -25,6 +25,7 @@ import {
 import { SectionEditor } from "./SectionEditor";
 import { SortableList } from "./sortable-list";
 import {
+  DESIGN_PRESETS,
   THEME_PRESETS,
   darkVariant,
   findPreset,
@@ -187,6 +188,7 @@ const EMPTY_SETTINGS: Omit<Doc<"settings">, "_id" | "_creationTime" | "en"> = {
   themeColor: "#A85B32",
   themeMode: "auto",
   themePreset: "studio",
+  design: "editorial",
   googleAnalyticsId: "",
   deeplApiKey: "",
   maintenanceMode: false,
@@ -869,8 +871,62 @@ export function IntegrationsEditor({
 }
 
 // ---------------------------------------------------------------------------
-// Appearance — theme presets, ambiance and accent (own dashboard section)
+// Appearance — design, theme presets, ambiance and accent (own dashboard
+// section)
 // ---------------------------------------------------------------------------
+
+/** Three-choice control for the site design (structure, typefaces, shapes). */
+function DesignPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid gap-2.5 sm:grid-cols-3">
+      {DESIGN_PRESETS.map((design) => {
+        const active = value === design.id;
+        return (
+          <button
+            key={design.id}
+            type="button"
+            onClick={() => onChange(design.id)}
+            aria-pressed={active}
+            className={cn(
+              "rounded-md border p-3.5 text-left transition-colors",
+              active
+                ? "border-foreground bg-accent"
+                : "border-border bg-background hover:border-foreground/50",
+            )}
+          >
+            <span
+              className="block text-2xl leading-none tracking-tight text-foreground"
+              style={{ fontFamily: design.displayStack }}
+            >
+              Aa
+            </span>
+            <span className="mt-2 block text-sm font-medium text-foreground">
+              {design.label}
+            </span>
+            <span
+              className="mt-1 block text-[11px] leading-snug text-muted-foreground"
+              style={{ fontFamily: design.bodyStack }}
+            >
+              {design.description}
+            </span>
+            {active && (
+              <span className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-foreground">
+                <Check className="size-3" />
+                Actif
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function AppearanceEditor({
   settings,
@@ -896,6 +952,7 @@ export function AppearanceEditor({
       await updateSettings({
         data: {
           ...draft.value,
+          design: draft.value.design ?? "editorial",
           sectionOrder: draft.value.sectionOrder?.length
             ? draft.value.sectionOrder
             : [...DEFAULT_SECTION_ORDER],
@@ -927,6 +984,16 @@ export function AppearanceEditor({
       dirty={draft.dirty}
     >
       <div className="space-y-8">
+        <FieldGroup
+          title="Design"
+          description="La structure du site public — typographies, formes et profondeur. Chaque design fonctionne avec tous les thèmes de couleurs ; le tableau de bord garde sa propre structure."
+        >
+          <DesignPicker
+            value={draft.value.design ?? "editorial"}
+            onChange={(design) => draft.set({ ...draft.value, design })}
+          />
+        </FieldGroup>
+
         <FieldGroup
           title="Aperçu"
           description="Le rendu du site public dans le thème sélectionné — l'accent personnalisé est appliqué si vous en avez défini un. Le visiteur garde toujours la main sur son ambiance clair/sombre."
