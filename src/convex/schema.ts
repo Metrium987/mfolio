@@ -209,6 +209,11 @@ export const siteValidator = v.object({
 /** Portfolio rendering configuration (Ezfolio "Config" / portfolio_config). */
 export const settingsValidator = v.object({
   themeColor: v.string(),
+  // Owner-chosen ambiance of the public site: "auto" follows each visitor's
+  // preference, "light"/"dark" set the default for first-time visitors.
+  themeMode: v.optional(
+    v.union(v.literal("auto"), v.literal("light"), v.literal("dark")),
+  ),
   googleAnalyticsId: v.string(),
   deeplApiKey: v.string(),
   // Destination of the contact-form notification email.

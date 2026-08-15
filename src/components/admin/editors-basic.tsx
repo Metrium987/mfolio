@@ -23,6 +23,7 @@ import {
 } from "@/lib/sections";
 import { SectionEditor } from "./SectionEditor";
 import { SortableList } from "./sortable-list";
+import { ACCENT_PALETTES, type SiteAppearanceMode } from "@/lib/themes";
 import {
   Field,
   FieldGroup,
@@ -33,16 +34,39 @@ import {
   useSectionDraft,
 } from "./fields";
 
-const SWATCHES = [
-  "#A85B32",
-  "#1F1C18",
-  "#2F4858",
-  "#3F6B4F",
-  "#7D5BA6",
-  "#B03A2E",
-  "#C89B3C",
-  "#2364AA",
-];
+/** Three-choice control for the site ambiance (Sécurité → Apparence). */
+function AmbiancePicker({
+  value,
+  onChange,
+}: {
+  value: SiteAppearanceMode;
+  onChange: (value: SiteAppearanceMode) => void;
+}) {
+  const options: { value: SiteAppearanceMode; label: string }[] = [
+    { value: "auto", label: "Automatique" },
+    { value: "light", label: "Clair" },
+    { value: "dark", label: "Sombre" },
+  ];
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
+            value === option.value
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /**
  * Default settings shape — shared by the Config and Paramètres editors so
@@ -50,6 +74,7 @@ const SWATCHES = [
  */
 const EMPTY_SETTINGS: Omit<Doc<"settings">, "_id" | "_creationTime" | "en"> = {
   themeColor: "#A85B32",
+  themeMode: "auto",
   googleAnalyticsId: "",
   deeplApiKey: "",
   maintenanceMode: false,
@@ -842,40 +867,101 @@ export function SecurityEditor({
 
         <FieldGroup
           title="Apparence"
-          description="La couleur d'accent du site, appliquée aux boutons, liens et accents."
+          description="L'ambiance générale et la couleur d'accent du site public — appliquées aux boutons, liens et accents, en clair comme en sombre."
         >
-          <div className="space-y-2">
-            <p className="text-[13px] font-medium">Couleur de thème</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                type="color"
-                value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
-                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-                className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
-                title="Choisir une couleur"
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div>
+                <p className="text-[13px] font-medium">
+                  Ambiance par défaut
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  L'ambiance vue par les visiteurs à leur arrivée. Le visiteur
+                  peut toujours basculer clair/sombre depuis l'en-tête du site.
+                </p>
+              </div>
+              <AmbiancePicker
+                value={draft.value.themeMode ?? "auto"}
+                onChange={(themeMode) =>
+                  draft.set({ ...draft.value, themeMode })
+                }
               />
-              <Input
-                value={draft.value.themeColor}
-                onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
-                placeholder="#A85B32"
-                className="w-32 bg-background font-mono text-xs"
-              />
-              <div className="flex flex-wrap gap-2">
-                {SWATCHES.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    title={color}
-                    onClick={() => draft.set({ ...draft.value, themeColor: color })}
-                    className="size-7 rounded-full border border-border transition-transform hover:scale-110"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+            </div>
+
+            <div className="space-y-2.5">
+              <div>
+                <p className="text-[13px] font-medium">
+                  Palettes prédéfinies
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Des ensembles de couleurs curés — la teinte s'adapte
+                  automatiquement en mode sombre.
+                </p>
+              </div>
+              <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {ACCENT_PALETTES.map((palette) => {
+                  const active =
+                    palette.color.toLowerCase() ===
+                    (draft.value.themeColor ?? "").toLowerCase();
+                  return (
+                    <button
+                      key={palette.id}
+                      type="button"
+                      title={`${palette.label} — ${palette.color}`}
+                      onClick={() =>
+                        draft.set({ ...draft.value, themeColor: palette.color })
+                      }
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-md border p-2 transition-colors",
+                        active
+                          ? "border-foreground bg-accent"
+                          : "border-border bg-background hover:border-foreground/50",
+                      )}
+                    >
+                      <span
+                        className="size-6 rounded-full border border-black/10"
+                        style={{ backgroundColor: palette.color }}
+                      />
+                      <span
+                        className={cn(
+                          "text-center text-[10px] leading-none",
+                          active ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        {palette.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Appliquée aux boutons, liens et accents du site.
-            </p>
+
+            <div className="space-y-2">
+              <div>
+                <p className="text-[13px] font-medium">
+                  Couleur personnalisée
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Un réglage fin au-delà des palettes — une variante sombre est
+                  générée automatiquement.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="color"
+                  value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
+                  onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                  className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
+                  title="Choisir une couleur"
+                />
+                <Input
+                  value={draft.value.themeColor}
+                  onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                  placeholder="#A85B32"
+                  className="w-32 bg-background font-mono text-xs"
+                />
+              </div>
+            </div>
           </div>
         </FieldGroup>
 

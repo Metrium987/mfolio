@@ -397,6 +397,7 @@ export default function Landing() {
         links={nav}
         logoUrl={data.site?.logoUrl}
         email={data.about?.email}
+        themeMode={settings?.themeMode}
       />
       {settings?.visibilityAbout && data.about && (
         <Hero

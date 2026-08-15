@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useSiteLang, type SiteLang } from "@/lib/i18n";
 import { APP_NAME, monogram, type Social } from "@/lib/site";
+import type { SiteAppearanceMode } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -42,36 +43,69 @@ function LangSwitcher() {
   );
 }
 
-/** Dark/light theme toggle — persisted, defaults to the OS preference. */
-function ThemeToggle() {
+/**
+ * Dark/light toggle for the visitor — persisted per browser.
+ *
+ * `defaultMode` is the owner's ambiance choice (Sécurité → Apparence): it is
+ * applied only until the visitor makes their own choice (or has one stored).
+ * "auto" keeps following the OS preference for first-time visitors.
+ */
+function ThemeToggle({ defaultMode = "auto" }: { defaultMode?: SiteAppearanceMode }) {
   const { t } = useSiteLang();
-  const [dark, setDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+
+  const readStored = (): "dark" | "light" | null => {
+    if (typeof window === "undefined") return null;
     try {
       const stored = window.localStorage.getItem(THEME_KEY);
-      if (stored === "dark") return true;
-      if (stored === "light") return false;
+      if (stored === "dark") return "dark";
+      if (stored === "light") return "light";
     } catch {
-      // storage unavailable — fall through to the OS preference
+      // storage unavailable — treated as "no stored choice"
     }
-    return (
-      window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false
-    );
+    return null;
+  };
+
+  const prefersDarkOS = (): boolean =>
+    window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+
+  const [choice, setChoice] = useState<"dark" | "light" | null>(() =>
+    typeof window === "undefined" ? null : readStored(),
+  );
+  const [dark, setDark] = useState<boolean>(() => {
+    const stored = readStored();
+    if (stored) return stored === "dark";
+    if (defaultMode === "dark") return true;
+    if (defaultMode === "light") return false;
+    return prefersDarkOS();
   });
+
+  // The owner's default may arrive after mount (settings load asynchronously):
+  // apply it until the visitor has an explicit choice.
+  useEffect(() => {
+    if (choice !== null) return;
+    if (defaultMode === "dark") setDark(true);
+    else if (defaultMode === "light") setDark(false);
+  }, [defaultMode, choice]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
-    try {
-      window.localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
-    } catch {
-      // storage unavailable (private mode) — in-memory only
+    if (choice !== null) {
+      try {
+        window.localStorage.setItem(THEME_KEY, choice);
+      } catch {
+        // storage unavailable (private mode) — in-memory only
+      }
     }
-  }, [dark]);
+  }, [dark, choice]);
 
   return (
     <button
       type="button"
-      onClick={() => setDark((value) => !value)}
+      onClick={() => {
+        const next = !dark;
+        setDark(next);
+        setChoice(next ? "dark" : "light");
+      }}
       aria-label={dark ? t("header.themeLight") : t("header.themeDark")}
       title={dark ? t("header.themeLight") : t("header.themeDark")}
       className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
@@ -86,11 +120,14 @@ export function SiteHeader({
   links,
   logoUrl,
   email,
+  themeMode = "auto",
 }: {
   siteName: string;
   links: { label: string; id: string }[];
   logoUrl?: string;
   email?: string;
+  /** Owner-chosen ambiance (Sécurité → Apparence) — the visitor default. */
+  themeMode?: SiteAppearanceMode;
 }) {
   const { t } = useSiteLang();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -137,7 +174,7 @@ export function SiteHeader({
             </a>
           )}
           <LangSwitcher />
-          <ThemeToggle />
+          <ThemeToggle defaultMode={themeMode} />
           <Link
             to="/dashboard"
             className="hidden items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-foreground sm:inline-flex"

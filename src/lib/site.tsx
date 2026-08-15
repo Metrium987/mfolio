@@ -1,3 +1,5 @@
+import { darkVariant } from "./themes";
+
 export type Social = { title: string; link: string };
 
 /** Product brand — the name of the application itself (not the owner's name). */
@@ -68,16 +70,19 @@ export function applyFavicon(url: string | null | undefined) {
 }
 
 /**
- * Applies the admin-chosen theme color to the live site by overriding the
- * --primary / --studio-accent CSS variables. No-op when no valid color is set
- * (the stylesheet default applies).
+ * Applies the admin-chosen theme color to the live site.
+ *
+ * Sets the raw accent (light mode) plus a lightened variant used on dark
+ * backgrounds, and lets the CSS resolve them per mode (:root reads
+ * --accent-light, .dark reads --accent-dark). No-op when no valid color is
+ * set (the stylesheet defaults apply).
  */
 export function applyThemeColor(hex: string | null | undefined) {
   if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return;
   const root = document.documentElement;
-  root.style.setProperty("--primary", hex);
-  root.style.setProperty("--studio-accent", hex);
-  root.style.setProperty("--primary-foreground", readableOn(hex));
+  root.style.setProperty("--accent-light", hex);
+  root.style.setProperty("--accent-dark", darkVariant(hex));
+  root.style.setProperty("--accent-on-light", readableOn(hex));
 }
 
 function readableOn(hex: string): string {

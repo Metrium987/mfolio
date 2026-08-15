@@ -4,6 +4,21 @@ Toutes les évolutions notables de Mfolio sont documentées ici.
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.2.0] — 2026-08-15
+
+### Ajouté
+
+- **Thèmes & palettes** — Sécurité du compte → Apparence repensé :
+  - **10 palettes prédéfinies** nommées (Terracotta, Encre, Bleu nuit, Forêt,
+    Prune, Braise, Or ancien, Cobalt, Rose poudré, Sauge) — une teinte
+    d'accent curée par palette, remplaçant les pastilles anonymes.
+  - **Ambiance par défaut** du site contrôlée par le propriétaire :
+    Automatique (suit la préférence du visiteur), Clair ou Sombre — le
+    visiteur garde son interrupteur clair/sombre dans l'en-tête.
+  - **Accent adapté au mode sombre** : chaque palette et toute couleur
+    personnalisée disposent d'une variante éclaircie automatique, lisible
+    sur fond sombre (boutons, liens, accents).
+
 ## [1.1.0] — 2026-08-14
 
 ### Sécurité

@@ -15,7 +15,7 @@
 
 ## Features
 
-- 🎨 **Studio theme** — gallery-clean, warm off-whites, thin framing, muted neutrals, editorial typography. Light/dark mode + configurable accent color.
+- 🎨 **Studio theme** — gallery-clean, warm off-whites, thin framing, muted neutrals, editorial typography. Owner-chosen ambiance (clair / sombre / auto) + named accent palettes (10 pre-set colorways).
 - 🗂️ **Full admin dashboard** — edit every section inline (À propos, Parcours, Compétences, Langues, Centres d'intérêt, Services, Portfolio, Journal), reorder items with ↑/↓, preview and delete from popups.
 - 🌍 **FR ↔ EN** — automatic translation via DeepL (optional key, free tier).
 - ✉️ **Contact form → inbox + email notification** — messages are stored in the dashboard inbox; an email notification (short notice, no message body) is sent to the owner.
@@ -98,7 +98,7 @@ See [.env.example](.env.example) for the full annotated template.
 | **Config** | Section visibility & order, display layouts, resume order |
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
-| **Sécurité du compte** | Maintenance mode, accent color, owner login email and password |
+| **Sécurité du compte** | Maintenance mode, **Apparence** (ambiance clair/sombre/auto + palettes d'accent), owner login email and password |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 
 ## Email channels

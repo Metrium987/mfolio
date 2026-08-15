@@ -62,8 +62,9 @@
   --card-foreground: oklch(0.24 0.014 60);
   --popover: oklch(0.992 0.003 85);
   --popover-foreground: oklch(0.24 0.014 60);
-  --primary: oklch(0.24 0.014 60);
-  --primary-foreground: oklch(0.977 0.005 85);
+  /* Runtime theme color (admin Settings) feeds --accent-light/--accent-dark */
+  --primary: var(--accent-light, #a85b32);
+  --primary-foreground: var(--accent-on-light, oklch(0.977 0.005 85));
   --secondary: oklch(0.945 0.007 85);
   --secondary-foreground: oklch(0.3 0.014 60);
   --muted: oklch(0.955 0.006 85);
@@ -89,7 +90,7 @@
   --sidebar-ring: oklch(0.7 0.02 70);
 
   /* Default accent (terracotta) — replaced by the admin theme color */
-  --studio-accent: #a85b32;
+  --studio-accent: var(--accent-light, #a85b32);
 }
 
 .dark {
@@ -99,7 +100,8 @@
   --card-foreground: oklch(0.94 0.008 80);
   --popover: oklch(0.21 0.012 60);
   --popover-foreground: oklch(0.94 0.008 80);
-  --primary: oklch(0.94 0.008 80);
+  /* Dark mode resolves the accent to its lightened variant */
+  --primary: var(--accent-dark, #d18a5f);
   --primary-foreground: oklch(0.17 0.01 60);
   --secondary: oklch(0.27 0.012 60);
   --secondary-foreground: oklch(0.94 0.008 80);
@@ -119,7 +121,7 @@
   --sidebar-accent-foreground: oklch(0.94 0.008 80);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.6 0.02 70);
-  --studio-accent: #d18a5f;
+  --studio-accent: var(--accent-dark, #d18a5f);
 }
 
 @layer base {
