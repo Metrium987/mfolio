@@ -69,7 +69,7 @@ Open **http://localhost:5173** — sample content is seeded automatically on fir
 | Email | `admin@admin.com` |
 | Password | `admin123` |
 
-> ⚠️ **Change these immediately** from **Paramètres → Sécurité du compte** (email + password). The login page shows a hint until you do.
+> ⚠️ **Change these immediately** from **Sécurité du compte** in the dashboard menu (email + password). The login page shows a hint until you do.
 >
 > **Lost password (self-host):** there is no email recovery anymore (OTP removed). Procedure: Convex dashboard → `authAccounts` table → delete the password account row → reload `/auth` — `ensureAdmin` recreates the default account (see `docs/DEPLOYMENT.md`).
 
@@ -83,7 +83,7 @@ Open **http://localhost:5173** — sample content is seeded automatically on fir
 | `SITE_URL` | Convex dashboard → Settings → Env Variables | ✅ production |
 | `JWKS`, `JWT_PRIVATE_KEY` | Convex dashboard (auth keys, provisioned by Convex Auth) | ✅ |
 
-**Not env vars:** the DeepL key and Google Analytics ID are entered in the app (**Config → Référencement**), and the notification email address in **Paramètres → Intégrations** — they are stored in the database, not in the repo.
+**Not env vars:** the DeepL key and Google Analytics ID are entered in the app under **Intégrations**, and the SEO tags under **Paramètres → Référencement (SEO)** — they are stored in the database, not in the repo.
 
 See [.env.example](.env.example) for the full annotated template.
 
@@ -95,8 +95,10 @@ See [.env.example](.env.example) for the full annotated template.
 | **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
 | **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
 | **Messages** | Inbox: preview messages in a popup, mark as replied, delete |
-| **Config** | Accent color, section visibility & order, display layouts, resume order, SEO, custom scripts, maintenance mode |
-| **Paramètres** | Site name/tagline/footer, logo & favicon, DeepL + GA + notification email, **email channel toggles**, account security (email/password) |
+| **Config** | Accent color, section visibility & order, display layouts, resume order, maintenance mode |
+| **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
+| **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
+| **Sécurité du compte** | Owner login email and password |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 
 ## Email channels
@@ -111,7 +113,7 @@ On Freebuff Web, the notification uses the **platform email relay** (`src/convex
 
 **Deploying elsewhere, two options:**
 
-- **Simplest:** in **Paramètres → Intégrations**, switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
+- **Simplest:** in **Intégrations**, switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
 - **Keep email:** edit `src/convex/emailRelay.ts` to call your own provider (e.g. Resend). Only **one call site** exists: `src/convex/notify.ts` (notification).
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.

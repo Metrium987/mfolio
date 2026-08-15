@@ -6,7 +6,6 @@ import {
   Languages,
   Loader2,
   Plus,
-  Save,
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -44,6 +43,40 @@ const SWATCHES = [
   "#C89B3C",
   "#2364AA",
 ];
+
+/**
+ * Default settings shape — shared by the Config and Paramètres editors so
+ * both drafts stay complete (the settings doc carries SEO, scripts, keys…).
+ */
+const EMPTY_SETTINGS: Omit<Doc<"settings">, "_id" | "_creationTime" | "en"> = {
+  themeColor: "#A85B32",
+  googleAnalyticsId: "",
+  deeplApiKey: "",
+  maintenanceMode: false,
+  metaTitle: "",
+  metaDescription: "",
+  metaAuthor: "",
+  metaImage: "",
+  scriptHeader: "",
+  scriptFooter: "",
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
+  visibilityAbout: true,
+  visibilitySkill: true,
+  visibilityEducation: true,
+  visibilityExperience: true,
+  visibilityProject: true,
+  visibilityService: true,
+  visibilityContact: true,
+  visibilityFooter: true,
+  visibilityCv: true,
+  visibilitySkillProficiency: true,
+  visibilityBlog: true,
+  visibilityLanguages: true,
+  visibilityInterests: true,
+  servicesLayout: "cards",
+  interestsLayout: "cards",
+  resumeOrder: "experience-first",
+};
 
 /** Two-choice segmented control for a section's rendering style. */
 function LayoutPicker({
@@ -494,7 +527,7 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
 // Integrations — external service keys (Google Analytics, DeepL)
 // ---------------------------------------------------------------------------
 
-function IntegrationsCard({
+export function IntegrationsEditor({
   settings,
 }: {
   settings: Doc<"settings"> | null | undefined;
@@ -605,13 +638,17 @@ function IntegrationsCard({
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <p className="kicker">Intégrations</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Les clés des services externes connectés au site public.
-        </p>
-      </div>
+    <SectionEditor
+      title="Intégrations"
+      description="Clés et canaux des services externes connectés au site public : traduction automatique, statistiques et notifications."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      onSave={() => void save()}
+      saving={saving}
+      dirty={dirty}
+    >
+      <div className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField
           label="Google Analytics ID"
@@ -660,55 +697,37 @@ function IntegrationsCard({
         checked={contactNotifications}
         onChange={setContactNotifications}
       />
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        {dirty && (
-          <span className="text-xs text-muted-foreground">
-            Modifications non enregistrées
-          </span>
-        )}
-        {deeplKeySet && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void translateAll()}
-              disabled={translating || saving}
-              className="rounded-full"
-            >
-              {translating ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Languages className="size-4" />
-              )}
-              {translating ? "Traduction…" : "Traduire tout le contenu"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => void removeKey()}
-              disabled={saving}
-              className="rounded-full text-muted-foreground"
-            >
-              Retirer la clé
-            </Button>
-          </>
-        )}
-        <Button
-          onClick={() => void save()}
-          disabled={saving || translating || !dirty}
-          className="rounded-full"
-        >
-          {saving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
-          )}
-          {saving ? "Enregistrement…" : "Enregistrer les clés"}
-        </Button>
+      {deeplKeySet && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void translateAll()}
+            disabled={translating || saving}
+            className="rounded-full"
+          >
+            {translating ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Languages className="size-4" />
+            )}
+            {translating ? "Traduction…" : "Traduire tout le contenu"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void removeKey()}
+            disabled={saving}
+            className="rounded-full text-muted-foreground"
+          >
+            Retirer la clé
+          </Button>
+        </div>
+      )}
       </div>
-    </div>
+    </SectionEditor>
   );
 }
 
@@ -716,7 +735,7 @@ function IntegrationsCard({
 // Account security — change the owner login email / password
 // ---------------------------------------------------------------------------
 
-function SecurityCard() {
+export function SecurityEditor() {
   const account = useQuery(api.credentials.getPasswordAccount);
   const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
   const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
@@ -766,13 +785,18 @@ function SecurityCard() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <p className="kicker">Sécurité du compte</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Identifiants de connexion du propriétaire (email + mot de passe).
-        </p>
-      </div>
+    <SectionEditor
+      title="Sécurité du compte"
+      description="Identifiants de connexion du propriétaire (email + mot de passe)."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      showSave={false}
+      onSave={() => {}}
+      saving={false}
+      dirty={false}
+    >
+      <div className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium">Email de connexion</label>
@@ -827,7 +851,8 @@ function SecurityCard() {
           Changer le mot de passe
         </Button>
       </div>
-    </div>
+      </div>
+    </SectionEditor>
   );
 }
 
@@ -843,6 +868,7 @@ export function SiteEditor({
   settings: Doc<"settings"> | null | undefined;
 }) {
   const updateSite = useAction(api.translate.updateSite);
+  const updateSettings = useAction(api.translate.updateSettings);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(site, {
     siteName: "",
@@ -851,12 +877,16 @@ export function SiteEditor({
     logoUrl: "",
     faviconUrl: "",
   });
+  // SEO + custom scripts live on the settings doc — edited from this page.
+  const settingsDraft = useSectionDraft(settings, EMPTY_SETTINGS);
 
   const save = async () => {
     setSaving(true);
     try {
       await updateSite({ data: draft.value });
+      await updateSettings({ data: settingsDraft.value });
       draft.commit(draft.value);
+      settingsDraft.commit(settingsDraft.value);
       toast.success("Paramètres enregistrés");
     } catch (error) {
       console.error(error);
@@ -869,13 +899,13 @@ export function SiteEditor({
   return (
     <SectionEditor
       title="Paramètres du site"
-      description="Nom du site, slogan, texte de pied de page, logo et favicon."
+      description="Identité, référencement (SEO) et scripts personnalisés — tout ce qui configure le site public."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
       onSave={save}
       saving={saving}
-      dirty={draft.dirty}
+      dirty={draft.dirty || settingsDraft.dirty}
     >
       <div className="space-y-8">
         <FieldGroup
@@ -925,8 +955,46 @@ export function SiteEditor({
           </div>
         </FieldGroup>
 
-        <IntegrationsCard settings={settings} />
-        <SecurityCard />
+        <FieldGroup
+          title="Référencement (SEO)"
+          description="Titre, description et image de partage affichés par les moteurs de recherche et les réseaux sociaux."
+        >
+          <div className="space-y-4">
+            <TextField label="Titre de la page" value={settingsDraft.value.metaTitle} onChange={(metaTitle) => settingsDraft.set({ ...settingsDraft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
+            <TextAreaField label="Description" value={settingsDraft.value.metaDescription} onChange={(metaDescription) => settingsDraft.set({ ...settingsDraft.value, metaDescription })} rows={3} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Auteur" value={settingsDraft.value.metaAuthor} onChange={(metaAuthor) => settingsDraft.set({ ...settingsDraft.value, metaAuthor })} placeholder="Camille Roussel" />
+              <ImageField
+                label="Image de partage"
+                value={settingsDraft.value.metaImage}
+                onChange={(metaImage) => settingsDraft.set({ ...settingsDraft.value, metaImage })}
+                guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
+              />
+            </div>
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Scripts personnalisés"
+          description="Code HTML/JS injecté tel quel sur le site public — il s'exécute dans le navigateur de chaque visiteur. Réservé au propriétaire ; ne collez que du code de confiance (analytics, chat…)."
+        >
+          <div className="space-y-4">
+            <TextAreaField
+              label="Script d'en-tête (dans <head>)"
+              value={settingsDraft.value.scriptHeader}
+              onChange={(scriptHeader) => settingsDraft.set({ ...settingsDraft.value, scriptHeader })}
+              rows={4}
+              hint="HTML/JS injecté tel quel dans le <head> du site public."
+            />
+            <TextAreaField
+              label="Script de pied de page"
+              value={settingsDraft.value.scriptFooter}
+              onChange={(scriptFooter) => settingsDraft.set({ ...settingsDraft.value, scriptFooter })}
+              rows={4}
+              hint="HTML/JS injecté tel quel avant la fermeture du <body>."
+            />
+          </div>
+        </FieldGroup>
       </div>
     </SectionEditor>
   );
@@ -939,35 +1007,7 @@ export function SiteEditor({
 export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | undefined }) {
   const updateSettings = useAction(api.translate.updateSettings);
   const [saving, setSaving] = useState(false);
-  const draft = useSectionDraft(settings, {
-    themeColor: "#A85B32",
-    googleAnalyticsId: "",
-    deeplApiKey: "",
-    maintenanceMode: false,
-    metaTitle: "",
-    metaDescription: "",
-    metaAuthor: "",
-    metaImage: "",
-    scriptHeader: "",
-    scriptFooter: "",
-    sectionOrder: [...DEFAULT_SECTION_ORDER],
-    visibilityAbout: true,
-    visibilitySkill: true,
-    visibilityEducation: true,
-    visibilityExperience: true,
-    visibilityProject: true,
-    visibilityService: true,
-    visibilityContact: true,
-    visibilityFooter: true,
-    visibilityCv: true,
-    visibilitySkillProficiency: true,
-    visibilityBlog: true,
-    visibilityLanguages: true,
-    visibilityInterests: true,
-    servicesLayout: "cards",
-    interestsLayout: "cards",
-    resumeOrder: "experience-first",
-  });
+  const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
   // Sanitized display order — stale ids (e.g. "about" from an older save)
   // are dropped so the list only ever shows real, reorderable sections.
@@ -1003,7 +1043,7 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
   return (
     <SectionEditor
       title="Config"
-      description="Le rendu global du portfolio : couleur, maintenance, SEO, scripts et visibilité des sections."
+      description="Le rendu global du portfolio : couleur, maintenance, ordre et visibilité des sections."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
@@ -1056,8 +1096,8 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
           />
           <div className="rounded-md border border-dashed border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-            Les clés API (Google Analytics, DeepL) se configurent dans le menu
-            «&nbsp;Paramètres&nbsp;» → section Intégrations.
+            Les clés API (Google Analytics, DeepL) et les notifications de
+            contact se configurent dans le menu «&nbsp;Intégrations&nbsp;».
           </div>
         </FieldGroup>
 
@@ -1213,47 +1253,6 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
               onChange={(resumeOrder) =>
                 draft.set({ ...draft.value, resumeOrder })
               }
-            />
-          </div>
-        </FieldGroup>
-
-        <FieldGroup
-          title="Référencement (SEO)"
-          description="Titre, description et image de partage affichés par les moteurs de recherche et les réseaux sociaux."
-        >
-          <div className="space-y-4">
-            <TextField label="Titre de la page" value={draft.value.metaTitle} onChange={(metaTitle) => draft.set({ ...draft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
-            <TextAreaField label="Description" value={draft.value.metaDescription} onChange={(metaDescription) => draft.set({ ...draft.value, metaDescription })} rows={3} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField label="Auteur" value={draft.value.metaAuthor} onChange={(metaAuthor) => draft.set({ ...draft.value, metaAuthor })} placeholder="Camille Roussel" />
-              <ImageField
-                label="Image de partage"
-                value={draft.value.metaImage}
-                onChange={(metaImage) => draft.set({ ...draft.value, metaImage })}
-                guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
-              />
-            </div>
-          </div>
-        </FieldGroup>
-
-        <FieldGroup
-          title="Scripts personnalisés"
-          description="Code HTML/JS injecté tel quel sur le site public — il s'exécute dans le navigateur de chaque visiteur. Réservé au propriétaire ; ne collez que du code de confiance (analytics, chat…)."
-        >
-          <div className="space-y-4">
-            <TextAreaField
-              label="Script d'en-tête (dans <head>)"
-              value={draft.value.scriptHeader}
-              onChange={(scriptHeader) => draft.set({ ...draft.value, scriptHeader })}
-              rows={4}
-              hint="HTML/JS injecté tel quel dans le <head> du site public."
-            />
-            <TextAreaField
-              label="Script de pied de page"
-              value={draft.value.scriptFooter}
-              onChange={(scriptFooter) => draft.set({ ...draft.value, scriptFooter })}
-              rows={4}
-              hint="HTML/JS injecté tel quel avant la fermeture du <body>."
             />
           </div>
         </FieldGroup>

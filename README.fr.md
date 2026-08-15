@@ -69,7 +69,7 @@ Ouvrez **http://localhost:5173** — un contenu d'exemple est généré automati
 | Email | `admin@admin.com` |
 | Mot de passe | `admin123` |
 
-> ⚠️ **Changez ces identifiants immédiatement** depuis **Paramètres → Sécurité du compte** (email + mot de passe). La page de connexion affiche un rappel tant que ce n'est pas fait.
+> ⚠️ **Changez ces identifiants immédiatement** depuis **Sécurité du compte** dans le menu du tableau de bord (email + mot de passe). La page de connexion affiche un rappel tant que ce n'est pas fait.
 >
 > **Mot de passe oublié (self-host)** : il n'existe plus de porte de secours par email (OTP supprimé). La procédure : dashboard Convex → table `authAccounts` → supprimer la ligne du compte mot de passe → recharger `/auth` — `ensureAdmin` recrée le compte par défaut (voir `docs/DEPLOYMENT.md`).
 
@@ -83,7 +83,7 @@ Ouvrez **http://localhost:5173** — un contenu d'exemple est généré automati
 | `SITE_URL` | Dashboard Convex → Settings → Env Variables | ✅ production |
 | `JWKS`, `JWT_PRIVATE_KEY` | Dashboard Convex (clés d'auth, provisionnées par Convex Auth) | ✅ |
 
-**Ne sont pas des variables d'environnement :** la clé DeepL et l'ID Google Analytics se saisissent dans l'application (**Config → Référencement**), et l'adresse email de notification dans **Paramètres → Intégrations** — elles sont stockées en base de données, pas dans le dépôt.
+**Ne sont pas des variables d'environnement :** la clé DeepL et l'ID Google Analytics se saisissent dans le menu **Intégrations**, et les balises SEO dans **Paramètres → Référencement (SEO)** — elles sont stockées en base de données, pas dans le dépôt.
 
 Voir [.env.example](.env.example) pour le modèle annoté complet.
 
@@ -95,8 +95,10 @@ Voir [.env.example](.env.example) pour le modèle annoté complet.
 | **Parcours / Portfolio / Journal** | Expériences, formations, projets, articles — réorganisation, aperçu, édition en popup |
 | **Compétences / Langues / Centres d'intérêt / Services** | Éléments avec niveaux (1–5), icônes, réorganisation, aperçu |
 | **Messages** | Boîte de réception : prévisualisation en popup, marquer comme répondu, supprimer |
-| **Config** | Couleur d'accent, visibilité et ordre des sections, styles d'affichage, ordre du Parcours, SEO, scripts personnalisés, mode maintenance |
-| **Paramètres** | Nom/slogan/pied de page du site, logo & favicon, DeepL + GA + email de notification, **interrupteurs des canaux email**, sécurité du compte (email/mot de passe) |
+| **Config** | Couleur d'accent, visibilité et ordre des sections, styles d'affichage, ordre du Parcours, mode maintenance |
+| **Paramètres** | Nom/slogan/pied de page du site, logo & favicon, **référencement (SEO)**, scripts personnalisés |
+| **Intégrations** | Clés DeepL + Google Analytics, email de notification, **interrupteurs des canaux email** |
+| **Sécurité du compte** | Email et mot de passe de connexion du propriétaire |
 | **Statistiques** | Visiteurs, uniques, conversion, appareils, navigateurs, heures de pointe |
 
 ## Canaux email
@@ -111,7 +113,7 @@ Sur Freebuff Web, la notification passe par le **relais email de la plateforme**
 
 **Déployer ailleurs, deux options :**
 
-- **Le plus simple :** dans **Paramètres → Intégrations**, désactivez **« Notifications de contact »**. La connexion par mot de passe et la boîte de réception continuent de fonctionner à 100 %. ✅
+- **Le plus simple :** dans le menu **Intégrations**, désactivez **« Notifications de contact »**. La connexion par mot de passe et la boîte de réception continuent de fonctionner à 100 %. ✅
 - **Garder l'email :** modifiez `src/convex/emailRelay.ts` pour appeler votre propre fournisseur (ex. Resend). Il n'existe plus qu'**un point d'appel** : `src/convex/notify.ts` (notification).
 
 Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) pour le guide complet.

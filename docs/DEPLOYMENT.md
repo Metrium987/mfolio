@@ -19,9 +19,9 @@ Rien à faire. Sur cette plateforme :
 
 Seules choses à faire dans l'application après la première connexion (`admin@admin.com` / `admin123`) :
 
-1. **Paramètres → Sécurité du compte** : changer email + mot de passe.
-2. **Config → Référencement** : saisir votre clé DeepL (traduction FR→EN) et votre ID Google Analytics.
-3. **Paramètres → Intégrations** : renseigner l'« Email de notification » (sinon l'email de contact de la section À propos est utilisé).
+1. **Sécurité du compte** (menu du tableau de bord) : changer email + mot de passe.
+2. **Intégrations** : saisir votre clé DeepL (traduction FR→EN) et votre ID Google Analytics.
+3. **Intégrations** (menu du tableau de bord) : renseigner l'« Email de notification » (sinon l'email de contact de la section À propos est utilisé).
 
 ---
 
@@ -78,14 +78,14 @@ bun run dev
 
 1. Ouvrez le site → le contenu d'exemple est généré automatiquement.
 2. `/auth` → connectez-vous avec `admin@admin.com` / `admin123`.
-3. **Changez immédiatement** email + mot de passe (**Paramètres → Sécurité du compte**).
-4. Saisissez votre clé DeepL et votre ID Google Analytics (**Config → Référencement**).
+3. **Changez immédiatement** email + mot de passe (**Sécurité du compte** dans le menu du tableau de bord).
+4. Saisissez votre clé DeepL et votre ID Google Analytics (**Intégrations**).
 
 ### 2.5 Email
 
 Deux stratégies — voir la section 3 pour les détails :
 
-- **Sans email (recommandé pour un départ rapide)** : désactivez les deux interrupteurs dans **Paramètres → Intégrations**. Tout le reste (mot de passe, boîte de réception) fonctionne.
+- **Sans email (recommandé pour un départ rapide)** : désactivez les deux interrupteurs dans le menu **Intégrations**. Tout le reste (mot de passe, boîte de réception) fonctionne.
 - **Avec email** : remplacez le relais dans `src/convex/emailRelay.ts` par votre fournisseur (ex. Resend).
 
 ### 2.6 Nettoyage optionnel des fichiers Freebuff
@@ -105,13 +105,13 @@ Une seule fonctionnalité envoie des emails, via le helper `sendViaEmailRelay` :
 
 | Fonctionnalité | Fichier | Réglage dans l'app |
 |---|---|---|
-| Notification de contact (avis court, sans le texte) | `src/convex/notify.ts` (appelé par `siteMutations.ts` → `addMessage`) | **Paramètres → Intégrations → « Notifications de contact (email) »** |
+| Notification de contact (avis court, sans le texte) | `src/convex/notify.ts` (appelé par `siteMutations.ts` → `addMessage`) | **Intégrations → « Notifications de contact (email) »** |
 
 > L'ancien canal **OTP** (codes de connexion par email) a été **supprimé entièrement** : la seule connexion est le mot de passe du propriétaire, et aucun visiteur ne peut créer de compte.
 
 ### Option A — Tout désactiver (aucun email)
 
-1. **Paramètres → Intégrations**.
+1. **Intégrations** (menu du tableau de bord).
 2. Coupez **« Notifications de contact (email) »** → plus d'email à la réception d'un message ; le message reste stocké dans **Messages**.
 3. Résultat : l'application tourne sans aucune dépendance email. ✅
 

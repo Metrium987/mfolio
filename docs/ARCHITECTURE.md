@@ -145,4 +145,4 @@ FR, index par position).
 - Le site public charge les images telles quelles (pas de redimensionnement
   serveur ; consignes de ratio/taille dans l'UI d'import).
 - Sur un déploiement hors Freebuff : le relais email est inactif → couper la
-  notification dans Paramètres → Intégrations.
+  notification dans le menu Intégrations.

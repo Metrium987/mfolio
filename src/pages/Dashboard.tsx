@@ -11,8 +11,10 @@ import {
   Layers,
   LogOut,
   Newspaper,
+  Plug,
   Settings,
   ShieldAlert,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   TrendingUp,
@@ -23,7 +25,13 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
-import { AboutEditor, ConfigEditor, SiteEditor } from "@/components/admin/editors-basic";
+import {
+  AboutEditor,
+  ConfigEditor,
+  IntegrationsEditor,
+  SecurityEditor,
+  SiteEditor,
+} from "@/components/admin/editors-basic";
 import {
   BlogEditor,
   InterestsEditor,
@@ -62,6 +70,8 @@ const NAV: NavItem[] = [
   { id: "visitors", label: "Visiteurs", icon: Users },
   { id: "messages", label: "Messages", icon: Inbox },
   { id: "site", label: "Paramètres", icon: Settings },
+  { id: "integrations", label: "Intégrations", icon: Plug },
+  { id: "security", label: "Sécurité du compte", icon: ShieldCheck },
 ];
 
 const GROUPS = Array.from(new Set(NAV.map((item) => item.group).filter(Boolean))) as string[];
@@ -483,7 +493,7 @@ export default function Dashboard() {
         const failed = Object.values(results).filter((r) => r === "failed").length;
         if (failed > 0) {
           toast.error(
-            `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL dans Paramètres → Intégrations.`,
+            `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL dans le menu Intégrations.`,
           );
         } else {
           toast.success(
@@ -493,7 +503,7 @@ export default function Dashboard() {
       } catch (error) {
         console.error(error);
         toast.error(
-          "La traduction automatique a échoué. Vérifiez votre clé DeepL dans Paramètres → Intégrations.",
+          "La traduction automatique a échoué. Vérifiez votre clé DeepL dans le menu Intégrations.",
         );
       }
     };
@@ -561,6 +571,10 @@ export default function Dashboard() {
         return <MessagesView />;
       case "site":
         return <SiteEditor site={data.site} settings={data.settings} />;
+      case "integrations":
+        return <IntegrationsEditor settings={data.settings} />;
+      case "security":
+        return <SecurityEditor />;
       default:
         return <Overview />;
     }
@@ -745,7 +759,7 @@ export default function Dashboard() {
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => setActive("site")}
+                  onClick={() => setActive("security")}
                   className="rounded-full"
                 >
                   Changer maintenant

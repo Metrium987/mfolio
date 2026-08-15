@@ -22,6 +22,7 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
 - **CSP** ajoutée dans `index.html` (soupape pour scripts propriétaire + CDN connus).
 - **Boîte de réception paginée** : `getMessages` paginé (50/page, « Charger plus »), badge du sidebar via un comptage dédié — plus de plafond à 200.
 - **Glisser-déposer** : toutes les listes réordonnables (sections, compétences, langues, centres d'intérêt, services, parcours, projets, journal) se déplacent maintenant à la souris, au doigt et au clavier via un composant `SortableList` (@dnd-kit) — les flèches ↑/↓ restent disponibles.
+- **Dashboard restructuré** : « Intégrations » et « Sécurité du compte » deviennent des sections du menu ; « Référencement (SEO) » et « Scripts personnalisés » rejoignent « Paramètres » — la répartition est désormais : Paramètres = identité du site, Config = rendu du portfolio, Intégrations = services externes, Sécurité = compte propriétaire.
 - **Registre d'icônes extrait** dans `src/lib/service-icons.tsx` (chunk séparé, code plus lisible).
 - **A11y** : lien d'évitement « Aller au contenu » sur le site public et le dashboard.
 - Nettoyage : `isolate/` (vieux build committé) supprimé et gitignoré ; `vly-integrations.ts`/`integrations.md` supprimés ; `next-themes` et `@oslojs/crypto` retirés des dépendances.
