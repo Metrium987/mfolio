@@ -453,16 +453,18 @@ export const ensureSeed = mutation({
     if (settings && typeof settings.notificationEmail !== "string") {
       await ctx.db.patch(settings._id, { notificationEmail: "" });
     }
-    // The Resend integration and Gmail SMTP credentials were removed — delete
-    // their leftover fields from the document. They are no longer in the
-    // schema, and Convex object validators reject unknown keys, so keeping
-    // them would break the Config editor's save.
+    // The Resend integration, Gmail SMTP credentials and the OTP login
+    // toggle were removed — delete their leftover fields from the document.
+    // They are no longer in the schema, and Convex object validators reject
+    // unknown keys, so keeping them would break the Config editor's save
+    // (and with it the maintenance-mode toggle).
     if (settings) {
       const legacy = settings as unknown as Record<string, unknown>;
       if (
         "resendApiKey" in legacy ||
         "smtpUser" in legacy ||
-        "smtpPass" in legacy
+        "smtpPass" in legacy ||
+        "emailOtpEnabled" in legacy
       ) {
         const {
           _id,
@@ -470,6 +472,7 @@ export const ensureSeed = mutation({
           resendApiKey: _resend,
           smtpUser: _smtpUser,
           smtpPass: _smtpPass,
+          emailOtpEnabled: _emailOtpEnabled,
           ...clean
         } = legacy;
         void _id;
@@ -477,6 +480,7 @@ export const ensureSeed = mutation({
         void _resend;
         void _smtpUser;
         void _smtpPass;
+        void _emailOtpEnabled;
         await ctx.db.replace(settings._id, clean as never);
       }
     }

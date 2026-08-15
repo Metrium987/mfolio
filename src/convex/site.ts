@@ -25,15 +25,20 @@ import {
 function sanitizeSettings(settings: Doc<"settings"> | null): Doc<"settings"> | null {
   if (!settings) return null;
   const legacy = settings as unknown as Record<string, unknown>;
+  // Legacy fields removed from the schema are stripped so the client draft
+  // never carries them — Convex object validators reject unknown keys, which
+  // would silently break every settings save (Config, maintenance mode…).
   const {
     resendApiKey: _resend,
     smtpUser: _smtpUser,
     smtpPass: _smtpPass,
+    emailOtpEnabled: _emailOtpEnabled,
     ...clean
   } = legacy;
   void _resend;
   void _smtpUser;
   void _smtpPass;
+  void _emailOtpEnabled;
   return {
     ...clean,
     deeplApiKey: "",
