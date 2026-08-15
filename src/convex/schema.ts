@@ -215,8 +215,9 @@ export const settingsValidator = v.object({
     v.union(v.literal("auto"), v.literal("light"), v.literal("dark")),
   ),
   // Complete coordinated color theme (paper, ink, surfaces, accent) chosen
-  // in Sécurité → Apparence. Absent or unknown = the default Studio look, so
-  // existing installs are unchanged. Values live in src/lib/themes.ts.
+  // in the dashboard's Apparence section. Absent or unknown = the default
+  // Studio look, so existing installs are unchanged. Values live in
+  // src/lib/themes.ts.
   themePreset: v.optional(v.string()),
   googleAnalyticsId: v.string(),
   deeplApiKey: v.string(),

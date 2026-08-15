@@ -9,6 +9,9 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
 ### Ajouté
 
 - **Thèmes & palettes** — Sécurité du compte → Apparence repensé :
+  - **Section « Apparence » dédiée** dans le menu du tableau de bord
+    (icône Palette, entre Intégrations et Sécurité du compte) : thèmes,
+    ambiance et accent sortent de « Sécurité du compte ».
   - **10 thèmes complets** (inspirés des « UI Presets » de Freebuff Web) :
     Studio, Encre, Bleu nuit, Forêt, Prune, Braise, Or ancien, Cobalt,
     Rose poudré, Sauge — chaque thème est un ensemble coordonné (papier,

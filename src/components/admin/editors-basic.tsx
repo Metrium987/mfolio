@@ -762,67 +762,20 @@ export function IntegrationsEditor({
 }
 
 // ---------------------------------------------------------------------------
-// Account security — change the owner login email / password
+// Appearance — theme presets, ambiance and accent (own dashboard section)
 // ---------------------------------------------------------------------------
 
-export function SecurityEditor({
+export function AppearanceEditor({
   settings,
 }: {
   settings: Doc<"settings"> | null | undefined;
 }) {
-  const account = useQuery(api.credentials.getPasswordAccount);
-  const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
-  const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
   const updateSettings = useAction(api.translate.updateSettings);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [savingEmail, setSavingEmail] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
-  const [savingSettings, setSavingSettings] = useState(false);
+  const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
-  useEffect(() => {
-    // Sync the form field with the fetched account (before user interaction).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (account) setEmail(account.email);
-  }, [account]);
-
-  const saveEmail = async () => {
-    const value = email.trim();
-    if (!value) return;
-    setSavingEmail(true);
-    try {
-      await updateAdminEmail({ newEmail: value });
-      toast.success("Email de connexion mis à jour");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
-      );
-    } finally {
-      setSavingEmail(false);
-    }
-  };
-
-  const savePassword = async () => {
-    if (password.length < 8) return;
-    setSavingPassword(true);
-    try {
-      await updateAdminPassword({ newPassword: password });
-      setPassword("");
-      toast.success("Mot de passe mis à jour");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
-      );
-    } finally {
-      setSavingPassword(false);
-    }
-  };
-
-  const saveSettings = async () => {
-    setSavingSettings(true);
+  const save = async () => {
+    setSaving(true);
     try {
       await updateSettings({
         data: {
@@ -837,42 +790,30 @@ export function SecurityEditor({
         },
       });
       draft.commit(draft.value);
-      toast.success("Réglages enregistrés");
+      toast.success("Apparence enregistrée");
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de l'enregistrement");
     } finally {
-      setSavingSettings(false);
+      setSaving(false);
     }
   };
 
   return (
     <SectionEditor
-      title="Sécurité du compte"
-      description="Maintenance, apparence et identifiants de connexion du propriétaire."
+      title="Apparence"
+      description="Le thème, l'ambiance et la couleur d'accent du site public — appliqués aux boutons, liens et accents, en clair comme en sombre."
       visibility={true}
       onVisibilityChange={() => undefined}
       showVisibility={false}
-      onSave={saveSettings}
-      saving={savingSettings}
+      onSave={save}
+      saving={saving}
       dirty={draft.dirty}
     >
       <div className="space-y-8">
         <FieldGroup
-          title="Maintenance"
-          description="Masquez temporairement le portfolio public pendant vos mises à jour."
-        >
-          <ToggleField
-            label="Mode maintenance"
-            description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
-            checked={draft.value.maintenanceMode}
-            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
-          />
-        </FieldGroup>
-
-        <FieldGroup
-          title="Apparence"
-          description="Le thème (papier, encre, surfaces), l'ambiance et la couleur d'accent du site public — en clair comme en sombre."
+          title="Thème & ambiance"
+          description="Le thème (papier, encre, surfaces), l'ambiance par défaut et la couleur d'accent du site public."
         >
           <div className="space-y-6">
             <div className="space-y-2">
@@ -988,6 +929,119 @@ export function SecurityEditor({
               </div>
             </div>
           </div>
+        </FieldGroup>
+      </div>
+    </SectionEditor>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Account security — change the owner login email / password
+// ---------------------------------------------------------------------------
+
+export function SecurityEditor({
+  settings,
+}: {
+  settings: Doc<"settings"> | null | undefined;
+}) {
+  const account = useQuery(api.credentials.getPasswordAccount);
+  const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
+  const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
+  const updateSettings = useAction(api.translate.updateSettings);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const draft = useSectionDraft(settings, EMPTY_SETTINGS);
+
+  useEffect(() => {
+    // Sync the form field with the fetched account (before user interaction).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (account) setEmail(account.email);
+  }, [account]);
+
+  const saveEmail = async () => {
+    const value = email.trim();
+    if (!value) return;
+    setSavingEmail(true);
+    try {
+      await updateAdminEmail({ newEmail: value });
+      toast.success("Email de connexion mis à jour");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+      );
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const savePassword = async () => {
+    if (password.length < 8) return;
+    setSavingPassword(true);
+    try {
+      await updateAdminPassword({ newPassword: password });
+      setPassword("");
+      toast.success("Mot de passe mis à jour");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+      );
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await updateSettings({
+        data: {
+          ...draft.value,
+          sectionOrder: draft.value.sectionOrder?.length
+            ? draft.value.sectionOrder
+            : [...DEFAULT_SECTION_ORDER],
+          servicesLayout: draft.value.servicesLayout ?? "cards",
+          interestsLayout: draft.value.interestsLayout ?? "cards",
+          resumeOrder: draft.value.resumeOrder ?? "experience-first",
+          deeplApiKey: draft.value.deeplApiKey ?? "",
+        },
+      });
+      draft.commit(draft.value);
+      toast.success("Réglages enregistrés");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  return (
+    <SectionEditor
+      title="Sécurité du compte"
+      description="Maintenance et identifiants de connexion du propriétaire."
+      visibility={true}
+      onVisibilityChange={() => undefined}
+      showVisibility={false}
+      onSave={saveSettings}
+      saving={savingSettings}
+      dirty={draft.dirty}
+    >
+      <div className="space-y-8">
+        <FieldGroup
+          title="Maintenance"
+          description="Masquez temporairement le portfolio public pendant vos mises à jour."
+        >
+          <ToggleField
+            label="Mode maintenance"
+            description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
+            checked={draft.value.maintenanceMode}
+            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
+          />
         </FieldGroup>
 
         <FieldGroup

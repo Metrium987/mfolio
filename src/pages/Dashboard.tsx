@@ -11,6 +11,7 @@ import {
   Layers,
   LogOut,
   Newspaper,
+  Palette,
   Plug,
   Settings,
   ShieldAlert,
@@ -27,6 +28,7 @@ import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import {
   AboutEditor,
+  AppearanceEditor,
   ConfigEditor,
   IntegrationsEditor,
   SecurityEditor,
@@ -77,6 +79,7 @@ const NAV: NavItem[] = [
   { id: "messages", label: "Messages", icon: Inbox },
   { id: "site", label: "Paramètres", icon: Settings },
   { id: "integrations", label: "Intégrations", icon: Plug },
+  { id: "appearance", label: "Apparence", icon: Palette },
   { id: "security", label: "Sécurité du compte", icon: ShieldCheck },
 ];
 
@@ -580,6 +583,8 @@ export default function Dashboard() {
         return <SiteEditor site={data.site} settings={data.settings} />;
       case "integrations":
         return <IntegrationsEditor settings={data.settings} />;
+      case "appearance":
+        return <AppearanceEditor settings={data.settings} />;
       case "security":
         return <SecurityEditor settings={data.settings} />;
       default:
