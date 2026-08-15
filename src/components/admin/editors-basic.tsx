@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  Download,
   FileText,
   Languages,
   Loader2,
@@ -1330,6 +1331,21 @@ export function SiteEditor({
   // SEO + custom scripts live on the settings doc — edited from this page.
   const settingsDraft = useSectionDraft(settings, EMPTY_SETTINGS);
 
+  // Full content export (owner only) — downloads everything as JSON.
+  const exportData = useQuery(api.site.exportAll);
+  const exportJson = () => {
+    if (!exportData) return;
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mfolio-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const save = async () => {
     setSaving(true);
     try {
@@ -1443,6 +1459,30 @@ export function SiteEditor({
               rows={4}
               hint="HTML/JS injecté tel quel avant la fermeture du <body>."
             />
+          </div>
+        </FieldGroup>
+
+        <FieldGroup
+          title="Sauvegarde & portabilité"
+          description="Exportez tout votre contenu en un fichier JSON — pour sauvegarder, migrer ou quitter la plateforme sans rien perdre. Les clés API ne sont jamais incluses."
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              onClick={exportJson}
+            >
+              <Download className="size-4" />
+              Exporter tout (JSON)
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Télécharge un fichier{" "}
+              <code className="rounded bg-accent px-1 py-0.5">
+                mfolio-sauvegarde-AAAA-MM-JJ.json
+              </code>{" "}
+              avec toutes les sections et la boîte de réception.
+            </p>
           </div>
         </FieldGroup>
       </div>

@@ -34,6 +34,11 @@ export const UI_STRINGS = {
   "footer.poweredBy": { fr: "Propulsé par", en: "Powered by" },
   "hero.contact": { fr: "Me contacter", en: "Contact me" },
   "hero.downloadCv": { fr: "Télécharger le CV", en: "Download CV" },
+  "hero.printCv": { fr: "Imprimer / PDF", en: "Print / PDF" },
+  "hero.printHint": {
+    fr: "Imprime ou enregistre en PDF un CV propre (parcours et compétences).",
+    en: "Print or save as PDF a clean CV (experience and skills).",
+  },
   "hero.networks": { fr: "Réseaux & profils", en: "Networks & profiles" },
   "hero.portrait": { fr: "Fig. 01 — Portrait", en: "Fig. 01 — Portrait" },
   "hero.alt": { fr: "Portrait de", en: "Portrait of" },

@@ -8,6 +8,7 @@ import {
   Inbox,
   Loader2,
   Plus,
+  Reply,
   Trash2,
   Users,
 } from "lucide-react";
@@ -1703,6 +1704,30 @@ export function InterestsEditor({
 // Messages — with subject and "replied" status (Ezfolio "Message")
 // ---------------------------------------------------------------------------
 
+/**
+ * Builds a pre-filled mailto link to answer a message from the owner's own
+ * mail client — no backend, no provider key, fully portable. The original
+ * message is quoted so the visitor keeps the context.
+ */
+function replyMailto(message: Doc<"messages">): string {
+  const subject = `Re: ${message.subject || "Message du portfolio"}`;
+  const body = [
+    `Bonjour ${message.name},`,
+    "",
+    "---- Message d'origine ----",
+    `De : ${message.name} <${message.email}>`,
+    message.subject ? `Sujet : ${message.subject}` : "",
+    `Date : ${formatTimestamp(message.createdAt)}`,
+    "",
+    message.message,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  return `mailto:${encodeURIComponent(message.email)}?subject=${encodeURIComponent(
+    subject,
+  )}&body=${encodeURIComponent(body)}`;
+}
+
 export function MessagesView() {
   const deleteMessage = useMutation(api.siteMutations.deleteMessage);
   const markMessageReplied = useMutation(api.siteMutations.markMessageReplied);
@@ -1826,6 +1851,16 @@ export function MessagesView() {
                   {formatTimestamp(message.createdAt)}
                 </span>
                 <Button
+                  asChild
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Répondre (ouvre votre client mail)"
+                >
+                  <a href={replyMailto(message)}>
+                    <Reply className="size-4" />
+                  </a>
+                </Button>
+                <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
@@ -1947,13 +1982,27 @@ export function MessagesView() {
               />
               Répondu
             </label>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setPreviewId(null)}
-            >
-              Fermer
-            </Button>
+            <div className="flex items-center gap-2">
+              {previewMessage && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-full"
+                >
+                  <a href={replyMailto(previewMessage)}>
+                    <Reply className="size-4" />
+                    Répondre
+                  </a>
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPreviewId(null)}
+              >
+                Fermer
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

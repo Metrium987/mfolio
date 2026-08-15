@@ -94,6 +94,59 @@ export const getSiteData = query({
 });
 
 /**
+ * Full content export for backup and portability (owner only): every
+ * content table plus the inbox. API keys stay write-only (stripped, exactly
+ * like getSiteData) — the dashboard shows masked "key set" states instead.
+ */
+export const exportAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentAdmin(ctx);
+    if (!user) return null;
+    const [
+      site,
+      settings,
+      about,
+      skills,
+      services,
+      resume,
+      portfolio,
+      blog,
+      languages,
+      interests,
+      messages,
+    ] = await Promise.all([
+      ctx.db.query("site").first(),
+      ctx.db.query("settings").first(),
+      ctx.db.query("about").first(),
+      ctx.db.query("skills").first(),
+      ctx.db.query("services").first(),
+      ctx.db.query("resume").first(),
+      ctx.db.query("portfolio").first(),
+      ctx.db.query("blog").first(),
+      ctx.db.query("languages").first(),
+      ctx.db.query("interests").first(),
+      ctx.db.query("messages").order("desc").take(1000),
+    ]);
+    return {
+      app: "Mfolio",
+      exportedAt: new Date().toISOString(),
+      site,
+      settings: sanitizeSettings(settings),
+      about,
+      skills,
+      services,
+      resume,
+      portfolio,
+      blog,
+      languages,
+      interests,
+      messages,
+    };
+  },
+});
+
+/**
  * Integration key state for the dashboard (owner only). Returns the GA id
  * (public by design) and whether a DeepL key is set — never the key itself.
  */

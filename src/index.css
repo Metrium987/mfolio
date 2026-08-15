@@ -305,3 +305,57 @@
   border-radius: 2px;
 }
 
+/* ---------------------------------------------------------------------------
+   Print / PDF — the "Imprimer / PDF" hero button produces a clean, mostly
+   monochrome CV from the public site: the print-only header (name + contact)
+   plus the Parcours and Compétences sections; everything else is hidden.
+--------------------------------------------------------------------------- */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  /* Keep only the print header + Parcours + Compétences. */
+  .site-root header,
+  .site-root footer,
+  .site-root #top,
+  .site-root #languages,
+  .site-root #interests,
+  .site-root #services,
+  .site-root #portfolio,
+  .site-root #blog,
+  .site-root #contact {
+    display: none !important;
+  }
+
+  /* Monochrome paper: no theme colors, no shadows, no decoration. */
+  .site-root {
+    background: #ffffff !important;
+  }
+  .site-root * {
+    color: #1a1a1a !important;
+    border-color: #d6d6d6 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .site-root section {
+    max-width: 100% !important;
+    padding: 0 !important;
+    scroll-margin-top: 0 !important;
+  }
+  .site-root #resume > div,
+  .site-root #skills > div {
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+  .site-root #resume ul,
+  .site-root #skills {
+    max-width: 100% !important;
+  }
+  .site-root #skills .grid {
+    gap: 0.5rem !important;
+  }
+}
+

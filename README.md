@@ -94,9 +94,9 @@ See [.env.example](.env.example) for the full annotated template.
 | **À propos** | Name, contact info, portrait/cover images, taglines, CV link, socials, description |
 | **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
 | **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
-| **Messages** | Inbox: preview messages in a popup, mark as replied, delete |
+| **Messages** | Inbox: preview messages in a popup, reply from your mail client (pre-filled), mark as replied, delete, CSV export |
 | **Config** | Section visibility & order, display layouts (list/cards for Services, Interests, Languages, Skills, Projects, Blog), resume order |
-| **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts |
+| **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts, full JSON backup/export |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **email channel toggles** |
 | **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
 | **Sécurité du compte** | Maintenance mode, owner login email and password |

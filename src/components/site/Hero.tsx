@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useSiteLang } from "@/lib/i18n";
@@ -139,6 +139,15 @@ export function Hero({
                   <ArrowDown className="size-4" />
                 </a>
               )}
+              <button
+                type="button"
+                onClick={() => window.print()}
+                title={t("hero.printHint")}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
+              >
+                <Printer className="size-4" />
+                {t("hero.printCv")}
+              </button>
             </div>
           </Reveal>
 

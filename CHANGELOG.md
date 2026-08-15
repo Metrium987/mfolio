@@ -33,6 +33,20 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
     titre, extrait, « Lire la suite »).
   - Rétro-compatible : réglage absent = grille actuelle, rien ne change
     pour les installations existantes.
+- **Répondre aux messages (option mailto)** — bouton « Répondre » dans la
+  boîte de réception (sur chaque ligne et dans l'aperçu du message) : il
+  ouvre le client mail du propriétaire avec le destinataire pré-rempli,
+  l'objet préfixé « Re: » et le message d'origine cité. Aucun backend,
+  aucune clé — entièrement portable.
+- **Export complet en JSON** — Paramètres → « Sauvegarde & portabilité » :
+  un clic télécharge tout le contenu (site, réglages, toutes les sections
+  et la boîte de réception) en un fichier
+  `mfolio-sauvegarde-AAAA-MM-JJ.json`. Réservé au propriétaire ; les clés
+  API restent write-only et ne sont jamais incluses.
+- **Impression / PDF du CV** — bouton « Imprimer / PDF » dans le hero du
+  site : une feuille de style print isole un CV propre (en-tête avec nom et
+  coordonnées, Parcours, Compétences), monochrome et sans décoration, avec
+  les marges de page réglées. Zéro dépendance.
 
 ## [1.2.0] — 2026-08-15
 
