@@ -119,8 +119,10 @@ export function Hero({
             </Reveal>
           )}
 
-          <Reveal delay={0.24}>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+          {/* No reveal gate on the CTA row: the primary actions must always
+              be visible immediately — an in-view animation can leave them at
+              opacity 0 when the row sits below the fold at mount time. */}
+          <div className="mt-9 flex flex-wrap items-center gap-3">
               <a
                 href="#contact"
                 className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
@@ -149,7 +151,6 @@ export function Hero({
                 {t("hero.printCv")}
               </button>
             </div>
-          </Reveal>
 
           {about.socials.length > 0 && (
             <Reveal delay={0.3}>

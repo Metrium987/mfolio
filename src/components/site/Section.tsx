@@ -73,7 +73,10 @@ export function Reveal({
     <motion.div
       initial={reduce ? false : { opacity: 0, y: 18 }}
       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
+      // Soft threshold: reveal as soon as a small part is visible. A negative
+      // margin here can keep content stuck at opacity 0 when it sits near the
+      // fold at mount time (e.g. in an embedded preview), so we don't use one.
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.55, delay, ease: "easeOut" }}
       className={className}
     >
