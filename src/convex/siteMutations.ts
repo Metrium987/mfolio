@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, MutationCtx } from "./_generated/server";
 import { api } from "./_generated/api";
 import { DAY } from "../lib/stats";
+import { DEFAULT_SECTION_ORDER } from "../lib/sections";
 import { getCurrentAdmin } from "./users";
 
 type SectionTable =
@@ -79,6 +80,128 @@ export const persistSection = mutation({
  * `clearSmtpPass` explicitly remove them. An empty string means "keep the
  * stored key".
  */
+/**
+ * Factory reset (Sécurité du compte → « Restauration usine »). Owner only.
+ *
+ * Wipes ALL portfolio content (the 8 content sections + site identity) and
+ * the business data (inbox + visitor stats), while KEEPING the admin account
+ * (the users table is never touched — otherwise the owner could lock
+ * themselves out with a wrong tap).
+ *
+ * The content documents are RESET IN PLACE, never deleted: ensureSeed only
+ * re-populates the demo when the "site" table is empty, so deleting the docs
+ * would bring the whole demo back on the very next page load. Settings go
+ * back to the factory values (Studio theme, Éditorial design, Gmail SMTP
+ * pre-filled but disabled, no keys, every section visible).
+ */
+export const factoryReset = mutation({
+  args: { confirm: v.string() },
+  handler: async (ctx, { confirm }) => {
+    if (confirm.trim().toUpperCase() !== "RESTAURER") {
+      throw new Error("Confirmation invalide");
+    }
+    await requireOwner(ctx);
+
+    const resetContent: Record<
+      Exclude<SectionTable, "settings">,
+      Record<string, unknown>
+    > = {
+      site: {
+        siteName: "",
+        tagline: "",
+        footerText: "",
+        logoUrl: "",
+        faviconUrl: "",
+      },
+      about: {
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        avatar: "",
+        cover: "",
+        description: "",
+        taglines: [],
+        socials: [],
+        cvUrl: "",
+      },
+      skills: { title: "", description: "", items: [] },
+      services: { title: "", description: "", items: [] },
+      resume: { title: "", description: "", experiences: [], educations: [] },
+      portfolio: { title: "", description: "", projects: [] },
+      blog: { title: "", description: "", posts: [] },
+      languages: { title: "", description: "", items: [] },
+      interests: { title: "", description: "", items: [] },
+    };
+    for (const [table, data] of Object.entries(resetContent)) {
+      const existing = await ctx.db.query(table as SectionTable).first();
+      if (existing) {
+        await ctx.db.patch(existing._id, data as never);
+      } else {
+        await ctx.db.insert(table as SectionTable, data as never);
+      }
+    }
+
+    const settings = await ctx.db.query("settings").first();
+    const factorySettings = {
+      themeColor: "#A85B32",
+      themeMode: "auto" as const,
+      themePreset: "studio",
+      design: "editorial",
+      googleAnalyticsId: "",
+      deeplApiKey: "",
+      notificationEmail: "",
+      smtpEnabled: false,
+      smtpHost: "smtp.gmail.com",
+      smtpPort: 465,
+      smtpSecure: true,
+      smtpUser: "",
+      smtpPass: "",
+      contactNotifications: true,
+      maintenanceMode: false,
+      metaTitle: "",
+      metaDescription: "",
+      metaAuthor: "",
+      metaImage: "",
+      scriptHeader: "",
+      scriptFooter: "",
+      sectionOrder: [...DEFAULT_SECTION_ORDER],
+      servicesLayout: "cards" as const,
+      interestsLayout: "cards" as const,
+      languagesLayout: "cards" as const,
+      skillsLayout: "cards" as const,
+      portfolioLayout: "cards" as const,
+      blogLayout: "cards" as const,
+      resumeOrder: "experience-first" as const,
+      visibilityAbout: true,
+      visibilitySkill: true,
+      visibilityEducation: true,
+      visibilityExperience: true,
+      visibilityProject: true,
+      visibilityService: true,
+      visibilityContact: true,
+      visibilityFooter: true,
+      visibilityCv: true,
+      visibilitySkillProficiency: true,
+      visibilityBlog: true,
+      visibilityLanguages: true,
+      visibilityInterests: true,
+    };
+    if (settings) {
+      await ctx.db.patch(settings._id, factorySettings as never);
+    } else {
+      await ctx.db.insert("settings", factorySettings as never);
+    }
+
+    for (const table of ["messages", "visitors"] as const) {
+      const stale = await ctx.db.query(table).collect();
+      for (const doc of stale) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+  },
+});
+
 export const updateIntegrations = mutation({
   args: v.object({
     googleAnalyticsId: v.string(),

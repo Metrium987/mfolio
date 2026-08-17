@@ -8,14 +8,24 @@ import {
   Languages,
   Loader2,
   Plus,
+  RotateCcw,
   Send,
   Trash2,
+  TriangleAlert,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -1353,11 +1363,15 @@ export function SecurityEditor({
   const updateAdminEmail = useMutation(api.credentials.updateAdminEmail);
   const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
   const updateSettings = useAction(api.translate.updateSettings);
+  const factoryReset = useMutation(api.siteMutations.factoryReset);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetting, setResetting] = useState(false);
   const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
   useEffect(() => {
@@ -1424,6 +1438,28 @@ export function SecurityEditor({
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const confirmReset = resetConfirm.trim().toUpperCase() === "RESTAURER";
+
+  const runFactoryReset = async () => {
+    if (!confirmReset) return;
+    setResetting(true);
+    try {
+      await factoryReset({ confirm: resetConfirm.trim() });
+      setResetOpen(false);
+      setResetConfirm("");
+      toast.success("Portfolio restauré — il est vide et prêt à être rempli");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la restauration",
+      );
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -1518,7 +1554,116 @@ export function SecurityEditor({
             </div>
           </div>
         </FieldGroup>
+
+        <FieldGroup
+          title="Restauration usine"
+          description="Remet le portfolio à l'état neuf en un clic : tout le contenu d'exemple ou personnel est effacé, le site repart vide mais fonctionnel. Votre compte admin est conservé."
+        >
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Tout réinitialiser
+                  </p>
+                  <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+                    Efface les sections (À propos, Compétences, Services,
+                    Parcours, Projets, Journal, Langues, Centres d'intérêt), les
+                    réglages (thème, design, clés API), la boîte de réception et
+                    les statistiques. Le compte admin est conservé. Exportez
+                    d'abord une sauvegarde depuis Paramètres si besoin.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setResetOpen(true)}
+                className="shrink-0 rounded-full"
+              >
+                <RotateCcw className="size-4" />
+                Tout réinitialiser
+              </Button>
+            </div>
+          </div>
+        </FieldGroup>
       </div>
+
+      <Dialog open={resetOpen} onOpenChange={(open) => !resetting && setResetOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restauration usine</DialogTitle>
+            <DialogDescription>
+              Action irréversible. Vérifiez bien ce qui sera effacé avant de
+              continuer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2 rounded-md border border-border bg-accent/40 p-4 text-xs leading-relaxed text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Effacé :</span>{" "}
+                tout le contenu (À propos, Compétences, Services, Parcours,
+                Projets, Journal, Langues, Centres d'intérêt), les réglages
+                (thème, design, clés API), la boîte de réception et les
+                statistiques de visite.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Conservé :</span>{" "}
+                votre compte admin (email et mot de passe) reste intact.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Conseil :</span>{" "}
+                exportez une sauvegarde (Paramètres → Exporter tout) avant de
+                restaurer.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[13px] font-medium" htmlFor="reset-confirm">
+                Tapez RESTAURER pour confirmer
+              </label>
+              <Input
+                id="reset-confirm"
+                value={resetConfirm}
+                onChange={(event) => setResetConfirm(event.target.value)}
+                placeholder="RESTAURER"
+                autoComplete="off"
+                className="bg-background"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && confirmReset && !resetting) {
+                    void runFactoryReset();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setResetOpen(false)}
+              disabled={resetting}
+              className="rounded-full"
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void runFactoryReset()}
+              disabled={!confirmReset || resetting}
+              className="rounded-full"
+            >
+              {resetting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <RotateCcw className="size-4" />
+              )}
+              Restaurer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SectionEditor>
   );
 }

@@ -62,6 +62,22 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
     réel, meilleure délivrabilité) ; le relais reste le repli automatique.
     Envoi via `ctx.scheduler.runAfter` (l'action s'exécute non authentifiée),
     la config SMTP est passée en argument depuis la mutation.
+- **Restauration usine** — Sécurité du compte : un clic remet le portfolio à
+  l'état neuf, sans devoir effacer chaque section manuellement.
+  - Tout le contenu est vidé (À propos, Compétences, Services, Parcours,
+    Projets, Journal, Langues, Centres d'intérêt, identité du site) et les
+    réglages reviennent aux valeurs d'usine (thème Studio, design Éditorial,
+    SMTP Gmail pré-rempli mais désactivé, aucune clé API, toutes les
+    sections visibles).
+  - La boîte de réception et les statistiques de visite sont vidées.
+  - **Le compte admin est conservé** (email + mot de passe intacts) — le
+    propriétaire ne peut pas se verrouiller dehors.
+  - Les documents sont réinitialisés **en place**, jamais supprimés : le
+    seed ne détecte pas une base « vide » et ne re-peuple donc pas la démo
+    au rechargement (le piège d'un reset naïf).
+  - **Double validation** : dialogue de confirmation où il faut taper
+    `RESTAURER`, et vérification du mot clé côté serveur (mutation réservée
+    au propriétaire). Rappel d'exporter d'abord (Paramètres → Exporter tout).
 
 ## [1.2.0] — 2026-08-15
 
