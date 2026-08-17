@@ -66,6 +66,7 @@ import {
   TextAreaField,
   TextField,
   useSectionDraft,
+  useStorageUpload,
 } from "./fields";
 import { ManageList, PreviewLabel } from "./manage-list";
 import { SortableList } from "./sortable-list";
@@ -201,23 +202,14 @@ function ImagesEditor({
   onChange: (value: string[]) => void;
   guide?: ImageGuide;
 }) {
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const getUrl = useAction(api.files.getUrl);
+  const { uploadFile } = useStorageUpload();
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleFile = async (index: number, file: File) => {
     setUploadingIndex(index);
     try {
-      const uploadUrl = await generateUploadUrl();
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!result.ok) throw new Error("Upload failed");
-      const { storageId } = (await result.json()) as { storageId: string };
-      const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+      const url = await uploadFile(file);
       if (url) {
         onChange(value.map((v, n) => (n === index ? url : v)));
         toast.success("Image importée");

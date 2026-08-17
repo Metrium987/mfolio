@@ -54,6 +54,7 @@ import {
   TextField,
   ToggleField,
   useSectionDraft,
+  useStorageUpload,
 } from "./fields";
 
 /** Three-choice control for the site ambiance (Sécurité → Apparence). */
@@ -372,38 +373,24 @@ function CvField({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const getUrl = useAction(api.files.getUrl);
+  const { uploadFile, uploading } = useStorageUpload();
   const setCvUrl = useMutation(api.siteMutations.setCvUrl);
-  const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    setUploading(true);
     try {
-      const uploadUrl = await generateUploadUrl();
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!result.ok) throw new Error("Upload failed");
-      const { storageId } = (await result.json()) as { storageId: string };
-      const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+      const url = await uploadFile(file);
       if (url) {
         // Persist immediately (no separate save click) and mirror it into
         // the section draft so the form and the site stay in sync.
         await setCvUrl({ cvUrl: url });
         onChange(url);
         toast.success("CV importé et enregistré — il est disponible sur le site.");
-      } else {
-        toast.error("Impossible de récupérer le fichier");
       }
     } catch (error) {
       console.error(error);
       toast.error("Le téléchargement du CV a échoué");
     } finally {
-      setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };

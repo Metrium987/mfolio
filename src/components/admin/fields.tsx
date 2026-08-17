@@ -225,6 +225,54 @@ export function ImageGuideChip({ guide }: { guide: ImageGuide }) {
 // Image picker (upload to Convex storage or paste a URL)
 // ---------------------------------------------------------------------------
 
+/**
+ * Shared storage upload for the admin image/PDF fields: request an upload URL,
+ * POST the file to Convex storage, then resolve the permanent public URL that
+ * gets stored in the doc. Returns the URL string, or null when the file was
+ * rejected locally (too large — a toast is shown). Throws on network/Convex
+ * errors so callers can surface their own message.
+ */
+export function useStorageUpload() {
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const getUrl = useAction(api.files.getUrl);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadFile = useCallback(
+    async (file: File): Promise<string | null> => {
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("Fichier trop lourd — 25 Mo maximum.");
+        return null;
+      }
+      setUploading(true);
+      try {
+        const uploadUrl = await generateUploadUrl();
+        const result = await fetch(uploadUrl, {
+          method: "POST",
+          // Some files carry an empty MIME type — an empty Content-Type is an
+          // invalid header and makes the browser throw before the request is
+          // even sent. Fall back to octet-stream instead of failing silently.
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+          body: file,
+        });
+        if (!result.ok) {
+          throw new Error(`Upload failed (HTTP ${result.status})`);
+        }
+        const { storageId } = (await result.json()) as { storageId: string };
+        const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+        if (!url) throw new Error("Storage URL resolution failed");
+        return url;
+      } finally {
+        setUploading(false);
+      }
+    },
+    [generateUploadUrl, getUrl],
+  );
+
+  return { uploadFile, uploading };
+}
+
 export function ImageField({
   label,
   value,
@@ -240,34 +288,20 @@ export function ImageField({
   guide?: ImageGuide;
   className?: string;
 }) {
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const getUrl = useAction(api.files.getUrl);
-  const [uploading, setUploading] = useState(false);
+  const { uploadFile, uploading } = useStorageUpload();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    setUploading(true);
     try {
-      const uploadUrl = await generateUploadUrl();
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!result.ok) throw new Error("Upload failed");
-      const { storageId } = (await result.json()) as { storageId: string };
-      const url = await getUrl({ storageId: storageId as Id<"_storage"> });
+      const url = await uploadFile(file);
       if (url) {
         onChange(url);
         toast.success("Image importée");
-      } else {
-        toast.error("Impossible de récupérer l'image");
       }
     } catch (error) {
       console.error(error);
       toast.error("Le téléchargement de l'image a échoué");
     } finally {
-      setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
