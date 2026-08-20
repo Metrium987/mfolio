@@ -202,6 +202,61 @@ export const factoryReset = mutation({
   },
 });
 
+/**
+ * First-time setup wizard — saves identity + taglines + theme from the
+ * onboarding wizard in one shot. Owner-only. Also marks the wizard as
+ * completed so it doesn't show again.
+ */
+export const setupWizardData = mutation({
+  args: v.object({
+    name: v.string(),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    address: v.optional(v.string()),
+    taglines: v.array(v.string()),
+    themePreset: v.optional(v.string()),
+  }),
+  handler: async (ctx, { name, email, phone, address, taglines, themePreset }) => {
+    const owner = await getCurrentAdmin(ctx);
+    if (!owner) throw new Error("Réservé au propriétaire");
+
+    // Update the about table
+    const about = await ctx.db.query("about").first();
+    if (about) {
+      await ctx.db.patch(about._id, {
+        name: name.trim(),
+        email: (email ?? "").trim(),
+        phone: (phone ?? "").trim(),
+        address: (address ?? "").trim(),
+        taglines: taglines.length > 0 ? taglines : about.taglines,
+      });
+    }
+
+    // Update the site table (siteName for the hero)
+    const site = await ctx.db.query("site").first();
+    if (site) {
+      await ctx.db.patch(site._id, {
+        siteName: name.trim(),
+        tagline: taglines[0] ?? site.tagline,
+      });
+    }
+
+    // Apply theme if provided
+    if (themePreset) {
+      const settings = await ctx.db.query("settings").first();
+      if (settings) {
+        await ctx.db.patch(settings._id, { themePreset });
+      }
+    }
+
+    // Mark wizard as completed
+    const settingsDoc = await ctx.db.query("settings").first();
+    if (settingsDoc) {
+      await ctx.db.patch(settingsDoc._id, { wizardCompleted: true });
+    }
+  },
+});
+
 export const updateIntegrations = mutation({
   args: v.object({
     googleAnalyticsId: v.string(),

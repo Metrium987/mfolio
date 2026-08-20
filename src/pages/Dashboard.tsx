@@ -23,7 +23,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import {
@@ -469,7 +469,6 @@ export default function Dashboard() {
   const [autoTranslateRan, setAutoTranslateRan] = useState(false);
   const [dismissCredentialsBanner, setDismissCredentialsBanner] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
-  const updateSettingsAction = useAction(api.translate.updateSettings);
 
   useEffect(() => {
     void ensureSeed();
@@ -539,44 +538,7 @@ export default function Dashboard() {
     }
   }, [data]);
 
-  const handleWizardClose = useCallback(async () => {
-    setShowWizard(false);
-    try {
-      await updateSettingsAction({
-        data: {
-          ...(data?.settings ?? {}),
-          wizardCompleted: true,
-          // Required fields with defaults
-          themeColor: data?.settings?.themeColor ?? "#A85B32",
-          googleAnalyticsId: data?.settings?.googleAnalyticsId ?? "",
-          deeplApiKey: data?.settings?.deeplApiKey ?? "",
-          maintenanceMode: data?.settings?.maintenanceMode ?? false,
-          metaTitle: data?.settings?.metaTitle ?? "",
-          metaDescription: data?.settings?.metaDescription ?? "",
-          metaAuthor: data?.settings?.metaAuthor ?? "",
-          metaImage: data?.settings?.metaImage ?? "",
-          scriptHeader: data?.settings?.scriptHeader ?? "",
-          scriptFooter: data?.settings?.scriptFooter ?? "",
-          sectionOrder: data?.settings?.sectionOrder ?? [],
-          visibilityAbout: data?.settings?.visibilityAbout ?? true,
-          visibilitySkill: data?.settings?.visibilitySkill ?? true,
-          visibilityEducation: data?.settings?.visibilityEducation ?? true,
-          visibilityExperience: data?.settings?.visibilityExperience ?? true,
-          visibilityProject: data?.settings?.visibilityProject ?? true,
-          visibilityService: data?.settings?.visibilityService ?? true,
-          visibilityContact: data?.settings?.visibilityContact ?? true,
-          visibilityFooter: data?.settings?.visibilityFooter ?? true,
-          visibilityCv: data?.settings?.visibilityCv ?? true,
-          visibilitySkillProficiency: data?.settings?.visibilitySkillProficiency ?? true,
-          visibilityBlog: data?.settings?.visibilityBlog ?? true,
-          visibilityLanguages: data?.settings?.visibilityLanguages ?? true,
-          visibilityInterests: data?.settings?.visibilityInterests ?? true,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }, [data, updateSettingsAction]);
+
 
   const handleSignOut = async () => {
     // Sign out first, then leave with a real page load: any SPA navigation
@@ -857,13 +819,7 @@ export default function Dashboard() {
 
       {/* Setup wizard — first-time onboarding overlay */}
       {showWizard && (
-        <SetupWizard
-          onNavigate={(section) => {
-            setActive(section);
-            setShowWizard(false);
-          }}
-          onClose={handleWizardClose}
-        />
+        <SetupWizard onComplete={() => setShowWizard(false)} />
       )}
     </div>
   );
