@@ -23,7 +23,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import {
@@ -56,6 +56,8 @@ import {
   monogram,
 } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { SetupWizard } from "@/components/admin/SetupWizard";
+import { HelpTour } from "@/components/admin/HelpTour";
 
 type NavItem = {
   id: string;
@@ -466,6 +468,8 @@ export default function Dashboard() {
   const [active, setActive] = useState<string>("overview");
   const [autoTranslateRan, setAutoTranslateRan] = useState(false);
   const [dismissCredentialsBanner, setDismissCredentialsBanner] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const updateSettingsAction = useAction(api.translate.updateSettings);
 
   useEffect(() => {
     void ensureSeed();
@@ -527,6 +531,52 @@ export default function Dashboard() {
   useEffect(() => {
     applyFavicon(data?.site?.faviconUrl);
   }, [data?.site?.faviconUrl]);
+
+  // Auto-show the setup wizard on first login (wizardCompleted absent/false)
+  useEffect(() => {
+    if (data && data.settings && data.settings.wizardCompleted !== true) {
+      setShowWizard(true);
+    }
+  }, [data]);
+
+  const handleWizardClose = useCallback(async () => {
+    setShowWizard(false);
+    try {
+      await updateSettingsAction({
+        data: {
+          ...(data?.settings ?? {}),
+          wizardCompleted: true,
+          // Required fields with defaults
+          themeColor: data?.settings?.themeColor ?? "#A85B32",
+          googleAnalyticsId: data?.settings?.googleAnalyticsId ?? "",
+          deeplApiKey: data?.settings?.deeplApiKey ?? "",
+          maintenanceMode: data?.settings?.maintenanceMode ?? false,
+          metaTitle: data?.settings?.metaTitle ?? "",
+          metaDescription: data?.settings?.metaDescription ?? "",
+          metaAuthor: data?.settings?.metaAuthor ?? "",
+          metaImage: data?.settings?.metaImage ?? "",
+          scriptHeader: data?.settings?.scriptHeader ?? "",
+          scriptFooter: data?.settings?.scriptFooter ?? "",
+          sectionOrder: data?.settings?.sectionOrder ?? [],
+          visibilityAbout: data?.settings?.visibilityAbout ?? true,
+          visibilitySkill: data?.settings?.visibilitySkill ?? true,
+          visibilityEducation: data?.settings?.visibilityEducation ?? true,
+          visibilityExperience: data?.settings?.visibilityExperience ?? true,
+          visibilityProject: data?.settings?.visibilityProject ?? true,
+          visibilityService: data?.settings?.visibilityService ?? true,
+          visibilityContact: data?.settings?.visibilityContact ?? true,
+          visibilityFooter: data?.settings?.visibilityFooter ?? true,
+          visibilityCv: data?.settings?.visibilityCv ?? true,
+          visibilitySkillProficiency: data?.settings?.visibilitySkillProficiency ?? true,
+          visibilityBlog: data?.settings?.visibilityBlog ?? true,
+          visibilityLanguages: data?.settings?.visibilityLanguages ?? true,
+          visibilityInterests: data?.settings?.visibilityInterests ?? true,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, [data, updateSettingsAction]);
 
   const handleSignOut = async () => {
     // Sign out first, then leave with a real page load: any SPA navigation
@@ -604,9 +654,14 @@ export default function Dashboard() {
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="border-b border-border px-5 py-6">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-(--studio-accent)">
-            {APP_NAME} · Tableau de bord
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-(--studio-accent)">
+              {APP_NAME} · Tableau de bord
+            </p>
+            <div className="relative">
+              <HelpTour activeSection={active} onNavigate={setActive} />
+            </div>
+          </div>
           <div className="mt-1 flex items-center gap-2.5">
             {data.site?.logoUrl ? (
               <img
@@ -704,7 +759,10 @@ export default function Dashboard() {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <div className="relative">
+                <HelpTour activeSection={active} onNavigate={setActive} />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
@@ -796,6 +854,17 @@ export default function Dashboard() {
           {renderContent()}
         </main>
       </div>
+
+      {/* Setup wizard — first-time onboarding overlay */}
+      {showWizard && (
+        <SetupWizard
+          onNavigate={(section) => {
+            setActive(section);
+            setShowWizard(false);
+          }}
+          onClose={handleWizardClose}
+        />
+      )}
     </div>
   );
 }

@@ -23,6 +23,8 @@
 - 🛡️ **Anti-spam** — honeypot + limite de fréquence par visiteur + longueurs de saisie plafonnées.
 - 📊 **Statistiques** — visiteurs (jour/semaine/mois), visiteurs uniques, taux de retour, conversion contact, appareils, navigateurs principaux, heures de pointe. Purge automatique à 90 jours (tâche planifiée quotidienne).
 - 🔎 **SEO** — balises meta, Open Graph/Twitter cards, URLs canoniques, hreflang FR/EN, sitemap.xml, robots.txt, scripts personnalisés en-tête/pied de page.
+- 🎓 **Wizard « Premiers pas »** — guide interactif à 5 étapes (Identité → Parcours → Compétences → Apparence → Publier) qui s'affiche à la première connexion. Relanclable depuis Sécurité du compte.
+- ❓ **Aide contextuelle** — bouton `?` dans le header du dashboard, affichant des conseils spécifiques à chaque section. 16 sections couvertes.
 - 📱 **Entièrement responsive** — sidebar de bureau pour le tableau de bord, navigation mobile, pages publiques pensées mobile d'abord.
 - 🧪 **Testé** — 22 tests unitaires (niveaux, ordre des sections, statistiques), TypeScript strict, ESLint propre.
 

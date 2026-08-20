@@ -23,6 +23,8 @@
 - 🛡️ **Anti-spam** — honeypot + per-visitor rate limit + input length caps.
 - 📊 **Statistics** — visitors (day/week/month), unique visitors, return rate, contact conversion, devices, top browsers, peak hours. Automatic 90-day purge (scheduled daily).
 - 🔎 **SEO** — meta tags, Open Graph/Twitter cards, canonical URLs, hreflang FR/EN, sitemap.xml, robots.txt, custom header/footer scripts.
+- 🎓 **Setup wizard** — interactive 5-step onboarding guide (Identity → Resume → Skills → Appearance → Publish) shown on first login. Relaunchable from Account Security.
+- ❓ **Contextual help** — `?` button in the dashboard header showing section-specific tips (buttons, variables, pitfalls). 16 sections covered.
 - 📱 **Fully responsive** — desktop sidebar dashboard, mobile navigation, mobile-first public pages.
 - 🧪 **Tested** — 22 unit tests (levels, sections order, statistics), TypeScript strict, ESLint clean.
 

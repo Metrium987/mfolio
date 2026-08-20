@@ -4,6 +4,41 @@ Toutes les évolutions notables de Mfolio sont documentées ici.
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.4.0] — 2026-08-20
+
+### Ajouté
+
+- **Wizard « Premiers pas » (onboarding)** — guide interactif à 5 étapes
+  qui s'affiche automatiquement lors de la première connexion :
+  1. **Identité** — nom, photo de profil, photo de couverture
+  2. **Parcours** — première expérience ou formation
+  3. **Compétences** — 3 à 5 compétences clés
+  4. **Apparence** — choix d'un thème
+  5. **Publier** — aperçu et partage du lien
+  - Chaque étape décrit concrètement quoi faire, avec des conseils
+    numérotés. Le bouton « Ouvrir la section » emmène directement
+    à l'éditeur concerné.
+  - Barre de progression animée, indicateurs d'étapes (checkmarks),
+    navigation Précédent/Suivant avec Framer Motion.
+  - Relançable depuis Sécurité du compte quand souhaité.
+  - Champ `wizardCompleted` ajouté au schéma settings (absent = wizard
+    affiché, true = masqué).
+- **Aide contextuelle (bulles d'aide par section)** — bouton `?` dans
+  le header du dashboard (sidebar desktop + barre mobile) :
+  - Chaque section du dashboard a ses propres conseils (titre, explication
+    des boutons, des variables, des pièges).
+  - Panneau flottant avec navigation entre les tips, compteur
+    « 2 / 5 », liens vers les sections associées.
+  - Indicateur animé (point pulsant) quand le panneau est fermé.
+  - 16 sections couvertes : Vue d'ensemble, Config, À propos,
+    Compétences, Langues, Centres d'intérêt, Services, Parcours,
+    Projets, Journal, Visitors, Messages, Paramètres, Intégrations,
+    Apparence, Sécurité.
+  - Aucune lib externe — composant sur-mesure avec Framer Motion.
+- **`wizardCompleted` dans le seed** — nouvelle installations : le wizard
+  s'affiche dès la première connexion ; les installations existantes
+  (field absent) le voient aussi une fois.
+
 ## [1.3.0] — 2026-08-15
 
 ### Ajouté

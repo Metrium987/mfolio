@@ -243,6 +243,7 @@ export const settingsValidator = v.object({
   smtpSecure: v.optional(v.boolean()),
   smtpUser: v.optional(v.string()),
   smtpPass: v.optional(v.string()),
+  wizardCompleted: v.optional(v.boolean()),
   maintenanceMode: v.boolean(),
   metaTitle: v.string(),
   metaDescription: v.string(),

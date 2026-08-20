@@ -40,6 +40,7 @@ const sampleSettings: Infer<typeof settingsValidator> = {
   smtpSecure: true,
   smtpUser: "",
   smtpPass: "",
+  wizardCompleted: false,
   maintenanceMode: false,
   metaTitle: "Camille Roussel — Designer produit & développeuse",
   metaDescription:
