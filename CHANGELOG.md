@@ -78,6 +78,11 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le pr
   - **Double validation** : dialogue de confirmation où il faut taper
     `RESTAURER`, et vérification du mot clé côté serveur (mutation réservée
     au propriétaire). Rappel d'exporter d'abord (Paramètres → Exporter tout).
+- **Charger la démo** — Sécurité du compte : un bouton « Charger la démo »
+  qui re-peuple le portfolio avec le contenu d'exemple complet (Camille
+  Roussel — projets, articles, messages, statistiques). Utile après une
+  restauration usine ou pour revoir la démo. Le compte admin est conservé.
+  Confirmation par dialogue avant exécution.
 
 ## [1.2.0] — 2026-08-15
 

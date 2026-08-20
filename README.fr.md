@@ -98,7 +98,7 @@ Voir [.env.example](.env.example) pour le modèle annoté complet.
 | **Config** | Visibilité et ordre des sections, styles d'affichage, ordre du Parcours |
 | **Paramètres** | Nom/slogan/pied de page du site, logo & favicon, **référencement (SEO)**, scripts personnalisés |
 | **Intégrations** | Clés DeepL + Google Analytics, email de notification, **interrupteurs des canaux email** |
-| **Sécurité du compte** | Mode maintenance, couleur d'accent, email et mot de passe de connexion du propriétaire |
+| **Sécurité du compte** | Mode maintenance, email et mot de passe de connexion du propriétaire, **restauration usine** (un clic vide tout le contenu — le compte admin est conservé, confirmation par saisie de `RESTAURER`), **recharger la démo** (re-peuple le portfolio avec le contenu d'exemple) |
 | **Statistiques** | Visiteurs, uniques, conversion, appareils, navigateurs, heures de pointe |
 
 ## Canaux email

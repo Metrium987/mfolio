@@ -744,3 +744,62 @@ export const ensureSeed = mutation({
     }
   },
 });
+
+/**
+ * Reload demo content on demand (Sécurité du compte → « Charger la démo »).
+ *
+ * Owner-only. Deletes every content document and re-inserts the sample data
+ * so the site looks exactly like the first-time install. Settings are also
+ * reset to the demo defaults (Studio theme, no keys). The admin account is
+ * never touched.
+ */
+export const seedDemo = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const owner = await getCurrentAdmin(ctx);
+    if (!owner) throw new Error("Réservé au propriétaire");
+
+    // Wipe every content table
+    const contentTables = [
+      "site",
+      "settings",
+      "about",
+      "skills",
+      "services",
+      "resume",
+      "portfolio",
+      "blog",
+      "languages",
+      "interests",
+    ] as const;
+    for (const table of contentTables) {
+      for (const doc of await ctx.db.query(table).collect()) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+    // Wipe messages and visitors
+    for (const table of ["messages", "visitors"] as const) {
+      for (const doc of await ctx.db.query(table).collect()) {
+        await ctx.db.delete(doc._id);
+      }
+    }
+
+    // Re-insert the demo data
+    await ctx.db.insert("site", sampleSite);
+    await ctx.db.insert("settings", sampleSettings);
+    await ctx.db.insert("about", sampleAbout);
+    await ctx.db.insert("skills", sampleSkills);
+    await ctx.db.insert("services", sampleServices);
+    await ctx.db.insert("resume", sampleResume);
+    await ctx.db.insert("portfolio", samplePortfolio);
+    await ctx.db.insert("blog", sampleBlog);
+    await ctx.db.insert("languages", sampleLanguages);
+    await ctx.db.insert("interests", sampleInterests);
+    for (const message of sampleMessages) {
+      await ctx.db.insert("messages", message);
+    }
+    for (const visitor of sampleVisitors) {
+      await ctx.db.insert("visitors", visitor);
+    }
+  },
+});

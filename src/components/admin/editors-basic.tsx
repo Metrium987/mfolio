@@ -1351,6 +1351,7 @@ export function SecurityEditor({
   const updateAdminPassword = useAction(api.credentials.updateAdminPassword);
   const updateSettings = useAction(api.translate.updateSettings);
   const factoryReset = useMutation(api.siteMutations.factoryReset);
+  const seedDemo = useMutation(api.seed.seedDemo);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
@@ -1359,6 +1360,8 @@ export function SecurityEditor({
   const [resetOpen, setResetOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [seedOpen, setSeedOpen] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const draft = useSectionDraft(settings, EMPTY_SETTINGS);
 
   useEffect(() => {
@@ -1447,6 +1450,22 @@ export function SecurityEditor({
       );
     } finally {
       setResetting(false);
+    }
+  };
+
+  const runSeedDemo = async () => {
+    setSeeding(true);
+    try {
+      await seedDemo();
+      setSeedOpen(false);
+      toast.success("Démo rechargée — le portfolio affiche le contenu d'exemple");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors du rechargement",
+      );
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -1575,6 +1594,38 @@ export function SecurityEditor({
             </div>
           </div>
         </FieldGroup>
+
+        <FieldGroup
+          title="Charger la démo"
+          description="Recharge le contenu d'exemple (Camille Roussel) pour voir à quoi ressemble le portfolio. Écrase le contenu actuel."
+        >
+          <div className="rounded-md border border-border bg-card p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Recharger le contenu de démonstration
+                  </p>
+                  <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+                    Remplace tout le contenu actuel par les données d'exemple
+                    (projets, articles, messages…). Le compte admin est conservé.
+                    Idéal pour revoir la démo après une restauration usine.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSeedOpen(true)}
+                className="shrink-0 rounded-full"
+              >
+                <FileText className="size-4" />
+                Charger la démo
+              </Button>
+            </div>
+          </div>
+        </FieldGroup>
       </div>
 
       <Dialog open={resetOpen} onOpenChange={(open) => !resetting && setResetOpen(open)}>
@@ -1647,6 +1698,59 @@ export function SecurityEditor({
                 <RotateCcw className="size-4" />
               )}
               Restaurer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={seedOpen} onOpenChange={(open) => !seeding && setSeedOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Charger la démo</DialogTitle>
+            <DialogDescription>
+              Remplace le contenu actuel par les données d'exemple.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2 rounded-md border border-border bg-accent/40 p-4 text-xs leading-relaxed text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Sera écrasé :</span>{" "}
+                tout le contenu actuel (sections, projets, articles, messages,
+                statistiques) et les réglages.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Conservé :</span>{" "}
+                votre compte admin (email et mot de passe) reste intact.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Conseil :</span>{" "}
+                exportez une sauvegarde (Paramètres → Exporter tout) avant de
+                continuer si vous avez du contenu personnalisé.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSeedOpen(false)}
+              disabled={seeding}
+              className="rounded-full"
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void runSeedDemo()}
+              disabled={seeding}
+              className="rounded-full"
+            >
+              {seeding ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileText className="size-4" />
+              )}
+              Charger la démo
             </Button>
           </DialogFooter>
         </DialogContent>

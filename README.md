@@ -99,7 +99,7 @@ See [.env.example](.env.example) for the full annotated template.
 | **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts, full JSON backup/export |
 | **Intégrations** | DeepL + Google Analytics keys, notification email, **SMTP Gmail** (app password, values pre-filled, test email), **email channel toggles** |
 | **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
-| **Sécurité du compte** | Maintenance mode, owner login email and password, **factory reset** (one click wipes all content/settings/inbox/stats — the admin account is kept, confirmation by typing `RESTAURER`) |
+| **Sécurité du compte** | Maintenance mode, owner login email and password, **factory reset** (one click wipes all content/settings/inbox/stats — the admin account is kept, confirmation by typing `RESTAURER`), **reload demo** (re-populates the site with the sample portfolio) |
 | **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
 
 ## Email channels
