@@ -23,7 +23,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { api } from "@/convex/_generated/api";
 import {
@@ -87,7 +87,7 @@ const NAV: NavItem[] = [
 
 const GROUPS = Array.from(new Set(NAV.map((item) => item.group).filter(Boolean))) as string[];
 
-function NavButton({
+const NavButton = memo(function NavButton({
   item,
   active,
   badge,
@@ -124,9 +124,9 @@ function NavButton({
       )}
     </button>
   );
-}
+});
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -148,18 +148,21 @@ function StatCard({
       </div>
     </div>
   );
-}
+});
 
-function Overview() {
+const Overview = memo(function Overview() {
   const stats = useQuery(api.site.getStats);
 
-  const trendMax = Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1]));
+  const trendMax = useMemo(() => Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1])), [stats]);
 
-  const deviceTotal =
+  const deviceTotal = useMemo(() =>
     (stats?.visitors.devices.mobile ?? 0) +
     (stats?.visitors.devices.desktop ?? 0) +
-    (stats?.visitors.devices.other ?? 0);
-  const deviceRows = [
+    (stats?.visitors.devices.other ?? 0),
+    [stats?.visitors.devices.mobile, stats?.visitors.devices.desktop, stats?.visitors.devices.other],
+  );
+
+  const deviceRows = useMemo(() => [
     { key: "mobile" as const, label: "Mobile" },
     { key: "desktop" as const, label: "Ordinateur" },
     { key: "other" as const, label: "Autre" },
@@ -170,7 +173,8 @@ function Overview() {
       count,
       pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
     };
-  });
+  }), [stats, deviceTotal]);
+
   const browserTotal =
     stats?.visitors.browsers.reduce((sum, browser) => sum + browser.count, 0) ?? 0;
   const hourMax = Math.max(1, ...(stats?.visitors.hours ?? []));
@@ -180,10 +184,12 @@ function Overview() {
     : -1;
   const returnTotal =
     (stats?.visitors.returning.new ?? 0) + (stats?.visitors.returning.returning ?? 0);
-  const returnNewPct =
+  const returnNewPct = useMemo(() =>
     returnTotal > 0
       ? Math.round(((stats?.visitors.returning.new ?? 0) / returnTotal) * 100)
-      : 0;
+      : 0,
+    [returnTotal, stats?.visitors.returning.new],
+  );
 
   return (
     <div className="space-y-8">
@@ -455,7 +461,7 @@ function Overview() {
       )}
     </div>
   );
-}
+});
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();

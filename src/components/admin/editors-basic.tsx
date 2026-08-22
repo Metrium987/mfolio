@@ -50,6 +50,7 @@ import {
   Field,
   FieldGroup,
   ImageField,
+  SocialLinksEditor,
   TextAreaField,
   TextField,
   ToggleField,
@@ -470,70 +471,6 @@ function CvField({
         />
       </div>
     </Field>
-  );
-}
-
-function SocialLinksEditor({
-  value,
-  onChange,
-}: {
-  value: { title: string; link: string }[];
-  onChange: (value: { title: string; link: string }[]) => void;
-}) {
-  return (
-    <div className="space-y-3">
-      {value.length === 0 && (
-        <p className="text-xs text-muted-foreground">
-          Aucun réseau social. Ajoutez-en un ci-dessous.
-        </p>
-      )}
-      {value.map((social, index) => (
-        <div key={index} className="flex flex-wrap items-center gap-2">
-          <Input
-            value={social.title}
-            onChange={(event) =>
-              onChange(
-                value.map((s, n) =>
-                  n === index ? { ...s, title: event.target.value } : s,
-                ),
-              )
-            }
-            placeholder="Nom (ex : GitHub)"
-            className="w-40 bg-background"
-          />
-          <Input
-            value={social.link}
-            onChange={(event) =>
-              onChange(
-                value.map((s, n) =>
-                  n === index ? { ...s, link: event.target.value } : s,
-                ),
-              )
-            }
-            placeholder="https://…"
-            className="min-w-44 flex-1 bg-background"
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            title="Supprimer"
-            onClick={() => onChange(value.filter((_, n) => n !== index))}
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...value, { title: "", link: "" }])}
-      >
-        <Plus className="size-4" />
-        Ajouter un réseau
-      </Button>
-    </div>
   );
 }
 

@@ -289,15 +289,22 @@ export const getStats = query({
             ? Math.round((messages90 / uniqueVisitors90) * 1000) / 10
             : 0,
       },
-      content: {
-        skills: (await ctx.db.query("skills").first())?.items.length ?? 0,
-        educations:
-          (await ctx.db.query("resume").first())?.educations.length ?? 0,
-        experiences:
-          (await ctx.db.query("resume").first())?.experiences.length ?? 0,
-        projects: (await ctx.db.query("portfolio").first())?.projects.length ?? 0,
-        services: (await ctx.db.query("services").first())?.items.length ?? 0,
-      },
+      content: await (async () => {
+        const [skillsDoc, resumeDoc, portfolioDoc, servicesDoc] =
+          await Promise.all([
+            ctx.db.query("skills").first(),
+            ctx.db.query("resume").first(),
+            ctx.db.query("portfolio").first(),
+            ctx.db.query("services").first(),
+          ]);
+        return {
+          skills: skillsDoc?.items.length ?? 0,
+          educations: resumeDoc?.educations.length ?? 0,
+          experiences: resumeDoc?.experiences.length ?? 0,
+          projects: portfolioDoc?.projects.length ?? 0,
+          services: servicesDoc?.items.length ?? 0,
+        };
+      })(),
     };
   },
 });

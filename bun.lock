@@ -18,7 +18,7 @@
         "@radix-ui/react-switch": "^1.2.6",
         "@radix-ui/react-tooltip": "^1.2.8",
         "@tailwindcss/vite": "^4.1.17",
-        "@vly-ai/integrations": "^0.6.12",
+        "@vly-ai/integrations": "^0.6.13",
         "@zumer/snapdom": "^2.0.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -431,7 +431,7 @@
 
     "@vitest/utils": ["@vitest/utils@4.1.10", "", { "dependencies": { "@vitest/pretty-format": "4.1.10", "convert-source-map": "^2.0.0", "tinyrainbow": "^3.1.0" } }, "sha512-fy9am/HWxbaGt/Sawrp90vt6Y6jQwf1RX77cz3uwoJwJVMli/e1IEwRPnMNJ7vKfPTwo0diXifkpPvwH9v7nGA=="],
 
-    "@vly-ai/integrations": ["@vly-ai/integrations@0.6.12", "", { "dependencies": { "@ai-sdk/openai-compatible": "^1.0.0", "ai": "^5.0.0", "html2canvas": "^1.4.1", "zod": "^3.22.4" } }, "sha512-8iXWxFczNTzW/1u7AounN/V/adz5x1O9OFbJAm5y0c2ITDOda756bhdhue/mj7ya/BDhCArDJeiSfNdrkvlr8A=="],
+    "@vly-ai/integrations": ["@vly-ai/integrations@0.6.13", "", { "dependencies": { "@ai-sdk/openai-compatible": "^1.0.0", "ai": "^5.0.0", "html2canvas": "^1.4.1", "zod": "^3.22.4" } }, "sha512-++CaYtkJKT1Qa+SwSONZ/5MM2gWLPEWPnZsDTKV/idKkdIL0aKjVIpQGkQSUDm6T5B1B8DiIAW5y5LKm1zDdqg=="],
 
     "@zumer/snapdom": ["@zumer/snapdom@2.12.9", "", {}, "sha512-Zufl1vEthT931kcZfmAaRSnucAGIRLGi9N6JI8ZsdyHww5hHHLk4t5LU1DxS5pNAPi1MptPHcGON1pkXEBf5iw=="],
 

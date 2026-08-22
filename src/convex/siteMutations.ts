@@ -241,18 +241,12 @@ export const setupWizardData = mutation({
       });
     }
 
-    // Apply theme if provided
-    if (themePreset) {
-      const settings = await ctx.db.query("settings").first();
-      if (settings) {
-        await ctx.db.patch(settings._id, { themePreset });
-      }
-    }
-
-    // Mark wizard as completed
-    const settingsDoc = await ctx.db.query("settings").first();
-    if (settingsDoc) {
-      await ctx.db.patch(settingsDoc._id, { wizardCompleted: true });
+    // Apply theme if provided + mark wizard as completed
+    const settings = await ctx.db.query("settings").first();
+    if (settings) {
+      const patch: Record<string, unknown> = { wizardCompleted: true };
+      if (themePreset) patch.themePreset = themePreset;
+      await ctx.db.patch(settings._id, patch as never);
     }
   },
 });
