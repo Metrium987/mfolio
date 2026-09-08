@@ -43,9 +43,12 @@ export function Blog({
                     <article className="border border-border bg-card p-2 transition-colors duration-300 hover:border-foreground/40">
                       {post.imageUrl && (
                         <div className="overflow-hidden">
+                          {" "}
                           <img
                             src={post.imageUrl}
                             alt=""
+                            width={1200}
+                            height={750}
                             loading="lazy"
                             decoding="async"
                             className="aspect-[16/10] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -61,7 +64,10 @@ export function Blog({
                         </h3>
                         {post.excerpt && (
                           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                            {pick(post.excerpt, blog.en?.posts?.[index]?.excerpt)}
+                            {pick(
+                              post.excerpt,
+                              blog.en?.posts?.[index]?.excerpt,
+                            )}
                           </p>
                         )}
                         <span className="mt-4 inline-block text-sm font-medium text-(--studio-accent)">
@@ -105,9 +111,7 @@ export function Blog({
             </div>
           )
         ) : (
-          <p className="text-sm text-muted-foreground">
-            {t("blog.noPosts")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("blog.noPosts")}</p>
         )}
       </div>
 

@@ -7,9 +7,7 @@
 [![CI](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 **Live demo:** [mfolio.freebuff.app](https://mfolio.freebuff.app) — the public portfolio; sign in at `/auth` with the default credentials below.
-
-> **Origins:** Mfolio was originally built on **Freebuff Web** (formerly vly.ai), which provides the hosted environment, the Convex integration and a platform email relay. The app is fully portable: only **two optional email features** depend on the platform, and both can be switched off or re-pointed to your own provider. See [Deploying](#deploying).
+> 🚀 **Deployment target:** [Vercel](https://vercel.com) for the frontend + [Convex](https://convex.dev) for the backend — a one-click path via the [Convex Vercel integration](https://vercel.com/marketplace/convex). See [Deploying](#deploying).
 
 ---
 
@@ -30,21 +28,21 @@
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite, React Router 7 |
-| Styling | Tailwind CSS v4, shadcn/ui, Framer Motion, Lucide icons |
-| Backend & DB | [Convex](https://convex.dev) (serverless backend + database), Convex Auth |
-| Quality | Vitest, ESLint, Prettier, TypeScript strict |
-| Package manager | [Bun](https://bun.sh) |
+| Layer           | Technology                                                                |
+| --------------- | ------------------------------------------------------------------------- |
+| Frontend        | React 19, TypeScript, Vite, React Router 7                                |
+| Styling         | Tailwind CSS v4, shadcn/ui, Framer Motion, Lucide icons                   |
+| Backend & DB    | [Convex](https://convex.dev) (serverless backend + database), Convex Auth |
+| Quality         | Vitest, ESLint, Prettier, TypeScript strict                               |
+| Package manager | [Bun](https://bun.sh)                                                     |
 
 ## Prerequisites
 
 - **Bun ≥ 1.x** (recommended) or Node.js ≥ 20
 - **A free [Convex](https://convex.dev) account** — the app's backend and database
 - **Git**
-- *Optional:* a [DeepL](https://www.deepl.com) API key (FR→EN auto-translation), a Google Analytics ID
-- *Only if deploying outside Freebuff:* your own email provider (e.g. [Resend](https://resend.com)) — or disable the two email features in the dashboard (see [Email channels](#email-channels))
+- _Optional:_ a [DeepL](https://www.deepl.com) API key (FR→EN auto-translation), a Google Analytics ID
+- _For email notifications:_ a Gmail address + an [app password](https://myaccount.google.com/apppasswords) — or turn notifications off and use the dashboard inbox only (see [Email channels](#email-channels))
 
 ## Quick start
 
@@ -66,10 +64,10 @@ Open **http://localhost:5173** — sample content is seeded automatically on fir
 
 **First login:** sign in at `/auth` with the default admin account created on first visit:
 
-| | |
-|---|---|
-| Email | `admin@admin.com` |
-| Password | `admin123` |
+|          |                   |
+| -------- | ----------------- |
+| Email    | `admin@admin.com` |
+| Password | `admin123`        |
 
 > ⚠️ **Change these immediately** from **Sécurité du compte** in the dashboard menu (email + password). The login page shows a hint until you do.
 >
@@ -77,13 +75,13 @@ Open **http://localhost:5173** — sample content is seeded automatically on fir
 
 ## Environment variables
 
-| Variable | Where | Required |
-|---|---|---|
-| `VITE_CONVEX_URL` | `.env.local` (frontend) | ✅ |
-| `CONVEX_DEPLOYMENT` | `.env.local` (Convex CLI) | optional |
-| `CONVEX_SITE_URL` | `.env.local` (local auth redirect) | dev only |
-| `SITE_URL` | Convex dashboard → Settings → Env Variables | ✅ production |
-| `JWKS`, `JWT_PRIVATE_KEY` | Convex dashboard (auth keys, provisioned by Convex Auth) | ✅ |
+| Variable                  | Where                                                                       | Required     |
+| ------------------------- | --------------------------------------------------------------------------- | ------------ |
+| `VITE_CONVEX_URL`         | `.env.local` (frontend); auto-injected on Vercel by `convex deploy`         | ✅           |
+| `CONVEX_DEPLOYMENT`       | `.env.local` (Convex CLI)                                                   | optional     |
+| `CONVEX_SITE_URL`         | `.env.local` locally; `convex env set` in production (auth redirect origin) | ✅           |
+| `CONVEX_DEPLOY_KEY`       | Vercel → Environment Variables (Production)                                 | ✅ on Vercel |
+| `JWKS`, `JWT_PRIVATE_KEY` | Convex deployment (auth keys, provisioned by Convex Auth)                   | ✅           |
 
 **Not env vars:** the DeepL key and Google Analytics ID are entered in the app under **Intégrations**, and the SEO tags under **Paramètres → Référencement (SEO)** — they are stored in the database, not in the repo.
 
@@ -91,18 +89,18 @@ See [.env.example](.env.example) for the full annotated template.
 
 ## Admin dashboard
 
-| Section | What you manage |
-|---|---|
-| **À propos** | Name, contact info, portrait/cover images, taglines, CV link, socials, description |
-| **Parcours / Portfolio / Journal** | Experiences, education, projects, posts — reorder, preview, edit in popups |
-| **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview |
-| **Messages** | Inbox: preview messages in a popup, reply from your mail client (pre-filled), mark as replied, delete, CSV export |
-| **Config** | Section visibility & order, display layouts (list/cards for Services, Interests, Languages, Skills, Projects, Blog), resume order |
-| **Paramètres** | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts, full JSON backup/export |
-| **Intégrations** | DeepL + Google Analytics keys, notification email, **SMTP Gmail** (app password, values pre-filled, test email), **email channel toggles** |
-| **Apparence** | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color |
-| **Sécurité du compte** | Maintenance mode, owner login email and password, **factory reset** (one click wipes all content/settings/inbox/stats — the admin account is kept, confirmation by typing `RESTAURER`), **reload demo** (re-populates the site with the sample portfolio) |
-| **Statistiques** | Visitors, uniques, conversion, devices, browsers, peak hours |
+| Section                                                  | What you manage                                                                                                                                                                                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **À propos**                                             | Name, contact info, portrait/cover images, taglines, CV link, socials, description                                                                                                                                                                        |
+| **Parcours / Portfolio / Journal**                       | Experiences, education, projects, posts — reorder, preview, edit in popups                                                                                                                                                                                |
+| **Compétences / Langues / Centres d'intérêt / Services** | Items with levels (1–5), icons, reorder, preview                                                                                                                                                                                                          |
+| **Messages**                                             | Inbox: preview messages in a popup, reply from your mail client (pre-filled), mark as replied, delete, CSV export                                                                                                                                         |
+| **Config**                                               | Section visibility & order, display layouts (list/cards for Services, Interests, Languages, Skills, Projects, Blog), resume order                                                                                                                         |
+| **Paramètres**                                           | Site name/tagline/footer, logo & favicon, SEO tags, custom scripts, full JSON backup/export                                                                                                                                                               |
+| **Intégrations**                                         | DeepL + Google Analytics keys, notification email, **SMTP Gmail** (app password, values pre-filled, test email), **email channel toggles**                                                                                                                |
+| **Apparence**                                            | Design (Éditorial / Moderne / Minimal), theme (10 complete light/dark presets), default ambiance (clair/sombre/auto), custom accent color                                                                                                                 |
+| **Sécurité du compte**                                   | Maintenance mode, owner login email and password, **factory reset** (one click wipes all content/settings/inbox/stats — the admin account is kept, confirmation by typing `RESTAURER`), **reload demo** (re-populates the site with the sample portfolio) |
+| **Statistiques**                                         | Visitors, uniques, conversion, devices, browsers, peak hours                                                                                                                                                                                              |
 
 ## Email channels
 
@@ -112,31 +110,35 @@ One feature sends email, through a single helper:
 
 The email-code (OTP) login was **removed entirely** — the only sign-in channel is the owner's password, so no visitor can ever create an account.
 
-On Freebuff Web, the notification uses the **platform email relay** (`src/convex/emailRelay.ts`) by default — no SMTP, no key to configure.
+The notification is sent via **SMTP** (nodemailer, `src/convex/notify.ts`) — a real sender, good deliverability, no platform dependency. Works identically locally, on Vercel or on any other host.
 
-**Deploying elsewhere, three options:**
+**Setup:** in **Intégrations**, enable **“Envoyer via SMTP (Gmail)”** and add your Gmail address + an [app password](https://myaccount.google.com/apppasswords). Gmail values are pre-filled (smtp.gmail.com, 465/SSL); a **test email** button validates the setup.
 
-- **Best:** in **Intégrations**, enable **“Envoyer via SMTP (Gmail)”** and add your Gmail address + an [app password](https://myaccount.google.com/apppasswords). Gmail values are pre-filled (smtp.gmail.com, 465/SSL); a **test email** button validates the setup. Fully portable, no platform dependency.
-- **Simplest:** switch **“Notifications de contact”** off. Password login and the in-app inbox keep working 100%. ✅
-- **Keep email via code:** edit `src/convex/notify.ts` to call your own provider. Only **one call site** exists.
+If SMTP is not configured (or the notification toggle is off), no email is sent — the message still lands in the dashboard inbox. To use another provider (Resend, SendGrid…), edit `src/convex/notify.ts` — only **one call site** exists.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.
 
 ## Deploying
 
-### On Freebuff Web
-Nothing to do — this is the platform Mfolio was built for. The environment, Convex deployment, and email relay are all provisioned automatically.
+### Vercel (recommended)
 
-### Anywhere else (Vercel, Netlify, Cloudflare Pages, …)
-Mfolio is a standard Vite + Convex app:
+The repo ships a [`vercel.json`](vercel.json) that wires everything: the build command pushes the Convex functions then builds the SPA, and a rewrite rule serves `index.html` on deep links (`/auth`, `/dashboard`).
 
-1. Clone, `bun install`, `bunx convex dev` (creates your Convex project).
-2. Set `SITE_URL`, `JWKS`, `JWT_PRIVATE_KEY` in the Convex dashboard (auth keys are provisioned by Convex Auth).
-3. Set `VITE_CONVEX_URL` in your host's env, build with `bun run build` (output: `dist/`).
-4. Decide your email strategy (see above). Optional: remove the Freebuff-specific bits (`vlyPlugin()` in `vite.config.ts` and the `@vly-ai/integrations` dependency) — they are inert but no longer needed.
-5. First login with `admin@admin.com` / `admin123`, change the credentials, enter your DeepL key / GA ID.
+1. Push this repo to GitHub, then create a Vercel project from it.
+2. Provision the Convex backend:
+   - **Easiest:** install [Convex from the Vercel Marketplace](https://vercel.com/marketplace/convex) — it creates the deployment and wires the environment for you.
+   - **Or manually:** create the deployment on [dashboard.convex.dev](https://dashboard.convex.dev), generate a **Production Deploy Key** (Deployment Settings → General), and add it in Vercel as `CONVEX_DEPLOY_KEY` (Production environment only).
+3. Point auth at your final URL on the Convex deployment: `bunx convex env set CONVEX_SITE_URL https://your-domain.vercel.app` (use your final custom domain if you have one — changing it later means updating this variable).
+4. Deploy. The first page load seeds sample content.
+5. Sign in at `/auth` with `admin@admin.com` / `admin123` — **change these immediately**, then set up email (see above) and your DeepL key / GA ID.
 
-> 💡 **Keep your data:** all portfolio content lives in Convex. If you reuse the same Convex deployment, your content and settings follow automatically.
+Every push to the repository redeploys both the Convex functions and the frontend automatically.
+
+> 💡 Vercel preview deployments can get their own fresh Convex deployment via a **Preview Deploy Key** (`CONVEX_DEPLOY_KEY`, Preview environment) — see [Convex preview deployments](https://docs.convex.dev/production/hosting/preview-deployments).
+
+### Anywhere else (Netlify, Cloudflare Pages, a static host…)
+
+Mfolio is a standard Vite + Convex app: build with `bun run build` (output: `dist/`), serve the files with an SPA fallback rewrite (all paths → `/index.html`), and push the Convex functions with `bunx convex deploy` (which injects `VITE_CONVEX_URL` at build time). Email needs no special host support.
 
 ## Project structure
 
@@ -151,8 +153,7 @@ src/
 │   ├── schema.ts     # Database schema
 │   ├── site.ts       # Public queries (getSiteData, getStats…)
 │   ├── siteMutations.ts # Content CRUD + addMessage (contact form)
-│   ├── notify.ts     # Contact notification action
-│   ├── emailRelay.ts # ⚙️ Platform email relay — the file to replace off-Freebuff
+│   ├── notify.ts     # Contact notification action (SMTP via nodemailer)
 │   ├── seed.ts       # Sample content (seeded once)
 │   └── scheduler.ts  # Daily purge of old visitors
 ├── lib/              # i18n, sections order, levels, stats helpers (+ tests)
@@ -161,15 +162,15 @@ src/
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `bun run dev` | Start the Vite dev server |
-| `bun run build` | Typecheck + production build (`tsc -b && vite build`) |
-| `bun run preview` | Preview the production build |
-| `bun test` | Run unit tests (Vitest) |
-| `bun run lint` | ESLint |
-| `bun run format` | Prettier |
-| `bunx convex dev --once` | Push Convex functions + regenerate types |
+| Command                  | Description                                           |
+| ------------------------ | ----------------------------------------------------- |
+| `bun run dev`            | Start the Vite dev server                             |
+| `bun run build`          | Typecheck + production build (`tsc -b && vite build`) |
+| `bun run preview`        | Preview the production build                          |
+| `bun test`               | Run unit tests (Vitest)                               |
+| `bun run lint`           | ESLint                                                |
+| `bun run format`         | Prettier                                              |
+| `bunx convex dev --once` | Push Convex functions + regenerate types              |
 
 ## Contributing
 

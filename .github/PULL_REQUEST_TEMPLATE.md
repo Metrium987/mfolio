@@ -18,4 +18,4 @@
 
 ## Notes
 
-<!-- Points d'attention, décisions de conception, éléments de portabilité (Freebuff vs déploiement externe), captures d'écran… -->
+<!-- Points d'attention, décisions de conception, portabilité, captures d'écran… -->

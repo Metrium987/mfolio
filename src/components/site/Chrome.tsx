@@ -50,7 +50,11 @@ function LangSwitcher() {
  * applied only until the visitor makes their own choice (or has one stored).
  * "auto" keeps following the OS preference for first-time visitors.
  */
-function ThemeToggle({ defaultMode = "auto" }: { defaultMode?: SiteAppearanceMode }) {
+function ThemeToggle({
+  defaultMode = "auto",
+}: {
+  defaultMode?: SiteAppearanceMode;
+}) {
   const { t } = useSiteLang();
 
   const readStored = (): "dark" | "light" | null => {
@@ -71,24 +75,27 @@ function ThemeToggle({ defaultMode = "auto" }: { defaultMode?: SiteAppearanceMod
   const [choice, setChoice] = useState<"dark" | "light" | null>(() =>
     typeof window === "undefined" ? null : readStored(),
   );
+  // Last explicitly toggled value; the fallback for "auto" mode.
   const [dark, setDark] = useState<boolean>(() => {
     const stored = readStored();
     if (stored) return stored === "dark";
-    if (defaultMode === "dark") return true;
-    if (defaultMode === "light") return false;
     return prefersDarkOS();
   });
 
   // The owner's default may arrive after mount (settings load asynchronously):
-  // apply it until the visitor has an explicit choice.
-  useEffect(() => {
-    if (choice !== null) return;
-    if (defaultMode === "dark") setDark(true);
-    else if (defaultMode === "light") setDark(false);
-  }, [defaultMode, choice]);
+  // apply it until the visitor has an explicit choice — derived during render
+  // (documented React pattern), no effect needed.
+  const isDark =
+    choice !== null
+      ? choice === "dark"
+      : defaultMode === "dark"
+        ? true
+        : defaultMode === "light"
+          ? false
+          : dark;
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
+    document.documentElement.classList.toggle("dark", isDark);
     if (choice !== null) {
       try {
         window.localStorage.setItem(THEME_KEY, choice);
@@ -96,21 +103,21 @@ function ThemeToggle({ defaultMode = "auto" }: { defaultMode?: SiteAppearanceMod
         // storage unavailable (private mode) — in-memory only
       }
     }
-  }, [dark, choice]);
+  }, [isDark, choice]);
 
   return (
     <button
       type="button"
       onClick={() => {
-        const next = !dark;
+        const next = !isDark;
         setDark(next);
         setChoice(next ? "dark" : "light");
       }}
-      aria-label={dark ? t("header.themeLight") : t("header.themeDark")}
-      title={dark ? t("header.themeLight") : t("header.themeDark")}
+      aria-label={isDark ? t("header.themeLight") : t("header.themeDark")}
+      title={isDark ? t("header.themeLight") : t("header.themeDark")}
       className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
     >
-      {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </button>
   );
 }

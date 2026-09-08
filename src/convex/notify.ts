@@ -4,24 +4,21 @@ import { v } from "convex/values";
 import nodemailer from "nodemailer";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-import { sendViaEmailRelay } from "./emailRelay";
 
 /**
  * Email the site owner when a visitor submits the contact form.
  *
- * Two channels, chosen by the settings (Intégrations):
- *  - **SMTP (Gmail app password)** — when `smtp` is passed (enabled + user +
- *    app password set): a real sender, better deliverability, and fully
- *    portable (works outside Freebuff). Sent with nodemailer from the `to`
- *    address configured by the owner.
- *  - **Platform email relay** — the fallback: no credentials required. The
- *    relay only accepts { to, appName, otp } and formats emails as sign-in
- *    messages, so the contact details go into the "otp" field, which is what
- *    appears in the email body.
+ * One channel: **SMTP** (Gmail app password by default — see Intégrations).
+ * Sent with nodemailer from the `to` address configured by the owner; a real
+ * sender, good deliverability, no platform dependency.
  *
- * The SMTP config is passed as an argument (not read from the DB) because
- * this action is triggered by a visitor via ctx.scheduler.runAfter — it runs
- * unauthenticated and cannot read owner-only data.
+ * Only the notification goes out — the message body is never emailed; it
+ * stays in the dashboard inbox. The SMTP config is passed as an argument (not
+ * read from the DB) because this action is triggered by a visitor via
+ * ctx.scheduler.runAfter — it runs unauthenticated and cannot read
+ * owner-only data. If SMTP is not configured or the notification is
+ * disabled, the message still lands in the inbox — only the email is
+ * skipped.
  */
 export const sendContactEmail = action({
   args: v.object({
@@ -29,7 +26,6 @@ export const sendContactEmail = action({
     name: v.string(),
     email: v.string(),
     subject: v.string(),
-    message: v.string(),
     smtp: v.optional(
       v.object({
         host: v.string(),
@@ -40,7 +36,7 @@ export const sendContactEmail = action({
       }),
     ),
   }),
-  handler: async (ctx, { to, name, email, subject, message, smtp }) => {
+  handler: async (ctx, { to, name, email, subject, smtp }) => {
     const recipient = to.trim();
     if (!recipient) return; // no notification address — silently skip
 
@@ -69,35 +65,30 @@ export const sendContactEmail = action({
       .filter((line): line is string => line !== null)
       .join("\n");
 
-    // SMTP channel (Gmail by default) — proper sender, better deliverability.
-    if (smtp && smtp.host && smtp.user && smtp.pass) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: smtp.host,
-          port: smtp.port,
-          secure: smtp.secure,
-          auth: { user: smtp.user, pass: smtp.pass },
-        });
-        await transporter.sendMail({
-          from: `"${appName}" <${smtp.user}>`,
-          to: recipient,
-          subject: `Nouveau message sur votre portfolio (${senderName})`,
-          text: content,
-        });
-      } catch (error) {
-        console.error("[notify] SMTP:", error);
-      }
+    if (!smtp || !smtp.host || !smtp.user || !smtp.pass) {
+      // SMTP not configured (or disabled): nothing to send. The message is
+      // still visible in the dashboard inbox — this is not an error.
+      console.warn(
+        "[notify] SMTP non configuré — notification ignorée (le message reste dans la boîte de réception).",
+      );
       return;
     }
 
-    // Fallback: the Freebuff Web platform email relay.
-    const result = await sendViaEmailRelay({
-      to: recipient,
-      appName,
-      otp: content,
-    });
-    if (!result.ok) {
-      console.error("[notify] Email relay:", result.error);
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtp.host,
+        port: smtp.port,
+        secure: smtp.secure,
+        auth: { user: smtp.user, pass: smtp.pass },
+      });
+      await transporter.sendMail({
+        from: `"${appName}" <${smtp.user}>`,
+        to: recipient,
+        subject: `Nouveau message sur votre portfolio (${senderName})`,
+        text: content,
+      });
+    } catch (error) {
+      console.error("[notify] SMTP:", error);
     }
   },
 });
@@ -155,9 +146,7 @@ export const sendTestEmail = action({
       return {
         ok: false,
         error:
-          error instanceof Error
-            ? error.message
-            : "Échec de la connexion SMTP",
+          error instanceof Error ? error.message : "Échec de la connexion SMTP",
       } as const;
     }
   },

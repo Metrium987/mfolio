@@ -401,38 +401,38 @@ export default function Landing() {
         data-design={settings?.design ?? "editorial"}
         className="site-root min-h-screen bg-background text-foreground outline-none"
       >
-      {/* Print-only CV header (name + contact) — hidden on screen, shown on
+        {/* Print-only CV header (name + contact) — hidden on screen, shown on
           print/PDF where the hero is hidden. */}
-      <div className="hidden print:block print:mb-8">
-        <h1 className="font-display text-3xl font-medium tracking-tight">
-          {data.about?.name || siteName}
-        </h1>
-        <p className="mt-1 text-sm">
-          {[data.about?.email, data.about?.phone, data.about?.address]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-      </div>
-      <SiteHeader
-        siteName={siteName}
-        links={nav}
-        logoUrl={data.site?.logoUrl}
-        email={data.about?.email}
-        themeMode={settings?.themeMode}
-      />
-      {settings?.visibilityAbout && data.about && (
-        <Hero
-          about={data.about}
+        <div className="hidden print:block print:mb-8">
+          <h1 className="font-display text-3xl font-medium tracking-tight">
+            {data.about?.name || siteName}
+          </h1>
+          <p className="mt-1 text-sm">
+            {[data.about?.email, data.about?.phone, data.about?.address]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        </div>
+        <SiteHeader
           siteName={siteName}
-          visibilityCv={settings.visibilityCv}
+          links={nav}
+          logoUrl={data.site?.logoUrl}
+          email={data.about?.email}
+          themeMode={settings?.themeMode}
         />
-      )}
-      {order.map((id) => (
-        <div key={id}>{renderSection(id)}</div>
-      ))}
-      {settings?.visibilityFooter && (
-        <SiteFooter site={data.site} socials={data.about?.socials} />
-      )}
+        {settings?.visibilityAbout && data.about && (
+          <Hero
+            about={data.about}
+            siteName={siteName}
+            visibilityCv={settings.visibilityCv}
+          />
+        )}
+        {order.map((id) => (
+          <div key={id}>{renderSection(id)}</div>
+        ))}
+        {settings?.visibilityFooter && (
+          <SiteFooter site={data.site} socials={data.about?.socials} />
+        )}
       </main>
     </>
   );

@@ -1,6 +1,6 @@
 /**
  * Site theming — accent palettes + complete theme presets (the owner's
- * "UI Presets", like the Freebuff Web builder's curated color sets).
+ * "UI Presets", coordinated color sets chosen from the dashboard).
  *
  * Two layers, both applied at runtime via CSS variables:
  *
@@ -137,8 +137,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "bleu-nuit",
     label: "Bleu nuit",
-    description:
-      "Papier froid et encre marine — sobre et professionnel.",
+    description: "Papier froid et encre marine — sobre et professionnel.",
     paletteId: "midnight",
     light: {
       background: "#F5F6F8",
@@ -164,8 +163,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "foret",
     label: "Forêt",
-    description:
-      "Papier légèrement végétal, encre verte profonde — apaisant.",
+    description: "Papier légèrement végétal, encre verte profonde — apaisant.",
     paletteId: "forest",
     light: {
       background: "#F6F7F1",
@@ -191,8 +189,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "prune",
     label: "Prune",
-    description:
-      "Papier mauve pâle, encre violacée — doux et singulier.",
+    description: "Papier mauve pâle, encre violacée — doux et singulier.",
     paletteId: "plum",
     light: {
       background: "#F7F5F9",
@@ -218,8 +215,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "braise",
     label: "Braise",
-    description:
-      "Papier chaud, accent feu — chaleureux et affirmé.",
+    description: "Papier chaud, accent feu — chaleureux et affirmé.",
     paletteId: "ember",
     light: {
       background: "#F5F1EC",
@@ -245,8 +241,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "or-ancien",
     label: "Or ancien",
-    description:
-      "Parchemin et encre ambrée — bibliothèque et artisanat.",
+    description: "Parchemin et encre ambrée — bibliothèque et artisanat.",
     paletteId: "antique-gold",
     light: {
       background: "#F6F0E1",
@@ -299,8 +294,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "rose-poudre",
     label: "Rose poudré",
-    description:
-      "Papier blush, encre brune douce — délicat et éditorial.",
+    description: "Papier blush, encre brune douce — délicat et éditorial.",
     paletteId: "rose",
     light: {
       background: "#F9F5F4",
@@ -326,8 +320,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "sauge",
     label: "Sauge",
-    description:
-      "Papier gris-vert, accent sauge — naturel et posé.",
+    description: "Papier gris-vert, accent sauge — naturel et posé.",
     paletteId: "sage",
     light: {
       background: "#F5F6F2",
@@ -353,7 +346,9 @@ export const THEME_PRESETS: ThemePreset[] = [
 ];
 
 /** Find a theme preset by id (undefined for absent/unknown ids). */
-export function findPreset(id: string | null | undefined): ThemePreset | undefined {
+export function findPreset(
+  id: string | null | undefined,
+): ThemePreset | undefined {
   if (!id) return undefined;
   return THEME_PRESETS.find((preset) => preset.id === id);
 }
@@ -429,7 +424,8 @@ export const DESIGN_PRESETS: SiteDesign[] = [
     displayFont: "Sentient",
     bodyFont: "General Sans",
     displayStack: '"Sentient", "Zodiak", Georgia, serif',
-    bodyStack: '"General Sans", "Switzer", ui-sans-serif, system-ui, sans-serif',
+    bodyStack:
+      '"General Sans", "Switzer", ui-sans-serif, system-ui, sans-serif',
     radius: "sharp",
     cards: "frame",
     hero: "standard",
@@ -458,7 +454,9 @@ export function findPalette(
 ): AccentPalette | undefined {
   if (!hex) return undefined;
   const normalized = hex.toLowerCase();
-  return ACCENT_PALETTES.find((palette) => palette.color.toLowerCase() === normalized);
+  return ACCENT_PALETTES.find(
+    (palette) => palette.color.toLowerCase() === normalized,
+  );
 }
 
 function channel(hex: string, index: number): number {

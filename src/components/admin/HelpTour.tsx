@@ -340,24 +340,35 @@ export function HelpTour({
   onNavigate: (section: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [tipIndex, setTipIndex] = useState(0);
+  const [tipState, setTipState] = useState<{ section: string; index: number }>({
+    section: activeSection,
+    index: 0,
+  });
   const panelRef = useRef<HTMLDivElement>(null);
 
   const sectionHelp = SECTION_HELP[activeSection] ?? DEFAULT_HELP;
   const tips = sectionHelp.tips;
+
+  // Reset tip index when section changes — state adjustment during render
+  // (documented React pattern), no effect needed.
+  if (tipState.section !== activeSection) {
+    setTipState({ section: activeSection, index: 0 });
+  }
+  const tipIndex = Math.min(tipState.index, tips.length - 1);
   const currentTip = tips[tipIndex];
 
-  // Reset tip index when section changes
-  useEffect(() => {
-    setTipIndex(0);
-  }, [activeSection]);
-
   const next = useCallback(() => {
-    setTipIndex((prev) => Math.min(prev + 1, tips.length - 1));
+    setTipState((s) => ({
+      section: s.section,
+      index: Math.min(s.index + 1, tips.length - 1),
+    }));
   }, [tips.length]);
 
   const prev = useCallback(() => {
-    setTipIndex((prev) => Math.max(prev - 1, 0));
+    setTipState((s) => ({
+      section: s.section,
+      index: Math.max(s.index - 1, 0),
+    }));
   }, []);
 
   // Close on Escape
@@ -380,7 +391,7 @@ export function HelpTour({
         title={`Aide — ${sectionHelp.title}`}
         onClick={() => {
           setOpen((o) => !o);
-          setTipIndex(0);
+          setTipState({ section: activeSection, index: 0 });
         }}
         className="relative"
       >

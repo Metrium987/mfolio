@@ -6,6 +6,9 @@ node_modules
 .env.local
 .env.*.local
 
+# --- Freebuff Web platform leftovers ---
+.freebuff/
+
 # --- Build ---
 dist
 dist-ssr

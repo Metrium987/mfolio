@@ -7,9 +7,7 @@
 [![CI](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Metrium987/mfolio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🚀 **Démo en ligne :** [mfolio.freebuff.app](https://mfolio.freebuff.app) — le portfolio public ; connexion sur `/auth` avec les identifiants par défaut ci-dessous.
-
-> **Origines :** Mfolio a été conçu à l'origine sur **Freebuff Web** (ex-vly.ai), qui fournit l'environnement hébergé, l'intégration Convex et un relais email de plateforme. L'application est entièrement portable : seules **deux fonctionnalités email optionnelles** dépendent de la plateforme, et les deux peuvent être désactivées ou rebranchées sur votre propre fournisseur. Voir [Déploiement](#déploiement).
+> 🚀 **Cible de déploiement :** [Vercel](https://vercel.com) pour le frontend + [Convex](https://convex.dev) pour le backend — chemin en un clic via l'[intégration Convex Vercel](https://vercel.com/marketplace/convex). Voir [Déploiement](#déploiement).
 
 ---
 
@@ -30,21 +28,21 @@
 
 ## Stack technique
 
-| Couche | Technologie |
-|---|---|
-| Frontend | React 19, TypeScript, Vite, React Router 7 |
-| Style | Tailwind CSS v4, shadcn/ui, Framer Motion, icônes Lucide |
-| Backend & BDD | [Convex](https://convex.dev) (backend + base de données serverless), Convex Auth |
-| Qualité | Vitest, ESLint, Prettier, TypeScript strict |
-| Gestionnaire de paquets | [Bun](https://bun.sh) |
+| Couche                  | Technologie                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| Frontend                | React 19, TypeScript, Vite, React Router 7                                       |
+| Style                   | Tailwind CSS v4, shadcn/ui, Framer Motion, icônes Lucide                         |
+| Backend & BDD           | [Convex](https://convex.dev) (backend + base de données serverless), Convex Auth |
+| Qualité                 | Vitest, ESLint, Prettier, TypeScript strict                                      |
+| Gestionnaire de paquets | [Bun](https://bun.sh)                                                            |
 
 ## Prérequis
 
 - **Bun ≥ 1.x** (recommandé) ou Node.js ≥ 20
 - **Un compte [Convex](https://convex.dev) gratuit** — le backend et la base de données de l'application
 - **Git**
-- *Optionnel :* une clé API [DeepL](https://www.deepl.com) (traduction FR→EN automatique), un ID Google Analytics
-- *Uniquement hors Freebuff :* votre propre fournisseur d'email (ex. [Resend](https://resend.com)) — ou désactivez les deux fonctionnalités email dans le tableau de bord (voir [Canaux email](#canaux-email))
+- _Optionnel :_ une clé API [DeepL](https://www.deepl.com) (traduction FR→EN automatique), un ID Google Analytics
+- _Pour les notifications email :_ une adresse Gmail + un [mot de passe d'application](https://myaccount.google.com/apppasswords) — ou coupez les notifications et utilisez uniquement la boîte de réception du tableau de bord (voir [Canaux email](#canaux-email))
 
 ## Démarrage rapide
 
@@ -66,10 +64,10 @@ Ouvrez **http://localhost:5173** — un contenu d'exemple est généré automati
 
 **Première connexion :** connectez-vous sur `/auth` avec le compte admin par défaut créé à la première visite :
 
-| | |
-|---|---|
-| Email | `admin@admin.com` |
-| Mot de passe | `admin123` |
+|              |                   |
+| ------------ | ----------------- |
+| Email        | `admin@admin.com` |
+| Mot de passe | `admin123`        |
 
 > ⚠️ **Changez ces identifiants immédiatement** depuis **Sécurité du compte** dans le menu du tableau de bord (email + mot de passe). La page de connexion affiche un rappel tant que ce n'est pas fait.
 >
@@ -77,13 +75,13 @@ Ouvrez **http://localhost:5173** — un contenu d'exemple est généré automati
 
 ## Variables d'environnement
 
-| Variable | Où | Requise |
-|---|---|---|
-| `VITE_CONVEX_URL` | `.env.local` (frontend) | ✅ |
-| `CONVEX_DEPLOYMENT` | `.env.local` (CLI Convex) | optionnelle |
-| `CONVEX_SITE_URL` | `.env.local` (redirection d'auth en local) | dev uniquement |
-| `SITE_URL` | Dashboard Convex → Settings → Env Variables | ✅ production |
-| `JWKS`, `JWT_PRIVATE_KEY` | Dashboard Convex (clés d'auth, provisionnées par Convex Auth) | ✅ |
+| Variable                  | Où                                                                                     | Requise       |
+| ------------------------- | -------------------------------------------------------------------------------------- | ------------- |
+| `VITE_CONVEX_URL`         | `.env.local` (frontend) ; injectée automatiquement sur Vercel par `convex deploy`      | ✅            |
+| `CONVEX_DEPLOYMENT`       | `.env.local` (CLI Convex)                                                              | optionnelle   |
+| `CONVEX_SITE_URL`         | `.env.local` en local ; `convex env set` en production (origine de redirection d'auth) | ✅            |
+| `CONVEX_DEPLOY_KEY`       | Vercel → Variables d'environnement (Production)                                        | ✅ sur Vercel |
+| `JWKS`, `JWT_PRIVATE_KEY` | Déploiement Convex (clés d'auth, provisionnées par Convex Auth)                        | ✅            |
 
 **Ne sont pas des variables d'environnement :** la clé DeepL et l'ID Google Analytics se saisissent dans le menu **Intégrations**, et les balises SEO dans **Paramètres → Référencement (SEO)** — elles sont stockées en base de données, pas dans le dépôt.
 
@@ -91,17 +89,17 @@ Voir [.env.example](.env.example) pour le modèle annoté complet.
 
 ## Tableau de bord administrateur
 
-| Section | Ce que vous gérez |
-|---|---|
-| **À propos** | Nom, coordonnées, images portrait/couverture, slogans, lien CV, réseaux sociaux, description |
-| **Parcours / Portfolio / Journal** | Expériences, formations, projets, articles — réorganisation, aperçu, édition en popup |
-| **Compétences / Langues / Centres d'intérêt / Services** | Éléments avec niveaux (1–5), icônes, réorganisation, aperçu |
-| **Messages** | Boîte de réception : prévisualisation en popup, marquer comme répondu, supprimer |
-| **Config** | Visibilité et ordre des sections, styles d'affichage, ordre du Parcours |
-| **Paramètres** | Nom/slogan/pied de page du site, logo & favicon, **référencement (SEO)**, scripts personnalisés |
-| **Intégrations** | Clés DeepL + Google Analytics, email de notification, **interrupteurs des canaux email** |
-| **Sécurité du compte** | Mode maintenance, email et mot de passe de connexion du propriétaire, **restauration usine** (un clic vide tout le contenu — le compte admin est conservé, confirmation par saisie de `RESTAURER`), **recharger la démo** (re-peuple le portfolio avec le contenu d'exemple) |
-| **Statistiques** | Visiteurs, uniques, conversion, appareils, navigateurs, heures de pointe |
+| Section                                                  | Ce que vous gérez                                                                                                                                                                                                                                                            |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **À propos**                                             | Nom, coordonnées, images portrait/couverture, slogans, lien CV, réseaux sociaux, description                                                                                                                                                                                 |
+| **Parcours / Portfolio / Journal**                       | Expériences, formations, projets, articles — réorganisation, aperçu, édition en popup                                                                                                                                                                                        |
+| **Compétences / Langues / Centres d'intérêt / Services** | Éléments avec niveaux (1–5), icônes, réorganisation, aperçu                                                                                                                                                                                                                  |
+| **Messages**                                             | Boîte de réception : prévisualisation en popup, marquer comme répondu, supprimer                                                                                                                                                                                             |
+| **Config**                                               | Visibilité et ordre des sections, styles d'affichage, ordre du Parcours                                                                                                                                                                                                      |
+| **Paramètres**                                           | Nom/slogan/pied de page du site, logo & favicon, **référencement (SEO)**, scripts personnalisés                                                                                                                                                                              |
+| **Intégrations**                                         | Clés DeepL + Google Analytics, email de notification, **interrupteurs des canaux email**                                                                                                                                                                                     |
+| **Sécurité du compte**                                   | Mode maintenance, email et mot de passe de connexion du propriétaire, **restauration usine** (un clic vide tout le contenu — le compte admin est conservé, confirmation par saisie de `RESTAURER`), **recharger la démo** (re-peuple le portfolio avec le contenu d'exemple) |
+| **Statistiques**                                         | Visiteurs, uniques, conversion, appareils, navigateurs, heures de pointe                                                                                                                                                                                                     |
 
 ## Canaux email
 
@@ -111,30 +109,35 @@ Une seule fonctionnalité envoie des emails, via un unique helper :
 
 Les **codes de connexion par email (OTP)** ont été **supprimés entièrement** : la seule connexion est le mot de passe du propriétaire, donc aucun visiteur ne peut créer de compte.
 
-Sur Freebuff Web, la notification passe par le **relais email de la plateforme** (`src/convex/emailRelay.ts`) — pas de SMTP, aucune clé à configurer.
+La notification part via **SMTP** (nodemailer, `src/convex/notify.ts`) — un vrai expéditeur, une bonne délivrabilité, aucune dépendance de plateforme. Fonctionne à l'identique en local, sur Vercel ou sur n'importe quel hébergeur.
 
-**Déployer ailleurs, deux options :**
+**Configuration :** dans **Intégrations**, activez **« Envoyer via SMTP (Gmail) »** et renseignez votre adresse Gmail + un [mot de passe d'application](https://myaccount.google.com/apppasswords). Les valeurs Gmail sont pré-remplies (smtp.gmail.com, 465/SSL) ; un bouton **email de test** valide la configuration.
 
-- **Le plus simple :** dans le menu **Intégrations**, désactivez **« Notifications de contact »**. La connexion par mot de passe et la boîte de réception continuent de fonctionner à 100 %. ✅
-- **Garder l'email :** modifiez `src/convex/emailRelay.ts` pour appeler votre propre fournisseur (ex. Resend). Il n'existe plus qu'**un point d'appel** : `src/convex/notify.ts` (notification).
+Sans SMTP configuré (ou notification désactivée), aucun email n'est envoyé — le message reste dans la boîte de réception du tableau de bord. Pour un autre fournisseur (Resend, SendGrid…), modifiez `src/convex/notify.ts` — il n'existe qu'**un seul point d'appel**.
 
 Voir [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) pour le guide complet.
 
 ## Déploiement
 
-### Sur Freebuff Web
-Rien à faire — c'est la plateforme pour laquelle Mfolio a été conçu. L'environnement, le déploiement Convex et le relais email sont provisionnés automatiquement.
+### Sur Vercel (recommandé)
 
-### Ailleurs (Vercel, Netlify, Cloudflare Pages, …)
-Mfolio est une application Vite + Convex standard :
+Le dépôt embarque un [`vercel.json`](vercel.json) qui branche tout : la commande de build pousse les fonctions Convex puis construit la SPA, et une règle de rewrite sert `index.html` sur les liens profonds (`/auth`, `/dashboard`).
 
-1. Clonez, `bun install`, `bunx convex dev` (crée votre projet Convex).
-2. Renseignez `SITE_URL`, `JWKS`, `JWT_PRIVATE_KEY` dans le dashboard Convex (les clés d'auth sont provisionnées par Convex Auth).
-3. Renseignez `VITE_CONVEX_URL` dans les variables d'environnement de votre hébergeur, build avec `bun run build` (sortie : `dist/`).
-4. Choisissez votre stratégie email (voir ci-dessus). Optionnel : supprimez les éléments spécifiques Freebuff (`vlyPlugin()` dans `vite.config.ts` et la dépendance `@vly-ai/integrations`) — ils sont inertes mais inutiles hors plateforme.
-5. Première connexion avec `admin@admin.com` / `admin123`, changez les identifiants, saisissez votre clé DeepL / ID GA.
+1. Poussez ce dépôt sur GitHub, puis créez un projet Vercel à partir du repo.
+2. Provisionnez le backend Convex :
+   - **Le plus simple :** installez [Convex depuis le Marketplace Vercel](https://vercel.com/marketplace/convex) — il crée le déploiement et branche les variables d'environnement pour vous.
+   - **Ou manuellement :** créez le déploiement sur [dashboard.convex.dev](https://dashboard.convex.dev), générez une **clé de déploiement production** (Deployment Settings → General), et ajoutez-la dans Vercel comme `CONVEX_DEPLOY_KEY` (environnement Production uniquement).
+3. Pointez l'auth vers votre URL finale sur le déploiement Convex : `bunx convex env set CONVEX_SITE_URL https://votre-domaine.vercel.app` (ou votre domaine personnalisé définitif — le changer plus tard implique de mettre à jour cette variable).
+4. Déployez. Le premier chargement génère le contenu d'exemple.
+5. Connectez-vous sur `/auth` avec `admin@admin.com` / `admin123` — **changez ces identifiants immédiatement**, puis configurez l'email (voir ci-dessus) et votre clé DeepL / ID GA.
 
-> 💡 **Conserver vos données :** tout le contenu du portfolio vit dans Convex. En réutilisant le même déploiement Convex, votre contenu et vos réglages suivent automatiquement.
+Chaque push sur le dépôt redéploie automatiquement les fonctions Convex et le frontend.
+
+> 💡 Les previews Vercel peuvent avoir leur propre déploiement Convex neuf via une **clé de déploiement preview** (`CONVEX_DEPLOY_KEY`, environnement Preview) — voir [Convex preview deployments](https://docs.convex.dev/production/hosting/preview-deployments) (en anglais).
+
+### Ailleurs (Netlify, Cloudflare Pages, un hébergeur statique…)
+
+Mfolio est une application Vite + Convex standard : build avec `bun run build` (sortie : `dist/`), servez les fichiers avec un fallback SPA (tous les chemins → `/index.html`), et poussez les fonctions Convex avec `bunx convex deploy` (qui injecte `VITE_CONVEX_URL` au build). L'email ne demande aucun support particulier de l'hébergeur.
 
 ## Structure du projet
 
@@ -149,8 +152,7 @@ src/
 │   ├── schema.ts     # Schéma de la base de données
 │   ├── site.ts       # Requêtes publiques (getSiteData, getStats…)
 │   ├── siteMutations.ts # CRUD du contenu + addMessage (formulaire de contact)
-│   ├── notify.ts     # Action de notification de contact
-│   ├── emailRelay.ts # ⚙️ Relais email de la plateforme — le fichier à remplacer hors Freebuff
+│   ├── notify.ts     # Action de notification de contact (SMTP via nodemailer)
 │   ├── seed.ts       # Contenu d'exemple (généré une seule fois)
 │   └── scheduler.ts  # Purge quotidienne des anciens visiteurs
 ├── lib/              # i18n, ordre des sections, niveaux, helpers de stats (+ tests)
@@ -159,15 +161,15 @@ src/
 
 ## Scripts
 
-| Commande | Description |
-|---|---|
-| `bun run dev` | Lancer le serveur de dev Vite |
-| `bun run build` | Typecheck + build de production (`tsc -b && vite build`) |
-| `bun run preview` | Prévisualiser le build de production |
-| `bun test` | Lancer les tests unitaires (Vitest) |
-| `bun run lint` | ESLint |
-| `bun run format` | Prettier |
-| `bunx convex dev --once` | Pousser les fonctions Convex + régénérer les types |
+| Commande                 | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `bun run dev`            | Lancer le serveur de dev Vite                            |
+| `bun run build`          | Typecheck + build de production (`tsc -b && vite build`) |
+| `bun run preview`        | Prévisualiser le build de production                     |
+| `bun test`               | Lancer les tests unitaires (Vitest)                      |
+| `bun run lint`           | ESLint                                                   |
+| `bun run format`         | Prettier                                                 |
+| `bunx convex dev --once` | Pousser les fonctions Convex + régénérer les types       |
 
 ## Contribuer
 

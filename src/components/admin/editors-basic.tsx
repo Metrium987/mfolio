@@ -16,7 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -98,9 +98,7 @@ function onAccent(hex: string): string {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55
-    ? "oklch(0.24 0.014 60)"
-    : "oklch(0.977 0.005 85)";
+  return luminance > 0.55 ? "oklch(0.24 0.014 60)" : "oklch(0.977 0.005 85)";
 }
 
 /**
@@ -177,10 +175,7 @@ function MiniSitePreview({
         >
           À propos
         </span>
-        <span
-          className="h-1 w-px"
-          style={{ backgroundColor: tokens.border }}
-        />
+        <span className="h-1 w-px" style={{ backgroundColor: tokens.border }} />
         <span className="text-[9px]" style={{ color: tokens.mutedInk }}>
           Parcours · Projets · Contact
         </span>
@@ -386,7 +381,9 @@ function CvField({
         // the section draft so the form and the site stay in sync.
         await setCvUrl({ cvUrl: url });
         onChange(url);
-        toast.success("CV importé et enregistré — il est disponible sur le site.");
+        toast.success(
+          "CV importé et enregistré — il est disponible sur le site.",
+        );
       }
     } catch (error) {
       console.error(error);
@@ -400,7 +397,9 @@ function CvField({
     try {
       await setCvUrl({ cvUrl: "" });
       onChange("");
-      toast.success("CV retiré — le bouton de téléchargement est masqué sur le site.");
+      toast.success(
+        "CV retiré — le bouton de téléchargement est masqué sur le site.",
+      );
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors du retrait du CV");
@@ -478,7 +477,11 @@ function CvField({
 // About — persona, hero and contact info (Ezfolio "About")
 // ---------------------------------------------------------------------------
 
-export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined }) {
+export function AboutEditor({
+  about,
+}: {
+  about: Doc<"about"> | null | undefined;
+}) {
   const updateAbout = useAction(api.translate.updateAbout);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(about, {
@@ -525,10 +528,31 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
           description="Votre identité et vos moyens de contact."
         >
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField label="Nom" value={draft.value.name} onChange={(name) => draft.set({ ...draft.value, name })} placeholder="Camille Roussel" />
-            <TextField label="Email" type="email" value={draft.value.email} onChange={(email) => draft.set({ ...draft.value, email })} placeholder="vous@exemple.fr" />
-            <TextField label="Téléphone" value={draft.value.phone} onChange={(phone) => draft.set({ ...draft.value, phone })} placeholder="+33 6 12 34 56 78" />
-            <TextField label="Adresse / ville" value={draft.value.address} onChange={(address) => draft.set({ ...draft.value, address })} placeholder="Lyon, France" />
+            <TextField
+              label="Nom"
+              value={draft.value.name}
+              onChange={(name) => draft.set({ ...draft.value, name })}
+              placeholder="Camille Roussel"
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={draft.value.email}
+              onChange={(email) => draft.set({ ...draft.value, email })}
+              placeholder="vous@exemple.fr"
+            />
+            <TextField
+              label="Téléphone"
+              value={draft.value.phone}
+              onChange={(phone) => draft.set({ ...draft.value, phone })}
+              placeholder="+33 6 12 34 56 78"
+            />
+            <TextField
+              label="Adresse / ville"
+              value={draft.value.address}
+              onChange={(address) => draft.set({ ...draft.value, address })}
+              placeholder="Lyon, France"
+            />
           </div>
         </FieldGroup>
 
@@ -541,14 +565,22 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
               label="Portrait (avatar)"
               value={draft.value.avatar}
               onChange={(avatar) => draft.set({ ...draft.value, avatar })}
-              guide={{ ratio: "4:5", formats: "JPG, WebP, PNG", size: "~1000 × 1250 px" }}
+              guide={{
+                ratio: "4:5",
+                formats: "JPG, WebP, PNG",
+                size: "~1000 × 1250 px",
+              }}
             />
             <ImageField
               label="Image de couverture"
               value={draft.value.cover}
               onChange={(cover) => draft.set({ ...draft.value, cover })}
               hint="Bannière en haut du site."
-              guide={{ ratio: "21:9", formats: "JPG, WebP", size: "~1600 × 700 px" }}
+              guide={{
+                ratio: "21:9",
+                formats: "JPG, WebP",
+                size: "~1600 × 700 px",
+              }}
             />
           </div>
         </FieldGroup>
@@ -579,7 +611,9 @@ export function AboutEditor({ about }: { about: Doc<"about"> | null | undefined 
           <TextAreaField
             label="Description"
             value={draft.value.description}
-            onChange={(description) => draft.set({ ...draft.value, description })}
+            onChange={(description) =>
+              draft.set({ ...draft.value, description })
+            }
             rows={8}
             placeholder="Séparez les paragraphes par une ligne vide."
           />
@@ -642,8 +676,8 @@ export function IntegrationsEditor({
   const smtpPassSet = integrations?.smtpPassSet ?? false;
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- one-time form sync
-       when the fetched settings arrive (before any user interaction) */
+    // One-time form sync when the fetched settings arrive (before any user
+    // interaction).
     setGoogleAnalyticsId(settings?.googleAnalyticsId ?? "");
     setNotificationEmail(settings?.notificationEmail ?? "");
     setContactNotifications(settings?.contactNotifications !== false);
@@ -651,7 +685,6 @@ export function IntegrationsEditor({
     setSmtpHost(settings?.smtpHost || "smtp.gmail.com");
     setSmtpPort(settings?.smtpPort ?? 465);
     setSmtpUser(settings?.smtpUser ?? "");
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [
     settings?.googleAnalyticsId,
     settings?.notificationEmail,
@@ -679,7 +712,9 @@ export function IntegrationsEditor({
     try {
       const results = await translateAllContent();
       const ok = Object.values(results).filter((r) => r === "ok").length;
-      const failed = Object.values(results).filter((r) => r === "failed").length;
+      const failed = Object.values(results).filter(
+        (r) => r === "failed",
+      ).length;
       if (failed > 0) {
         toast.error(
           `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL.`,
@@ -717,7 +752,9 @@ export function IntegrationsEditor({
       if (newKey) {
         // First time a key is set (or replaced): translate existing content
         // right away so the EN version is never left empty.
-        toast.success("Clé DeepL enregistrée — traduction du contenu en cours…");
+        toast.success(
+          "Clé DeepL enregistrée — traduction du contenu en cours…",
+        );
         await translateAll();
       } else {
         toast.success("Intégrations enregistrées");
@@ -798,224 +835,224 @@ export function IntegrationsEditor({
       dirty={dirty}
     >
       <div className="space-y-5">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField
-          label="Google Analytics ID"
-          value={googleAnalyticsId}
-          onChange={setGoogleAnalyticsId}
-          placeholder="G-XXXXXXXXXX"
-          hint="Identifiant de mesure GA4. Laissez vide pour désactiver le suivi."
-        />
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-[13px] font-medium">Clé API DeepL</label>
-            {deeplKeySet && (
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                Clé configurée
-              </span>
-            )}
-          </div>
-          <Input
-            type="password"
-            value={deeplApiKey}
-            onChange={(event) => setDeeplApiKey(event.target.value)}
-            placeholder={
-              deeplKeySet
-                ? "•••••••• (conserver la clé actuelle)"
-                : "Votre clé d'authentification DeepL"
-            }
-            className="bg-background"
-          />
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Traduction automatique du contenu (FR → EN). La clé n'est jamais
-            renvoyée au navigateur — laissez le champ vide pour la conserver.
-          </p>
-        </div>
-      </div>
-      <div className="rounded-md border border-border bg-card p-4">
-        <div className="space-y-4">
+        <div className="grid gap-5 sm:grid-cols-2">
           <TextField
-            label="Email de notification"
-            value={notificationEmail}
-            onChange={setNotificationEmail}
-            placeholder="vous@exemple.com"
-            hint="Reçoit les messages du formulaire de contact. Vide = votre email de contact (section À propos)."
+            label="Google Analytics ID"
+            value={googleAnalyticsId}
+            onChange={setGoogleAnalyticsId}
+            placeholder="G-XXXXXXXXXX"
+            hint="Identifiant de mesure GA4. Laissez vide pour désactiver le suivi."
           />
-          <ToggleField
-            label="Notifications de contact (email)"
-            description="Envoie un email quand un visiteur écrit via le formulaire. Le message reste toujours dans la boîte de réception."
-            checked={contactNotifications}
-            onChange={setContactNotifications}
-          />
-        </div>
-
-        {/* SMTP — Gmail by default, the portable alternative to the relay */}
-        <div className="mt-4 border-t border-border/60 pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium">
-                Envoyer via SMTP (Gmail)
-              </p>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Utilisez votre boîte Gmail (mot de passe d'application) au
-                lieu du relais de la plateforme — fonctionne partout, même
-                déployé hors Freebuff. Valeurs Gmail pré-remplies par défaut.
-              </p>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-[13px] font-medium">Clé API DeepL</label>
+              {deeplKeySet && (
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                  Clé configurée
+                </span>
+              )}
             </div>
-            <Switch
-              checked={smtpEnabled}
-              onCheckedChange={setSmtpEnabled}
-              aria-label="Activer le SMTP Gmail"
+            <Input
+              type="password"
+              value={deeplApiKey}
+              onChange={(event) => setDeeplApiKey(event.target.value)}
+              placeholder={
+                deeplKeySet
+                  ? "•••••••• (conserver la clé actuelle)"
+                  : "Votre clé d'authentification DeepL"
+              }
+              className="bg-background"
+            />
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Traduction automatique du contenu (FR → EN). La clé n'est jamais
+              renvoyée au navigateur — laissez le champ vide pour la conserver.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-md border border-border bg-card p-4">
+          <div className="space-y-4">
+            <TextField
+              label="Email de notification"
+              value={notificationEmail}
+              onChange={setNotificationEmail}
+              placeholder="vous@exemple.com"
+              hint="Reçoit les messages du formulaire de contact. Vide = votre email de contact (section À propos)."
+            />
+            <ToggleField
+              label="Notifications de contact (email)"
+              description="Envoie un email quand un visiteur écrit via le formulaire. Le message reste toujours dans la boîte de réception."
+              checked={contactNotifications}
+              onChange={setContactNotifications}
             />
           </div>
 
-          {smtpEnabled && (
-            <div className="mt-4 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Adresse Gmail (expéditeur)"
-                  value={smtpUser}
-                  onChange={setSmtpUser}
-                  placeholder="vous@gmail.com"
-                  hint="L'adresse utilisée pour envoyer les notifications."
-                />
-                <TextField
-                  label="Serveur SMTP"
-                  value={smtpHost}
-                  onChange={setSmtpHost}
-                  placeholder="smtp.gmail.com"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-[13px] font-medium">Port</p>
-                <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
-                  {(
-                    [
-                      [465, "465 — SSL/TLS"],
-                      [587, "587 — STARTTLS"],
-                    ] as [number, string][]
-                  ).map(([port, label]) => (
-                    <button
-                      key={port}
-                      type="button"
-                      onClick={() => setSmtpPort(port)}
-                      className={cn(
-                        "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
-                        smtpPort === port
-                          ? "bg-foreground text-background"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Mot de passe d'application — write-only, comme la clé DeepL */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <label className="text-[13px] font-medium">
-                    Mot de passe d'application
-                  </label>
-                  {smtpPassSet && (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                      Mot de passe configuré
-                    </span>
-                  )}
-                </div>
-                <Input
-                  type="password"
-                  value={smtpPass}
-                  onChange={(event) => setSmtpPass(event.target.value)}
-                  placeholder={
-                    smtpPassSet
-                      ? "•••••••••••••••• (conserver le mot de passe actuel)"
-                      : "abcd efgh ijkl mnop (16 caractères, sans espaces)"
-                  }
-                  className="bg-background font-mono text-xs"
-                />
+          {/* SMTP — Gmail by default, the portable alternative to the relay */}
+          <div className="mt-4 border-t border-border/60 pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium">
+                  Envoyer via SMTP (Gmail)
+                </p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Gmail refuse votre mot de passe normal sur SMTP — générez un{" "}
-                  <a
-                    href="https://myaccount.google.com/apppasswords"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-(--studio-accent) hover:underline"
-                  >
-                    mot de passe d'application
-                  </a>{" "}
-                  (Validation en 2 étapes requise, 16 caractères — retirez les
-                  espaces). Le mot de passe n'est jamais renvoyé au navigateur :
-                  laissez le champ vide pour le conserver.
+                  Utilisez votre boîte Gmail (mot de passe d'application) comme
+                  expéditeur des notifications — fonctionne partout, quel que
+                  soit l'hébergeur. Valeurs Gmail pré-remplies par défaut.
                 </p>
               </div>
+              <Switch
+                checked={smtpEnabled}
+                onCheckedChange={setSmtpEnabled}
+                aria-label="Activer le SMTP Gmail"
+              />
+            </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void testEmail()}
-                  disabled={testing || saving}
-                  className="rounded-full"
-                >
-                  {testing ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Send className="size-4" />
-                  )}
-                  {testing ? "Envoi…" : "Envoyer un email de test"}
-                </Button>
-                {smtpPassSet && (
+            {smtpEnabled && (
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label="Adresse Gmail (expéditeur)"
+                    value={smtpUser}
+                    onChange={setSmtpUser}
+                    placeholder="vous@gmail.com"
+                    hint="L'adresse utilisée pour envoyer les notifications."
+                  />
+                  <TextField
+                    label="Serveur SMTP"
+                    value={smtpHost}
+                    onChange={setSmtpHost}
+                    placeholder="smtp.gmail.com"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[13px] font-medium">Port</p>
+                  <div className="inline-flex items-center gap-1 rounded-full border border-border p-0.5">
+                    {(
+                      [
+                        [465, "465 — SSL/TLS"],
+                        [587, "587 — STARTTLS"],
+                      ] as [number, string][]
+                    ).map(([port, label]) => (
+                      <button
+                        key={port}
+                        type="button"
+                        onClick={() => setSmtpPort(port)}
+                        className={cn(
+                          "rounded-full px-3.5 py-1 text-xs font-medium transition-colors",
+                          smtpPort === port
+                            ? "bg-foreground text-background"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mot de passe d'application — write-only, comme la clé DeepL */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-[13px] font-medium">
+                      Mot de passe d'application
+                    </label>
+                    {smtpPassSet && (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <span className="size-1.5 rounded-full bg-emerald-500" />
+                        Mot de passe configuré
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    type="password"
+                    value={smtpPass}
+                    onChange={(event) => setSmtpPass(event.target.value)}
+                    placeholder={
+                      smtpPassSet
+                        ? "•••••••••••••••• (conserver le mot de passe actuel)"
+                        : "abcd efgh ijkl mnop (16 caractères, sans espaces)"
+                    }
+                    className="bg-background font-mono text-xs"
+                  />
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Gmail refuse votre mot de passe normal sur SMTP — générez un{" "}
+                    <a
+                      href="https://myaccount.google.com/apppasswords"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-(--studio-accent) hover:underline"
+                    >
+                      mot de passe d'application
+                    </a>{" "}
+                    (Validation en 2 étapes requise, 16 caractères — retirez les
+                    espaces). Le mot de passe n'est jamais renvoyé au navigateur
+                    : laissez le champ vide pour le conserver.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    onClick={() => void removeSmtpKey()}
-                    disabled={saving}
-                    className="rounded-full text-muted-foreground"
+                    onClick={() => void testEmail()}
+                    disabled={testing || saving}
+                    className="rounded-full"
                   >
-                    Retirer le mot de passe
+                    {testing ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Send className="size-4" />
+                    )}
+                    {testing ? "Envoi…" : "Envoyer un email de test"}
                   </Button>
-                )}
+                  {smtpPassSet && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void removeSmtpKey()}
+                      disabled={saving}
+                      className="rounded-full text-muted-foreground"
+                    >
+                      Retirer le mot de passe
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-      {deeplKeySet && (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void translateAll()}
-            disabled={translating || saving}
-            className="rounded-full"
-          >
-            {translating ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Languages className="size-4" />
             )}
-            {translating ? "Traduction…" : "Traduire tout le contenu"}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => void removeKey()}
-            disabled={saving}
-            className="rounded-full text-muted-foreground"
-          >
-            Retirer la clé
-          </Button>
+          </div>
         </div>
-      )}
+        {deeplKeySet && (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void translateAll()}
+              disabled={translating || saving}
+              className="rounded-full"
+            >
+              {translating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Languages className="size-4" />
+              )}
+              {translating ? "Traduction…" : "Traduire tout le contenu"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void removeKey()}
+              disabled={saving}
+              className="rounded-full text-muted-foreground"
+            >
+              Retirer la clé
+            </Button>
+          </div>
+        )}
       </div>
     </SectionEditor>
   );
@@ -1090,11 +1127,10 @@ export function AppearanceEditor({
 
   // Live preview: the selected preset's tokens (Studio by default), with the
   // accent — custom color included — applied on top.
-  const previewPreset =
-    findPreset(draft.value.themePreset) ?? THEME_PRESETS[0];
+  const previewPreset = findPreset(draft.value.themePreset) ?? THEME_PRESETS[0];
   const previewAccent = /^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor)
     ? draft.value.themeColor
-    : presetAccent(previewPreset)?.color ?? "#A85B32";
+    : (presetAccent(previewPreset)?.color ?? "#A85B32");
   const previewAccentDark = darkVariant(previewAccent);
 
   const save = async () => {
@@ -1170,9 +1206,7 @@ export function AppearanceEditor({
           <div className="space-y-6">
             <div className="space-y-2">
               <div>
-                <p className="text-[13px] font-medium">
-                  Ambiance par défaut
-                </p>
+                <p className="text-[13px] font-medium">Ambiance par défaut</p>
                 <p className="text-xs text-muted-foreground">
                   L'ambiance vue par les visiteurs à leur arrivée. Le visiteur
                   peut toujours basculer clair/sombre depuis l'en-tête du site.
@@ -1242,9 +1276,7 @@ export function AppearanceEditor({
 
             <div className="space-y-2">
               <div>
-                <p className="text-[13px] font-medium">
-                  Couleur personnalisée
-                </p>
+                <p className="text-[13px] font-medium">Couleur personnalisée</p>
                 <p className="text-xs text-muted-foreground">
                   Un réglage fin au-delà du thème — la famille de couleurs du
                   thème reste appliquée et une variante sombre est générée
@@ -1254,14 +1286,28 @@ export function AppearanceEditor({
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="color"
-                  value={/^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor) ? draft.value.themeColor : "#A85B32"}
-                  onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                  value={
+                    /^#[0-9a-fA-F]{6}$/.test(draft.value.themeColor)
+                      ? draft.value.themeColor
+                      : "#A85B32"
+                  }
+                  onChange={(event) =>
+                    draft.set({
+                      ...draft.value,
+                      themeColor: event.target.value,
+                    })
+                  }
                   className="h-10 w-16 cursor-pointer border border-border bg-background p-1"
                   title="Choisir une couleur"
                 />
                 <Input
                   value={draft.value.themeColor}
-                  onChange={(event) => draft.set({ ...draft.value, themeColor: event.target.value })}
+                  onChange={(event) =>
+                    draft.set({
+                      ...draft.value,
+                      themeColor: event.target.value,
+                    })
+                  }
                   placeholder="#A85B32"
                   className="w-32 bg-background font-mono text-xs"
                 />
@@ -1303,7 +1349,6 @@ export function SecurityEditor({
 
   useEffect(() => {
     // Sync the form field with the fetched account (before user interaction).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (account) setEmail(account.email);
   }, [account]);
 
@@ -1317,7 +1362,9 @@ export function SecurityEditor({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la mise à jour",
       );
     } finally {
       setSavingEmail(false);
@@ -1334,7 +1381,9 @@ export function SecurityEditor({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la mise à jour",
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la mise à jour",
       );
     } finally {
       setSavingPassword(false);
@@ -1395,7 +1444,9 @@ export function SecurityEditor({
     try {
       await seedDemo();
       setSeedOpen(false);
-      toast.success("Démo rechargée — le portfolio affiche le contenu d'exemple");
+      toast.success(
+        "Démo rechargée — le portfolio affiche le contenu d'exemple",
+      );
     } catch (error) {
       console.error(error);
       toast.error(
@@ -1426,7 +1477,9 @@ export function SecurityEditor({
             label="Mode maintenance"
             description="Masque le portfolio aux visiteurs (le tableau de bord reste accessible)"
             checked={draft.value.maintenanceMode}
-            onChange={(maintenanceMode) => draft.set({ ...draft.value, maintenanceMode })}
+            onChange={(maintenanceMode) =>
+              draft.set({ ...draft.value, maintenanceMode })
+            }
           />
         </FieldGroup>
 
@@ -1481,7 +1534,9 @@ export function SecurityEditor({
                 }
                 className="rounded-full"
               >
-                {savingEmail ? <Loader2 className="size-4 animate-spin" /> : null}
+                {savingEmail ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
                 Mettre à jour l'email
               </Button>
               <Button
@@ -1491,7 +1546,9 @@ export function SecurityEditor({
                 disabled={savingPassword || password.length < 8}
                 className="rounded-full"
               >
-                {savingPassword ? <Loader2 className="size-4 animate-spin" /> : null}
+                {savingPassword ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
                 Changer le mot de passe
               </Button>
             </div>
@@ -1546,8 +1603,9 @@ export function SecurityEditor({
                   </p>
                   <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
                     Remplace tout le contenu actuel par les données d'exemple
-                    (projets, articles, messages…). Le compte admin est conservé.
-                    Idéal pour revoir la démo après une restauration usine.
+                    (projets, articles, messages…). Le compte admin est
+                    conservé. Idéal pour revoir la démo après une restauration
+                    usine.
                   </p>
                 </div>
               </div>
@@ -1565,7 +1623,10 @@ export function SecurityEditor({
         </FieldGroup>
       </div>
 
-      <Dialog open={resetOpen} onOpenChange={(open) => !resetting && setResetOpen(open)}>
+      <Dialog
+        open={resetOpen}
+        onOpenChange={(open) => !resetting && setResetOpen(open)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Restauration usine</DialogTitle>
@@ -1594,7 +1655,10 @@ export function SecurityEditor({
               </p>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium" htmlFor="reset-confirm">
+              <label
+                className="text-[13px] font-medium"
+                htmlFor="reset-confirm"
+              >
                 Tapez RESTAURER pour confirmer
               </label>
               <Input
@@ -1640,7 +1704,10 @@ export function SecurityEditor({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={seedOpen} onOpenChange={(open) => !seeding && setSeedOpen(open)}>
+      <Dialog
+        open={seedOpen}
+        onOpenChange={(open) => !seeding && setSeedOpen(open)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Charger la démo</DialogTitle>
@@ -1651,7 +1718,9 @@ export function SecurityEditor({
           <div className="space-y-4">
             <div className="space-y-2 rounded-md border border-border bg-accent/40 p-4 text-xs leading-relaxed text-muted-foreground">
               <p>
-                <span className="font-medium text-foreground">Sera écrasé :</span>{" "}
+                <span className="font-medium text-foreground">
+                  Sera écrasé :
+                </span>{" "}
                 tout le contenu actuel (sections, projets, articles, messages,
                 statistiques) et les réglages.
               </p>
@@ -1768,12 +1837,24 @@ export function SiteEditor({
           description="Nom, slogan et texte de pied de page."
         >
           <div className="grid gap-5 sm:grid-cols-2">
-            <TextField label="Nom du site" value={draft.value.siteName} onChange={(siteName) => draft.set({ ...draft.value, siteName })} placeholder="Camille Roussel" />
-            <TextField label="Slogan" value={draft.value.tagline} onChange={(tagline) => draft.set({ ...draft.value, tagline })} placeholder="Designer produit & développeuse" />
+            <TextField
+              label="Nom du site"
+              value={draft.value.siteName}
+              onChange={(siteName) => draft.set({ ...draft.value, siteName })}
+              placeholder="Camille Roussel"
+            />
+            <TextField
+              label="Slogan"
+              value={draft.value.tagline}
+              onChange={(tagline) => draft.set({ ...draft.value, tagline })}
+              placeholder="Designer produit & développeuse"
+            />
             <TextAreaField
               label="Texte de pied de page"
               value={draft.value.footerText}
-              onChange={(footerText) => draft.set({ ...draft.value, footerText })}
+              onChange={(footerText) =>
+                draft.set({ ...draft.value, footerText })
+              }
               rows={3}
               className="sm:col-span-2"
             />
@@ -1799,7 +1880,9 @@ export function SiteEditor({
             <ImageField
               label="Favicon"
               value={draft.value.faviconUrl}
-              onChange={(faviconUrl) => draft.set({ ...draft.value, faviconUrl })}
+              onChange={(faviconUrl) =>
+                draft.set({ ...draft.value, faviconUrl })
+              }
               hint="L'icône de l'onglet du navigateur."
               guide={{
                 ratio: "carré",
@@ -1815,15 +1898,42 @@ export function SiteEditor({
           description="Titre, description et image de partage affichés par les moteurs de recherche et les réseaux sociaux."
         >
           <div className="space-y-4">
-            <TextField label="Titre de la page" value={settingsDraft.value.metaTitle} onChange={(metaTitle) => settingsDraft.set({ ...settingsDraft.value, metaTitle })} placeholder="Camille Roussel — Designer produit" />
-            <TextAreaField label="Description" value={settingsDraft.value.metaDescription} onChange={(metaDescription) => settingsDraft.set({ ...settingsDraft.value, metaDescription })} rows={3} />
+            <TextField
+              label="Titre de la page"
+              value={settingsDraft.value.metaTitle}
+              onChange={(metaTitle) =>
+                settingsDraft.set({ ...settingsDraft.value, metaTitle })
+              }
+              placeholder="Camille Roussel — Designer produit"
+            />
+            <TextAreaField
+              label="Description"
+              value={settingsDraft.value.metaDescription}
+              onChange={(metaDescription) =>
+                settingsDraft.set({ ...settingsDraft.value, metaDescription })
+              }
+              rows={3}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              <TextField label="Auteur" value={settingsDraft.value.metaAuthor} onChange={(metaAuthor) => settingsDraft.set({ ...settingsDraft.value, metaAuthor })} placeholder="Camille Roussel" />
+              <TextField
+                label="Auteur"
+                value={settingsDraft.value.metaAuthor}
+                onChange={(metaAuthor) =>
+                  settingsDraft.set({ ...settingsDraft.value, metaAuthor })
+                }
+                placeholder="Camille Roussel"
+              />
               <ImageField
                 label="Image de partage"
                 value={settingsDraft.value.metaImage}
-                onChange={(metaImage) => settingsDraft.set({ ...settingsDraft.value, metaImage })}
-                guide={{ ratio: "1.91:1", formats: "JPG, PNG", size: "1200 × 630 px" }}
+                onChange={(metaImage) =>
+                  settingsDraft.set({ ...settingsDraft.value, metaImage })
+                }
+                guide={{
+                  ratio: "1.91:1",
+                  formats: "JPG, PNG",
+                  size: "1200 × 630 px",
+                }}
               />
             </div>
           </div>
@@ -1837,14 +1947,18 @@ export function SiteEditor({
             <TextAreaField
               label="Script d'en-tête (dans <head>)"
               value={settingsDraft.value.scriptHeader}
-              onChange={(scriptHeader) => settingsDraft.set({ ...settingsDraft.value, scriptHeader })}
+              onChange={(scriptHeader) =>
+                settingsDraft.set({ ...settingsDraft.value, scriptHeader })
+              }
               rows={4}
               hint="HTML/JS injecté tel quel dans le <head> du site public."
             />
             <TextAreaField
               label="Script de pied de page"
               value={settingsDraft.value.scriptFooter}
-              onChange={(scriptFooter) => settingsDraft.set({ ...settingsDraft.value, scriptFooter })}
+              onChange={(scriptFooter) =>
+                settingsDraft.set({ ...settingsDraft.value, scriptFooter })
+              }
               rows={4}
               hint="HTML/JS injecté tel quel avant la fermeture du <body>."
             />
@@ -1883,7 +1997,11 @@ export function SiteEditor({
 // Config — portfolio rendering (Ezfolio "Config")
 // ---------------------------------------------------------------------------
 
-export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | undefined }) {
+export function ConfigEditor({
+  settings,
+}: {
+  settings: Doc<"settings"> | null | undefined;
+}) {
   const updateSettings = useAction(api.translate.updateSettings);
   const [saving, setSaving] = useState(false);
   const draft = useSectionDraft(settings, EMPTY_SETTINGS);
@@ -2011,7 +2129,9 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-foreground">Services</p>
-                <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+                <p className="text-xs text-muted-foreground">
+                  Liste ou vignettes
+                </p>
               </div>
               <LayoutPicker
                 value={draft.value.servicesLayout ?? "cards"}
@@ -2025,7 +2145,9 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
                 <p className="text-sm font-medium text-foreground">
                   Centres d'intérêt
                 </p>
-                <p className="text-xs text-muted-foreground">Liste ou vignettes</p>
+                <p className="text-xs text-muted-foreground">
+                  Liste ou vignettes
+                </p>
               </div>
               <LayoutPicker
                 value={draft.value.interestsLayout ?? "cards"}
@@ -2050,7 +2172,9 @@ export function ConfigEditor({ settings }: { settings: Doc<"settings"> | null | 
             </div>
             <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3">
               <div>
-                <p className="text-sm font-medium text-foreground">Compétences</p>
+                <p className="text-sm font-medium text-foreground">
+                  Compétences
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Liste ou vignettes (niveau en points)
                 </p>

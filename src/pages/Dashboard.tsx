@@ -68,11 +68,21 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { id: "overview", label: "Vue d'ensemble", icon: Home },
-  { id: "config", label: "Config", icon: SlidersHorizontal, group: "Portfolio" },
+  {
+    id: "config",
+    label: "Config",
+    icon: SlidersHorizontal,
+    group: "Portfolio",
+  },
   { id: "about", label: "À propos", icon: Info, group: "Portfolio" },
   { id: "skills", label: "Compétences", icon: TrendingUp, group: "Portfolio" },
   { id: "languages", label: "Langues", icon: Languages, group: "Portfolio" },
-  { id: "interests", label: "Centres d'intérêt", icon: Sparkles, group: "Portfolio" },
+  {
+    id: "interests",
+    label: "Centres d'intérêt",
+    icon: Sparkles,
+    group: "Portfolio",
+  },
   { id: "services", label: "Services", icon: Layers, group: "Portfolio" },
   { id: "resume", label: "Parcours", icon: Briefcase, group: "Portfolio" },
   { id: "portfolio", label: "Projets", icon: FolderOpen, group: "Portfolio" },
@@ -85,7 +95,9 @@ const NAV: NavItem[] = [
   { id: "security", label: "Sécurité du compte", icon: ShieldCheck },
 ];
 
-const GROUPS = Array.from(new Set(NAV.map((item) => item.group).filter(Boolean))) as string[];
+const GROUPS = Array.from(
+  new Set(NAV.map((item) => item.group).filter(Boolean)),
+) as string[];
 
 const NavButton = memo(function NavButton({
   item,
@@ -116,7 +128,9 @@ const NavButton = memo(function NavButton({
         <span
           className={cn(
             "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold",
-            active ? "bg-background text-foreground" : "bg-(--studio-accent) text-white",
+            active
+              ? "bg-background text-foreground"
+              : "bg-(--studio-accent) text-white",
           )}
         >
           {badge}
@@ -153,43 +167,54 @@ const StatCard = memo(function StatCard({
 const Overview = memo(function Overview() {
   const stats = useQuery(api.site.getStats);
 
-  const trendMax = useMemo(() => Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1])), [stats]);
-
-  const deviceTotal = useMemo(() =>
-    (stats?.visitors.devices.mobile ?? 0) +
-    (stats?.visitors.devices.desktop ?? 0) +
-    (stats?.visitors.devices.other ?? 0),
-    [stats?.visitors.devices.mobile, stats?.visitors.devices.desktop, stats?.visitors.devices.other],
+  const trendMax = useMemo(
+    () => Math.max(1, ...(stats?.visitors.trend.map((t) => t.count) ?? [1])),
+    [stats],
   );
 
-  const deviceRows = useMemo(() => [
-    { key: "mobile" as const, label: "Mobile" },
-    { key: "desktop" as const, label: "Ordinateur" },
-    { key: "other" as const, label: "Autre" },
-  ].map((row) => {
-    const count = stats?.visitors.devices[row.key] ?? 0;
-    return {
-      ...row,
-      count,
-      pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
-    };
-  }), [stats, deviceTotal]);
+  const deviceTotal = useMemo(
+    () =>
+      (stats?.visitors.devices.mobile ?? 0) +
+      (stats?.visitors.devices.desktop ?? 0) +
+      (stats?.visitors.devices.other ?? 0),
+    [
+      stats?.visitors.devices.mobile,
+      stats?.visitors.devices.desktop,
+      stats?.visitors.devices.other,
+    ],
+  );
+
+  const deviceRows = useMemo(
+    () =>
+      [
+        { key: "mobile" as const, label: "Mobile" },
+        { key: "desktop" as const, label: "Ordinateur" },
+        { key: "other" as const, label: "Autre" },
+      ].map((row) => {
+        const count = stats?.visitors.devices[row.key] ?? 0;
+        return {
+          ...row,
+          count,
+          pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
+        };
+      }),
+    [stats, deviceTotal],
+  );
 
   const browserTotal =
-    stats?.visitors.browsers.reduce((sum, browser) => sum + browser.count, 0) ?? 0;
+    stats?.visitors.browsers.reduce((sum, browser) => sum + browser.count, 0) ??
+    0;
   const hourMax = Math.max(1, ...(stats?.visitors.hours ?? []));
-  const hasHours = stats ? stats.visitors.hours.some((count) => count > 0) : false;
+  const hasHours = stats
+    ? stats.visitors.hours.some((count) => count > 0)
+    : false;
   const peakHour = stats
     ? stats.visitors.hours.indexOf(Math.max(...stats.visitors.hours))
     : -1;
-  const returnTotal =
-    (stats?.visitors.returning.new ?? 0) + (stats?.visitors.returning.returning ?? 0);
-  const returnNewPct = useMemo(() =>
-    returnTotal > 0
-      ? Math.round(((stats?.visitors.returning.new ?? 0) / returnTotal) * 100)
-      : 0,
-    [returnTotal, stats?.visitors.returning.new],
-  );
+  const returnNew = stats?.visitors.returning.new ?? 0;
+  const returnTotal = returnNew + (stats?.visitors.returning.returning ?? 0);
+  const returnNewPct =
+    returnTotal > 0 ? Math.round((returnNew / returnTotal) * 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -206,11 +231,31 @@ const Overview = memo(function Overview() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard icon={TrendingUp} label="Compétences" value={stats?.content.skills} />
-        <StatCard icon={GraduationCap} label="Formations" value={stats?.content.educations} />
-        <StatCard icon={Briefcase} label="Expériences" value={stats?.content.experiences} />
-        <StatCard icon={FolderOpen} label="Projets" value={stats?.content.projects} />
-        <StatCard icon={Wrench} label="Services" value={stats?.content.services} />
+        <StatCard
+          icon={TrendingUp}
+          label="Compétences"
+          value={stats?.content.skills}
+        />
+        <StatCard
+          icon={GraduationCap}
+          label="Formations"
+          value={stats?.content.educations}
+        />
+        <StatCard
+          icon={Briefcase}
+          label="Expériences"
+          value={stats?.content.experiences}
+        />
+        <StatCard
+          icon={FolderOpen}
+          label="Projets"
+          value={stats?.content.projects}
+        />
+        <StatCard
+          icon={Wrench}
+          label="Services"
+          value={stats?.content.services}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -229,23 +274,36 @@ const Overview = memo(function Overview() {
                 <p className="font-display text-xl font-light tracking-tight">
                   {stat.value ?? "—"}
                 </p>
-                <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
           {stats && (
             <div className="mt-4 grid grid-cols-4 gap-2 border-t border-border/60 pt-3 text-center">
               {[
-                { label: "Uniques · mois", value: stats.visitors.unique.thisMonth },
-                { label: "Uniques · sem.", value: stats.visitors.unique.thisWeek },
+                {
+                  label: "Uniques · mois",
+                  value: stats.visitors.unique.thisMonth,
+                },
+                {
+                  label: "Uniques · sem.",
+                  value: stats.visitors.unique.thisWeek,
+                },
                 { label: "Uniques · jour", value: stats.visitors.unique.today },
-                { label: "Uniques · total", value: stats.visitors.unique.total },
+                {
+                  label: "Uniques · total",
+                  value: stats.visitors.unique.total,
+                },
               ].map((stat) => (
                 <div key={stat.label}>
                   <p className="font-display text-xl font-light tracking-tight">
                     {stat.value ?? "—"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -257,7 +315,10 @@ const Overview = memo(function Overview() {
               </p>
               <div className="flex h-20 items-end gap-1.5">
                 {stats.visitors.trend.map((day) => (
-                  <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
+                  <div
+                    key={day.date}
+                    className="flex flex-1 flex-col items-center gap-1"
+                  >
                     <div
                       className="w-full bg-(--studio-accent)/70"
                       style={{
@@ -265,7 +326,9 @@ const Overview = memo(function Overview() {
                       }}
                       title={`${day.date} : ${day.count}`}
                     />
-                    <span className="text-[9px] text-muted-foreground">{day.date.slice(5)}</span>
+                    <span className="text-[9px] text-muted-foreground">
+                      {day.date.slice(5)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -288,7 +351,9 @@ const Overview = memo(function Overview() {
                 <p className="font-display text-xl font-light tracking-tight">
                   {stat.value ?? "—"}
                 </p>
-                <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
@@ -304,19 +369,23 @@ const Overview = memo(function Overview() {
                 <p className="font-display text-xl font-light tracking-tight">
                   {stats.conversion.visitors}
                 </p>
-                <p className="text-[11px] text-muted-foreground">Visiteurs uniques</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Visiteurs uniques
+                </p>
               </div>
               <div>
                 <p className="font-display text-xl font-light tracking-tight">
                   {stats.conversion.rate} %
                 </p>
-                <p className="text-[11px] text-muted-foreground">Taux de contact</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Taux de contact
+                </p>
               </div>
             </div>
           )}
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            Les demandes arrivent ici depuis le formulaire de contact. Pensez à les marquer
-            comme traitées dans la boîte de réception.
+            Les demandes arrivent ici depuis le formulaire de contact. Pensez à
+            les marquer comme traitées dans la boîte de réception.
           </p>
         </div>
       </div>
@@ -331,7 +400,8 @@ const Overview = memo(function Overview() {
               Activité du portfolio
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              90 derniers jours — Google Analytics conserve l'historique complet en parallèle.
+              90 derniers jours — Google Analytics conserve l'historique complet
+              en parallèle.
             </p>
           </div>
 
@@ -341,13 +411,17 @@ const Overview = memo(function Overview() {
                 Appareils
               </p>
               {deviceTotal === 0 ? (
-                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Pas encore de données.
+                </p>
               ) : (
                 <div className="mt-4 space-y-3">
                   {deviceRows.map((row) => (
                     <div key={row.label}>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{row.label}</span>
+                        <span className="text-muted-foreground">
+                          {row.label}
+                        </span>
                         <span className="font-medium text-foreground">
                           {row.count} · {row.pct} %
                         </span>
@@ -369,7 +443,9 @@ const Overview = memo(function Overview() {
                 Navigateurs
               </p>
               {browserTotal === 0 ? (
-                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Pas encore de données.
+                </p>
               ) : (
                 <>
                   <div className="mt-4 space-y-2">
@@ -378,8 +454,12 @@ const Overview = memo(function Overview() {
                         key={browser.key}
                         className="flex items-center justify-between gap-3 text-xs"
                       >
-                        <span className="truncate text-muted-foreground">{browser.key}</span>
-                        <span className="font-medium text-foreground">{browser.count}</span>
+                        <span className="truncate text-muted-foreground">
+                          {browser.key}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {browser.count}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -395,7 +475,9 @@ const Overview = memo(function Overview() {
                 Nouveaux vs retours
               </p>
               {returnTotal === 0 ? (
-                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Pas encore de données.
+                </p>
               ) : (
                 <>
                   <div className="mt-4 flex h-2 w-full overflow-hidden bg-muted/60">
@@ -410,10 +492,12 @@ const Overview = memo(function Overview() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
-                      Nouveaux · {stats.visitors.returning.new} ({returnNewPct} %)
+                      Nouveaux · {stats.visitors.returning.new} ({returnNewPct}{" "}
+                      %)
                     </span>
                     <span className="text-muted-foreground">
-                      Retours · {stats.visitors.returning.returning} ({100 - returnNewPct} %)
+                      Retours · {stats.visitors.returning.returning} (
+                      {100 - returnNewPct} %)
                     </span>
                   </div>
                   <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
@@ -428,7 +512,9 @@ const Overview = memo(function Overview() {
                 Heures de pointe
               </p>
               {!hasHours ? (
-                <p className="mt-4 text-sm text-muted-foreground">Pas encore de données.</p>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Pas encore de données.
+                </p>
               ) : (
                 <>
                   <div className="mt-4 flex h-20 items-end gap-[3px]">
@@ -473,8 +559,15 @@ export default function Dashboard() {
   const translateAllContent = useAction(api.translate.translateAllContent);
   const [active, setActive] = useState<string>("overview");
   const [autoTranslateRan, setAutoTranslateRan] = useState(false);
-  const [dismissCredentialsBanner, setDismissCredentialsBanner] = useState(false);
-  const [showWizard, setShowWizard] = useState(false);
+  const [dismissCredentialsBanner, setDismissCredentialsBanner] =
+    useState(false);
+  const [wizardState, setWizardState] = useState<{
+    initial: boolean;
+    dismissed: boolean;
+  }>({
+    initial: false,
+    dismissed: false,
+  });
 
   useEffect(() => {
     void ensureSeed();
@@ -498,7 +591,9 @@ export default function Dashboard() {
       data.languages,
       data.interests,
     ];
-    const fullyTranslated = contentSections.every((section) => section && section.en);
+    const fullyTranslated = contentSections.every(
+      (section) => section && section.en,
+    );
     if (fullyTranslated) return;
     // Intentional one-time guard: mark the auto-translate as started so the
     // effect never re-runs on every data update.
@@ -508,7 +603,9 @@ export default function Dashboard() {
       try {
         const results = await translateAllContent();
         const ok = Object.values(results).filter((r) => r === "ok").length;
-        const failed = Object.values(results).filter((r) => r === "failed").length;
+        const failed = Object.values(results).filter(
+          (r) => r === "failed",
+        ).length;
         if (failed > 0) {
           toast.error(
             `${ok} section(s) traduite(s), ${failed} en échec — vérifiez votre clé DeepL dans le menu Intégrations.`,
@@ -537,14 +634,15 @@ export default function Dashboard() {
     applyFavicon(data?.site?.faviconUrl);
   }, [data?.site?.faviconUrl]);
 
-  // Auto-show the setup wizard on first login (wizardCompleted absent/false)
-  useEffect(() => {
-    if (data && data.settings && data.settings.wizardCompleted !== true) {
-      setShowWizard(true);
+  // Auto-show the setup wizard on first login (wizardCompleted absent/false) —
+  // state derived from server data during render (documented React pattern),
+  // no effect needed. `dismissed` keeps it closed once completed.
+  if (data && data.settings && data.settings.wizardCompleted !== true) {
+    if (!wizardState.initial) {
+      setWizardState((s) => ({ ...s, initial: true }));
     }
-  }, [data]);
-
-
+  }
+  const showWizard = wizardState.initial && !wizardState.dismissed;
 
   const handleSignOut = async () => {
     // Sign out first, then leave with a real page load: any SPA navigation
@@ -783,37 +881,41 @@ export default function Dashboard() {
           tabIndex={-1}
           className="mx-auto w-full max-w-4xl px-5 py-8 outline-none sm:px-8 lg:py-10"
         >
-          {user && user.credentialsChanged !== true && !dismissCredentialsBanner && (
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border bg-card px-4 py-3">
-              <div className="flex items-center gap-3">
-                <ShieldAlert className="size-4 shrink-0 text-(--studio-accent)" />
-                <p className="text-[13px] text-muted-foreground">
-                  Vous utilisez encore les identifiants par défaut (
-                  <span className="font-medium text-foreground">admin@admin.com</span>
-                  ), connus publiquement. Changez-les dès maintenant.
-                </p>
+          {user &&
+            user.credentialsChanged !== true &&
+            !dismissCredentialsBanner && (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border bg-card px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="size-4 shrink-0 text-(--studio-accent)" />
+                  <p className="text-[13px] text-muted-foreground">
+                    Vous utilisez encore les identifiants par défaut (
+                    <span className="font-medium text-foreground">
+                      admin@admin.com
+                    </span>
+                    ), connus publiquement. Changez-les dès maintenant.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setActive("security")}
+                    className="rounded-full"
+                  >
+                    Changer maintenant
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Fermer"
+                    onClick={() => setDismissCredentialsBanner(true)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => setActive("security")}
-                  className="rounded-full"
-                >
-                  Changer maintenant
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  title="Fermer"
-                  onClick={() => setDismissCredentialsBanner(true)}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
           {activeItem?.group && (
             <p className="mb-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground lg:hidden">
               {activeItem.group} — {activeLabel}
@@ -825,7 +927,9 @@ export default function Dashboard() {
 
       {/* Setup wizard — first-time onboarding overlay */}
       {showWizard && (
-        <SetupWizard onComplete={() => setShowWizard(false)} />
+        <SetupWizard
+          onComplete={() => setWizardState((s) => ({ ...s, dismissed: true }))}
+        />
       )}
     </div>
   );

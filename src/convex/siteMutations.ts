@@ -216,7 +216,10 @@ export const setupWizardData = mutation({
     taglines: v.array(v.string()),
     themePreset: v.optional(v.string()),
   }),
-  handler: async (ctx, { name, email, phone, address, taglines, themePreset }) => {
+  handler: async (
+    ctx,
+    { name, email, phone, address, taglines, themePreset },
+  ) => {
     const owner = await getCurrentAdmin(ctx);
     if (!owner) throw new Error("Réservé au propriétaire");
 
@@ -365,7 +368,10 @@ export const addMessage = mutation({
     // Visitor fingerprint (localStorage id) for the per-visitor rate limit.
     visitorId: v.optional(v.string()),
   }),
-  handler: async (ctx, { name, email, subject, message, honeypot, visitorId }) => {
+  handler: async (
+    ctx,
+    { name, email, subject, message, honeypot, visitorId },
+  ) => {
     // Honeypot: silently drop bot submissions (no insert, no notification).
     if (honeypot && honeypot.trim() !== "") {
       return;
@@ -407,35 +413,33 @@ export const addMessage = mutation({
       visitorId: vId,
     });
 
-    // Email the owner in the background through the built-in gateway. The
+    // Email the owner in the background through SMTP when configured. The
     // destination is read from the settings doc (notificationEmail, falling
     // back to the contact email) and passed to the action, which runs
     // unauthenticated and therefore can't read the owner-only tables itself.
     // The owner can switch the email off entirely (contactNotifications=false)
-    // for portability — the message is still stored in the inbox.
+    // — the message is still stored in the inbox.
     const settings = await ctx.db.query("settings").first();
     const about = await ctx.db.query("about").first();
     const to = settings?.notificationEmail?.trim() || about?.email?.trim();
     if (settings?.contactNotifications !== false && to) {
       // SMTP (Gmail app password) when enabled and configured — passed as an
       // argument because the scheduled action runs unauthenticated.
-      const smtp = settings?.smtpEnabled &&
-        settings.smtpUser?.trim() &&
-        settings.smtpPass
-        ? {
-            host: settings.smtpHost?.trim() || "smtp.gmail.com",
-            port: settings.smtpPort ?? 465,
-            secure: settings.smtpSecure !== false,
-            user: settings.smtpUser.trim(),
-            pass: settings.smtpPass,
-          }
-        : undefined;
+      const smtp =
+        settings?.smtpEnabled && settings.smtpUser?.trim() && settings.smtpPass
+          ? {
+              host: settings.smtpHost?.trim() || "smtp.gmail.com",
+              port: settings.smtpPort ?? 465,
+              secure: settings.smtpSecure !== false,
+              user: settings.smtpUser.trim(),
+              pass: settings.smtpPass,
+            }
+          : undefined;
       await ctx.scheduler.runAfter(0, api.notify.sendContactEmail, {
         to,
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
-        message: message.trim(),
         smtp,
       });
     }
@@ -482,11 +486,15 @@ export const trackVisit = mutation({
 
     // Per-visitor throttle: at most 30 events per trackingId per minute. The
     // trackingId is client-generated (rotatable), so this is best-effort.
+    // Served by the (trackingId, createdAt) index — O(log n), independent of
+    // table size (an unindexed scan here was O(table) on every visit).
     const now = Date.now();
-    const recent = await ctx.db.query("visitors").order("desc").take(200);
-    const recentFromId = recent.filter(
-      (v) => v.trackingId === tId && v.createdAt > now - 60 * 1000,
-    );
+    const recentFromId = await ctx.db
+      .query("visitors")
+      .withIndex("by_trackingId_createdAt", (q) =>
+        q.eq("trackingId", tId).gt("createdAt", now - 60 * 1000),
+      )
+      .collect();
     if (recentFromId.length >= 30) return;
 
     await ctx.db.insert("visitors", {

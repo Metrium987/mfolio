@@ -122,6 +122,8 @@ export function Portfolio({
                                 project.title,
                                 portfolio.en?.projects?.[index]?.title,
                               )}
+                              width={1200}
+                              height={900}
                               loading="lazy"
                               decoding="async"
                               className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -202,6 +204,8 @@ export function Portfolio({
                                 project.title,
                                 portfolio.en?.projects?.[index]?.title,
                               )}
+                              width={1200}
+                              height={900}
                               loading="lazy"
                               decoding="async"
                               className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -273,12 +277,11 @@ export function Portfolio({
             <ProjectGallery
               images={[
                 openProject.thumbnail,
-                ...openProject.images.filter((image) => image !== openProject.thumbnail),
+                ...openProject.images.filter(
+                  (image) => image !== openProject.thumbnail,
+                ),
               ].filter(Boolean)}
-              title={pick(
-                openProject.title,
-                openProjectEn?.title,
-              )}
+              title={pick(openProject.title, openProjectEn?.title)}
             />
           )}
           {openProject && (
@@ -287,10 +290,7 @@ export function Portfolio({
                 <p className="text-xs uppercase tracking-[0.2em] text-(--studio-accent)">
                   {openProject.categories
                     .map((category, catIndex) =>
-                      pick(
-                        category,
-                        openProjectEn?.categories?.[catIndex],
-                      ),
+                      pick(category, openProjectEn?.categories?.[catIndex]),
                     )
                     .filter(Boolean)
                     .join(" · ") || t("portfolio.project")}
@@ -348,9 +348,18 @@ export function Portfolio({
 }
 
 /** Simple gallery: main image + clickable thumbnails. */
-function ProjectGallery({ images, title }: { images: string[]; title: string }) {
+function ProjectGallery({
+  images,
+  title,
+}: {
+  images: string[];
+  title: string;
+}) {
   const [current, setCurrent] = useState(0);
-  const safeIndex = Math.min(Math.max(current, 0), Math.max(images.length - 1, 0));
+  const safeIndex = Math.min(
+    Math.max(current, 0),
+    Math.max(images.length - 1, 0),
+  );
   const currentImage = images[safeIndex] ?? "";
 
   if (!currentImage) return null;
@@ -361,6 +370,8 @@ function ProjectGallery({ images, title }: { images: string[]; title: string }) 
         <img
           src={currentImage}
           alt={title}
+          width={1200}
+          height={750}
           className="aspect-[16/10] w-full object-cover"
         />
       </figure>
@@ -379,11 +390,7 @@ function ProjectGallery({ images, title }: { images: string[]; title: string }) 
                   : "border-border opacity-60 hover:opacity-100",
               )}
             >
-              <img
-                src={image}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <img src={image} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

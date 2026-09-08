@@ -1,8 +1,8 @@
 import path from "path";
 import { defineConfig } from "vitest/config";
 
-// Isolated test config: deliberately does NOT extend vite.config.ts (which
-// loads the platform's vlyPlugin), so unit tests run in plain node.
+// Isolated test config: deliberately does NOT extend vite.config.ts, so unit
+// tests run in plain node with no Vite plugins involved.
 export default defineConfig({
   resolve: {
     alias: {

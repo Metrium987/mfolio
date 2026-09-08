@@ -228,15 +228,14 @@ export const settingsValidator = v.object({
   deeplApiKey: v.string(),
   // Destination of the contact-form notification email.
   notificationEmail: v.optional(v.string()),
-  // Email channels the owner can toggle off (portability: the built-in email
-  // relay is platform-specific, so these can be switched off when the app is
-  // deployed elsewhere). Absent = enabled, for backward compatibility.
+  // Email channels the owner can toggle off. Absent = enabled, for backward
+  // compatibility.
   contactNotifications: v.optional(v.boolean()),
-  // SMTP for the contact notification — Gmail by default (app password). The
-  // portable alternative to the platform email relay: when enabled with a
-  // user + app password set, notifications are sent via nodemailer instead of
-  // the relay. smtpPass is write-only, like deeplApiKey. Runtime defaults
-  // (host smtp.gmail.com, port 465, SSL) live in the seed and the editor.
+  // SMTP for the contact notification — Gmail by default (app password).
+  // The only email channel: when enabled with a user + app password set,
+  // notifications are sent via nodemailer. smtpPass is write-only, like
+  // deeplApiKey. Runtime defaults (host smtp.gmail.com, port 465, SSL) live
+  // in the seed and the editor.
   smtpEnabled: v.optional(v.boolean()),
   smtpHost: v.optional(v.string()),
   smtpPort: v.optional(v.number()),
@@ -404,7 +403,9 @@ const schema = defineSchema(
       "visitorId",
       "createdAt",
     ]),
-    visitors: defineTable(visitorValidator).index("by_createdAt", ["createdAt"]),
+    visitors: defineTable(visitorValidator)
+      .index("by_createdAt", ["createdAt"])
+      .index("by_trackingId_createdAt", ["trackingId", "createdAt"]),
   },
   {
     schemaValidation: false,

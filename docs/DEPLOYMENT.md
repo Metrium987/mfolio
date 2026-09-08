@@ -1,193 +1,199 @@
 # Guide de déploiement — Mfolio
 
-Mfolio a été conçu à l'origine sur **Freebuff Web** (ex-vly.ai) : l'environnement hébergé, le déploiement Convex et le relais email sont fournis par la plateforme. Ce guide couvre :
+Mfolio est une application **Vite + Convex** standard : le backend (données,
+auth, email, stats) tourne sur Convex Cloud ; le frontend (site public +
+tableau de bord) est un build statique `dist/` hébergé sur **Vercel** (ou tout
+autre hébergeur statique). Ce guide couvre :
 
-1. [Déployer sur Freebuff Web](#1-déployer-sur-freebuff-web) — rien à faire
-2. [Déployer ailleurs (Vercel, Netlify, etc.)](#2-déployer-ailleurs) — étape par étape
-3. [Les canaux email en détail](#3-les-canaux-email-en-détail) — désactiver ou rebrancher
-4. [FAQ](#4-faq)
-
----
-
-## 1. Déployer sur Freebuff Web
-
-Rien à faire. Sur cette plateforme :
-
-- L'environnement de développement et le build sont gérés automatiquement.
-- Le déploiement Convex est provisionné et les types générés à chaque modification.
-- Le **relais email** (`src/convex/emailRelay.ts`) fonctionne sans aucune clé : la notification de contact part via `auth.freebuff.app/send_otp` (l'ancien canal OTP a été supprimé).
-
-Seules choses à faire dans l'application après la première connexion (`admin@admin.com` / `admin123`) :
-
-1. **Sécurité du compte** (menu du tableau de bord) : changer email + mot de passe.
-2. **Intégrations** : saisir votre clé DeepL (traduction FR→EN) et votre ID Google Analytics.
-3. **Intégrations** (menu du tableau de bord) : renseigner l'« Email de notification » (sinon l'email de contact de la section À propos est utilisé).
+1. [Déployer sur Vercel](#1-déployer-sur-vercel) — voie recommandée
+2. [Développement local](#2-développement-local)
+3. [L'email de notification en détail](#3-lemail-de-notification-en-détail)
+4. [Migration depuis un ancien déploiement](#4-migration-depuis-un-ancien-déploiement)
+5. [FAQ](#5-faq)
 
 ---
 
-## 2. Déployer ailleurs
+## 1. Déployer sur Vercel
 
-Mfolio est une application **Vite + Convex** standard. Le backend (données, auth, email, stats) tourne sur Convex ; le frontend (le site public + le tableau de bord) peut être hébergé n'importe où : Vercel, Netlify, Cloudflare Pages, un serveur…
+Le dépôt embarque un [`vercel.json`](../vercel.json) qui configure tout :
 
-### 2.1 Prérequis
+- **Commande de build** : `bunx convex deploy --cmd 'bun run build'` — pousse
+  les fonctions Convex sur le déploiement de production **puis** construit le
+  frontend avec `VITE_CONVEX_URL` correctement injectée.
+- **Répertoire de sortie** : `dist/`.
+- **Rewrite SPA** : tous les chemins servent `index.html` (les fichiers
+  statiques comme `robots.txt` et `sitemap.xml` restent servis en priorité) —
+  les liens profonds `/auth` et `/dashboard` fonctionnent donc au rafraîchissement.
 
-- Bun ≥ 1.x (ou Node.js ≥ 20)
-- Un compte [Convex](https://convex.dev) gratuit
-- Un hébergeur frontend (Vercel, Netlify, …) — le build est statique (`dist/`)
-- *Si vous gardez l'email :* un compte auprès d'un fournisseur d'email transactionnel (Resend, SendGrid, Brevo…)
+### Étapes
 
-### 2.2 Backend (Convex)
+1. **Poussez le dépôt sur GitHub** (ou GitLab/Bitbucket).
+
+2. **Créez le projet Vercel** — [vercel.com/new](https://vercel.com/new),
+   importez le repo. Le `vercel.json` est détecté automatiquement.
+
+3. **Provisionnez le backend Convex**, au choix :
+   - **Marketplace Vercel (le plus simple)** : installez
+     [Convex depuis le Marketplace](https://vercel.com/marketplace/convex)
+     depuis la page du projet — il crée le déploiement Convex, le rattache à
+     votre équipe et branche les variables d'environnement.
+   - **Manuel** : créez le déploiement sur
+     [dashboard.convex.dev](https://dashboard.convex.dev) (bouton _Create
+     app_ → déployez les fonctions une première fois en local avec
+     `bunx convex dev`, ou via le dashboard). Puis dans _Deployment Settings →
+     General_, cliquez **Generate Production Deploy Key** (avec la permission
+     `deployment:deploy`) et ajoutez la clé dans Vercel → _Settings →
+     Environment Variables_ :
+
+     | Variable            | Environnements                                      |
+     | ------------------- | --------------------------------------------------- |
+     | `CONVEX_DEPLOY_KEY` | Production (et Preview si vous voulez des previews) |
+
+4. **Pointez l'auth vers votre URL finale** — Convex Auth valide l'émetteur
+   des JWT de session contre `CONVEX_SITE_URL` :
+
+   ```bash
+   bunx convex env set CONVEX_SITE_URL https://votre-projet.vercel.app
+   ```
+
+   Utilisez directement votre **domaine personnalisé définitif** si vous en
+   avez un (le changer plus tard implique de relancer cette commande).
+   Les clés `JWKS` / `JWT_PRIVATE_KEY` sont provisionnées automatiquement par
+   Convex Auth à la première utilisation.
+
+5. **Déployez** (premier push, ou bouton _Deploy_). `bunx convex deploy`
+   lit `CONVEX_DEPLOY_KEY`, pousse les fonctions, puis `bun run build`
+   construit le site. Le premier chargement de la page génère le contenu
+   d'exemple.
+
+6. **Première connexion** : `/auth` avec `admin@admin.com` / `admin123` —
+   **changez immédiatement** email + mot de passe (**Sécurité du compte**),
+   puis configurez l'email et les intégrations (DeepL, Google Analytics).
+
+Chaque push sur le repo redéploie automatiquement les fonctions Convex et le
+frontend.
+
+### Previews Vercel (optionnel)
+
+Pour que chaque pull request obtienne son propre backend Convex jetable :
+générez une **Preview Deploy Key** sur le dashboard Convex (même page que la
+clé de production) et ajoutez-la comme `CONVEX_DEPLOY_KEY` dans l'environnement
+**Preview** de Vercel. Voir
+[Convex preview deployments](https://docs.convex.dev/production/hosting/preview-deployments).
+
+---
+
+## 2. Développement local
 
 ```bash
 git clone <votre-repo> && cd mfolio
 bun install
-bunx convex dev        # crée le projet Convex, déploie les fonctions, génère les types
-```
-
-Le CLI affiche l'URL de votre déploiement (ex. `https://joyous-otter-123.convex.cloud`).
-
-Dans le **dashboard Convex → Settings → Environment Variables**, renseignez :
-
-| Variable | Valeur | Rôle |
-|---|---|---|
-| `SITE_URL` | `https://votre-domaine.com` (en dev : `http://localhost:5173`) | Origine de redirection de l'auth |
-| `JWKS` | générée par Convex Auth | Signature des sessions |
-| `JWT_PRIVATE_KEY` | générée par Convex Auth | Signature des sessions |
-
-> Les clés `JWKS` / `JWT_PRIVATE_KEY` sont provisionnées automatiquement par Convex Auth au premier lancement. Si vous réutilisez un déploiement Convex existant (pour conserver votre contenu), elles sont déjà en place — il suffit de vérifier `SITE_URL`.
-
-### 2.3 Frontend
-
-Dans votre hébergeur :
-
-| Réglage | Valeur |
-|---|---|
-| Build command | `bun run build` (ou `npm run build`) |
-| Output directory | `dist` |
-| Env variable | `VITE_CONVEX_URL` = URL de votre déploiement Convex |
-
-Localement :
-
-```bash
-cp .env.example .env.local
-# renseigner VITE_CONVEX_URL (et CONVEX_DEPLOYMENT si besoin)
+bunx convex dev        # crée/relie le déploiement Convex de dev, génère les types
+cp .env.example .env.local   # VITE_CONVEX_URL est remplie par `convex dev`
 bun run dev
 ```
 
-### 2.4 Première connexion
+Ouvrez http://localhost:5173 — contenu d'exemple généré au premier chargement.
+Connexion `/auth` : `admin@admin.com` / `admin123` (compte de démo, à changer).
 
-1. Ouvrez le site → le contenu d'exemple est généré automatiquement.
-2. `/auth` → connectez-vous avec `admin@admin.com` / `admin123`.
-3. **Changez immédiatement** email + mot de passe (**Sécurité du compte** dans le menu du tableau de bord).
-4. Saisissez votre clé DeepL et votre ID Google Analytics (**Intégrations**).
+En local, `CONVEX_SITE_URL` vaut `http://localhost:5173` (cf. `.env.example`) ;
+sur le déploiement de dev Convex, laissez Convex Auth la provisionner ou
+faites `bunx convex env set CONVEX_SITE_URL http://localhost:5173`.
 
-### 2.5 Email
-
-Deux stratégies — voir la section 3 pour les détails :
-
-- **Sans email (recommandé pour un départ rapide)** : désactivez les deux interrupteurs dans le menu **Intégrations**. Tout le reste (mot de passe, boîte de réception) fonctionne.
-- **Avec email** : remplacez le relais dans `src/convex/emailRelay.ts` par votre fournisseur (ex. Resend).
-
-### 2.6 Nettoyage optionnel des fichiers Freebuff
-
-Hors plateforme, ces éléments ne servent plus (ils sont inertes) et peuvent être supprimés :
-
-- `vlyPlugin()` dans `vite.config.ts` (+ la dépendance `@vly-ai/integrations` dans `package.json`)
-- Les fichiers signalés « DO NOT MODIFY » / read-only du template (ex. `vly-toolbar-readonly.tsx` à la racine)
-
-> Sur Freebuff Web, ces fichiers sont **gérés par la plateforme** : ne les modifiez pas là-bas, elle les recrée. Supprimez-les uniquement dans votre propre dépôt GitHub.
+> **Mot de passe oublié :** pas de porte de secours par email (OTP supprimé).
+> Procédure : dashboard Convex → table `authAccounts` → supprimer la ligne du
+> compte mot de passe → recharger `/auth` — `ensureAdmin` recrée le compte
+> par défaut.
 
 ---
 
-## 3. Les canaux email en détail
+## 3. L'email de notification en détail
 
-Une seule fonctionnalité envoie des emails, via le helper `sendViaEmailRelay` :
+Une seule fonctionnalité envoie des emails : la **notification de contact**
+(un avis court, sans le texte du message). Le message complet reste toujours
+dans la boîte de réception du tableau de bord.
 
-| Fonctionnalité | Fichier | Réglage dans l'app |
-|---|---|---|
-| Notification de contact (avis court, sans le texte) | `src/convex/notify.ts` (appelé par `siteMutations.ts` → `addMessage`) | **Intégrations → « Notifications de contact (email) »** |
+> L'ancien canal **OTP** (codes de connexion par email) a été **supprimé
+> entièrement** : la seule connexion est le mot de passe du propriétaire.
 
-> L'ancien canal **OTP** (codes de connexion par email) a été **supprimé entièrement** : la seule connexion est le mot de passe du propriétaire, et aucun visiteur ne peut créer de compte.
+### Le canal unique : SMTP (Gmail par défaut)
 
-### Option A — Tout désactiver (aucun email)
+L'envoi passe par **nodemailer** (`src/convex/notify.ts`, action backend
+`sendContactEmail`) — un vrai expéditeur, une bonne délivrabilité, aucun
+fournisseur tiers à créer. Fonctionne à l'identique en local, sur Vercel ou
+ailleurs.
 
-1. **Intégrations** (menu du tableau de bord).
-2. Coupez **« Notifications de contact (email) »** → plus d'email à la réception d'un message ; le message reste stocké dans **Messages**.
-3. Résultat : l'application tourne sans aucune dépendance email. ✅
+**Configuration** (tout se passe dans l'app, aucune variable d'environnement) :
 
-### Option B — Rebrancher sur votre propre fournisseur
+1. **Intégrations** (menu du tableau de bord) → activez
+   **« Envoyer via SMTP (Gmail) »**.
+2. Renseignez votre **adresse Gmail** (expéditeur) et un
+   [mot de passe d'application](https://myaccount.google.com/apppasswords)
+   (nécessite la validation en deux étapes sur le compte Google). Les valeurs
+   serveur sont pré-remplies : `smtp.gmail.com`, port 465 SSL.
+3. Choisissez le destinataire : **« Email de notification »** (à défaut,
+   l'email de contact de la section À propos est utilisé).
+4. Validez avec le bouton **« Envoyer un email de test »**.
 
-Le principe : `sendViaEmailRelay({ to, appName, otp })` est appelé à **deux endroits seulement**. Remplacez son implémentation dans `src/convex/emailRelay.ts` par un appel à votre fournisseur, et rien d'autre ne change.
+Le mot de passe d'application est stocké côté backend Convex et n'est jamais
+renvoyé au client (`smtpPass` write-only, comme la clé DeepL).
 
-Exemple minimal avec Resend (à adapter) :
+**Sans SMTP configuré** (ou interrupteur « Notifications de contact » coupé) :
+aucun email n'est envoyé, mais le message est bien stocké dans **Messages** —
+l'application reste 100 % fonctionnelle.
 
-```ts
-// src/convex/emailRelay.ts — implémentation Resend
-const RESEND_API_KEY = process.env.RESEND_API_KEY; // dashboard Convex → Env Variables
+**Autre fournisseur** (Resend, SendGrid, Brevo…) : modifiez
+`src/convex/notify.ts` — il n'existe qu'**un seul point d'appel**.
 
-export type RelayResult = { ok: true; id?: string } | { ok: false; error: string };
+---
 
-export async function sendViaEmailRelay(payload: {
-  to: string;
-  appName: string;
-  otp: string;
-}): Promise<RelayResult> {
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Mfolio <onboarding@resend.dev>",
-        to: payload.to,
-        subject: `Sign in to ${payload.appName}`,
-        text: `Enter this code on the sign-in page: ${payload.otp}`,
-      }),
-    });
-    if (!response.ok) return { ok: false, error: `HTTP ${response.status}` };
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Email request failed",
-    };
-  }
-}
+## 4. Migration depuis un ancien déploiement
+
+Tout le contenu (portfolio, réglages, messages, stats) vit dans la base
+Convex. Un déploiement Convex neuf démarre avec la base vide : le contenu
+d'exemple est régénéré au premier chargement, puis vous ressaisissez vos
+données depuis le tableau de bord (ou réimportez le **JSON de sauvegarde**
+disponible dans **Paramètres**).
+
+Si votre ancien déploiement Convex est encore accessible, vous pouvez en
+exporter un instantané complet :
+
+```bash
+# liaisons vers l'ancien déploiement, puis :
+npx convex export --include-storage <dossier-export>
 ```
 
-Notes :
-
-- La clé API se configure dans le **dashboard Convex → Settings → Env Variables** (jamais dans le dépôt), et se lit avec `process.env`.
-- Le relais de la plateforme formate tous les emails comme un email de code (« Sign in to … »). Avec votre propre fournisseur, vous contrôlez le sujet et le corps : la notification de contact peut par exemple contenir le nom de l'expéditeur et le sujet du message.
-
-### Récapitulatif : ce qui dépend de Freebuff
-
-| Élément | Dépend de Freebuff ? | Portable ? |
-|---|---|---|
-| Relais email (`emailRelay.ts`) | Oui (URL + clé codée en dur) | Oui — désactivable ou remplaçable |
-| Codes OTP (connexion par email) | — | Supprimé — aucune création de compte public |
-| Base de données + backend Convex | Non | Oui — votre propre projet Convex |
-| Auth (mot de passe) | Non | Oui |
-| DeepL / Google Analytics | Non | Oui — clés personnelles |
-| Images, stats, anti-spam, SEO | Non | Oui |
+L'import ciblé de tables vers un nouveau déploiement est un processus manuel
+(les formats d'export ne sont pas directement réimportables) : l'utilitaire
+`npx convex import` accepte des fichiers CSV/JSONL par table. En pratique,
+pour un portfolio monopropriétaire, la ressaisie (ou le JSON de sauvegarde
+réimporté via le dashboard) est plus rapide.
 
 ---
 
-## 4. FAQ
+## 5. FAQ
 
-**Est-il possible d'héberger Mfolio soi-même ?**
-Oui. Le backend est un projet Convex standard (déploiement cloud gratuit ou self-hosted), le frontend un build Vite statique. Seuls les deux canaux email utilisent le relais Freebuff — désactivez-les (Option A) ou rebranchez-les (Option B).
+**Puis-je héberger le frontend ailleurs que sur Vercel ?**
+Oui — n'importe quel hébergeur statique avec un fallback SPA (tous les chemins
+→ `index.html`). Poussez les fonctions avec `bunx convex deploy` et définissez
+`VITE_CONVEX_URL` au build.
+
+**Pourquoi la connexion échoue après le déploiement ?**
+`CONVEX_SITE_URL` sur le déploiement Convex ne correspond pas à l'origine
+exacte du site (protocole + domaine + port). Vérifiez avec
+`bunx convex env list` et corrigez : `bunx convex env set CONVEX_SITE_URL
+https://votre-domaine`.
 
 **Puis-je conserver mon contenu en changeant d'hébergement ?**
-Oui. Tout le contenu vit dans Convex. En réutilisant le même déploiement Convex (`CONVEX_DEPLOYMENT` + `VITE_CONVEX_URL`), contenu, réglages, messages et statistiques suivent automatiquement.
+Oui. Tout le contenu vit dans Convex : en réutilisant le même déploiement
+Convex (`CONVEX_DEPLOY_KEY` de ce déploiement + `VITE_CONVEX_URL` au build),
+contenu, réglages, messages et statistiques suivent automatiquement.
 
 **Que se passe-t-il si je ne renseigne pas de clé DeepL ?**
-La traduction FR→EN est désactivée : le site s'affiche en français uniquement (la langue reste commutable via le sélecteur).
-
-**L'email de notification fonctionne-t-il sans clé sur Freebuff ?**
-Oui — c'est l'intérêt du relais de plateforme. Hors Freebuff, il faut l'Option A ou B.
+La traduction FR→EN est désactivée : le site s'affiche en français uniquement
+(la langue reste commutable via le sélecteur).
 
 **Comment réinitialiser les statistiques ?**
-Elles se purgent automatiquement au-delà de 90 jours (tâche planifiée quotidienne dans `src/convex/scheduler.ts`). Pour tout vider manuellement, utilisez le dashboard Convex → table `visitors`.
+Elles se purgent automatiquement au-delà de 90 jours (tâche planifiée
+quotidienne dans `src/convex/scheduler.ts`). Pour tout vider manuellement,
+utilisez le dashboard Convex → table `visitors`.

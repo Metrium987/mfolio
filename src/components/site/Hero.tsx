@@ -34,10 +34,7 @@ export function Hero({
   useEffect(() => {
     if (taglines.length === 0) return;
     if (typedCount < currentText.length) {
-      const timeout = setTimeout(
-        () => setTypedCount((count) => count + 1),
-        70,
-      );
+      const timeout = setTimeout(() => setTypedCount((count) => count + 1), 70);
       return () => clearTimeout(timeout);
     }
     if (taglines.length < 2) return; // single tagline: stop after typing
@@ -67,6 +64,8 @@ export function Hero({
               <img
                 src={about.cover}
                 alt=""
+                width={1600}
+                height={686}
                 className="aspect-[21/9] w-full object-cover sm:aspect-[21/8]"
                 loading="eager"
               />
@@ -123,34 +122,34 @@ export function Hero({
               be visible immediately — an in-view animation can leave them at
               opacity 0 when the row sits below the fold at mount time. */}
           <div className="mt-9 flex flex-wrap items-center gap-3">
+            <a
+              href="#contact"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              {t("hero.contact")}
+              <ArrowUpRight className="size-4" />
+            </a>
+            {visibilityCv && about.cvUrl && (
               <a
-                href="#contact"
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                {t("hero.contact")}
-                <ArrowUpRight className="size-4" />
-              </a>
-              {visibilityCv && about.cvUrl && (
-                <a
-                  href={about.cvUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
-                >
-                  {t("hero.downloadCv")}
-                  <ArrowDown className="size-4" />
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={() => window.print()}
-                title={t("hero.printHint")}
+                href={about.cvUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
               >
-                <Printer className="size-4" />
-                {t("hero.printCv")}
-              </button>
-            </div>
+                {t("hero.downloadCv")}
+                <ArrowDown className="size-4" />
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => window.print()}
+              title={t("hero.printHint")}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:border-foreground"
+            >
+              <Printer className="size-4" />
+              {t("hero.printCv")}
+            </button>
+          </div>
 
           {about.socials.length > 0 && (
             <Reveal delay={0.3}>
@@ -186,6 +185,8 @@ export function Hero({
                 <img
                   src={about.avatar}
                   alt={`${t("hero.alt")} ${about.name}`}
+                  width={900}
+                  height={1125}
                   className="aspect-[4/5] w-full object-cover"
                   loading="eager"
                 />
