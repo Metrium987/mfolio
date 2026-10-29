@@ -10,7 +10,6 @@
 
 import type * as auth from "../auth.js";
 import type * as credentials from "../credentials.js";
-import type * as emailRelay from "../emailRelay.js";
 import type * as ensureAdmin from "../ensureAdmin.js";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
@@ -31,7 +30,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   credentials: typeof credentials;
-  emailRelay: typeof emailRelay;
   ensureAdmin: typeof ensureAdmin;
   files: typeof files;
   http: typeof http;
